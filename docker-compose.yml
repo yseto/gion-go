@@ -1,0 +1,86 @@
+x-common-env: &cenv
+  DB_DRIVER: mysql
+  DSN: user:pass@tcp(db:3306)/gion?parseTime=true
+  REDIS_ADDR: redis:6379
+
+x-common-depends-on: &depends
+  db:
+    condition: service_healthy
+  redis:
+    condition: service_healthy
+
+services:
+  ofelia:
+    image: mcuadros/ofelia:v0.3.6
+    depends_on:
+      - app
+    command: daemon --docker
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+  app:
+    build:
+      context: ./
+    depends_on:
+      <<: *depends
+    environment:
+      <<: *cenv
+    command: /app/gion
+    ports:
+      - 8080:8080
+    labels:
+      ofelia.enabled: "true"
+      ofelia.job-exec.cleanup.schedule: "@every 1h"
+      ofelia.job-exec.cleanup.command: "/app/queueing --mode cleanup"
+      ofelia.job-exec.queueing.schedule: "@every 5m"
+      ofelia.job-exec.queueing.command: "/app/queueing --mode crawler"
+
+  init-app:
+    build:
+      context: ./
+    depends_on:
+      <<: *depends
+    environment:
+      <<: *cenv
+    command: /app/insertuser -u demo -p demodemo
+
+  worker:
+    build:
+      context: ./
+    depends_on:
+      <<: *depends
+    environment:
+      <<: *cenv
+    command: /app/worker
+
+  redis:
+    image: redis:7-alpine3.16
+    healthcheck:
+      test: ["CMD", "redis-cli" ,"ping"]
+      start_period: 5s
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  db:
+    image: mysql:8
+    volumes:
+      - mysql:/var/lib/mysql
+      - "./sql/mysql:/docker-entrypoint-initdb.d"
+    environment:
+      - MYSQL_DATABASE=gion
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD=pass
+      - MYSQL_ALLOW_EMPTY_PASSWORD=yes
+    security_opt:
+      - seccomp:unconfined
+    healthcheck:
+      test: mysqladmin ping -h 127.0.0.1 -u$$MYSQL_USER -p$$MYSQL_PASSWORD
+      start_period: 5s
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  mysql:
+
