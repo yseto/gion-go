@@ -51,10 +51,12 @@ func examineSubscriptionGetContent(rawUrl string) (e examine) {
 
 	e.Title = htmlquery.InnerText(title)
 
-	// ref. http://blog.livedoor.jp/dankogai/archives/51568463.html
-	rssUrlNode := htmlquery.FindOne(doc, `/html/head/link[@type="application/rss+xml"][1]/@href`)
+	// most blog service is /html/head/link....
+	// but youtube /hrml/body/link....
+	// each inclusive query.
+	rssUrlNode := htmlquery.FindOne(doc, `//link[@type="application/rss+xml"][1]/@href`)
 	if rssUrlNode == nil {
-		rssUrlNode = htmlquery.FindOne(doc, `/html/head/link[@type="application/atom+xml"][1]/@href`)
+		rssUrlNode = htmlquery.FindOne(doc, `//link[@type="application/atom+xml"][1]/@href`)
 	}
 	if rssUrlNode == nil {
 		return
