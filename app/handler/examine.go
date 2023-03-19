@@ -94,11 +94,8 @@ func ExamineSubscription(c echo.Context) error {
 	var pf []*previewFeed
 	for i := range feed.Items {
 		var date string
-		if dt := feed.Items[i].UpdatedParsed; dt == nil {
-			dt = feed.Items[i].PublishedParsed
-			if dt != nil {
-				date = dt.Format("01/02 15:04")
-			}
+		if dt := feed.Items[i].PublishedParsed; dt != nil {
+			date = dt.Format("01/02 15:04")
 		}
 		pf = append(pf, &previewFeed{
 			Title: feed.Items[i].Title,
