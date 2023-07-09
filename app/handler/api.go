@@ -21,36 +21,6 @@ type categoryAndSubscription struct {
 	Subs []*db.SubscriptionForUser `json:"subscription"`
 }
 
-func Subscriptions(c echo.Context) error {
-	dbClient := c.(*CustomContext).DBUser()
-	subs, err := dbClient.Subscriptions()
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, nil)
-	}
-	cat, err := dbClient.Category()
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, nil)
-	}
-
-	var resp []categoryAndSubscription
-	for i := range cat {
-		var subsOnCategory []*db.SubscriptionForUser
-		for j := range subs {
-			if cat[i].ID == subs[j].CategoryID {
-				subsOnCategory = append(subsOnCategory, subs[j])
-			}
-		}
-
-		resp = append(resp, categoryAndSubscription{
-			ID:   cat[i].ID,
-			Name: cat[i].Name,
-			Subs: subsOnCategory,
-		})
-	}
-
-	return c.JSON(http.StatusOK, resp)
-}
-
 type asread struct {
 	FeedID uint64 `json:"feed_id"`
 	Serial uint64 `json:"serial"`

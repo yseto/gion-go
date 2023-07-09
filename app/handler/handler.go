@@ -115,3 +115,39 @@ func (*ApiServer) UnreadEntry(ctx context.Context, request UnreadEntryRequestObj
 	}
 	return UnreadEntry200JSONResponse(items), nil
 }
+
+func (*ApiServer) Subscriptions(ctx context.Context, request SubscriptionsRequestObject) (SubscriptionsResponseObject, error) {
+	dbClient := DBUserFromContext(ctx)
+	subs, err := dbClient.Subscriptions()
+	if err != nil {
+		return Subscriptions400Response{}, nil
+	}
+	cat, err := dbClient.Category()
+	if err != nil {
+		return Subscriptions400Response{}, nil
+	}
+
+	var resp []Subscription
+	for i := range cat {
+		var subsOnCategory []SubscriptionForUser
+		for j := range subs {
+			if cat[i].ID == subs[j].CategoryID {
+				subsOnCategory = append(subsOnCategory, SubscriptionForUser{
+					CategoryId: subs[j].CategoryID,
+					HttpStatus: subs[j].HTTPStatus,
+					FeedID:     subs[j].FeedID,
+					Siteurl:    subs[j].SiteURL,
+					Title:      subs[j].FeedTitle,
+				})
+			}
+		}
+
+		resp = append(resp, Subscription{
+			ID:           cat[i].ID,
+			Name:         cat[i].Name,
+			Subscription: subsOnCategory,
+		})
+	}
+
+	return Subscriptions200JSONResponse(resp), nil
+}
