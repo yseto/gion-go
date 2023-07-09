@@ -15,40 +15,6 @@ type opmlResult struct {
 	Xml string `json:"xml"`
 }
 
-func OpmlExport(c echo.Context) error {
-	db := c.(*CustomContext).DBUser()
-	cats, err := db.Category()
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, nil)
-	}
-
-	o := opml.Body{}
-	for i := range cats {
-		feeds, err := db.FeedsByCategoryID(cats[i].ID)
-		if err != nil {
-			return c.JSON(http.StatusBadRequest, nil)
-		}
-
-		b := opml.Outline{Text: cats[i].Name, Title: cats[i].Name}
-		for j := range feeds {
-			b.Outlines = append(b.Outlines, opml.Outline{
-				Type:    "rss",
-				Text:    feeds[j].Title,
-				Title:   feeds[j].Title,
-				HTMLURL: feeds[j].SiteURL,
-				XMLURL:  feeds[j].URL})
-		}
-		o.Outlines = append(o.Outlines, b)
-	}
-
-	xml, err := opml.OPML{Version: "1.0", Head: opml.Head{Title: "export data"}, Body: o}.XML()
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, nil)
-	}
-
-	return c.JSON(http.StatusOK, opmlResult{xml})
-}
-
 func categoryByName(c echo.Context, categoryName string) (*db.Category, error) {
 	db := c.(*CustomContext).DBUser()
 	tx := db.MustBegin()
