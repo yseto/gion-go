@@ -1,5 +1,10 @@
 package main
 
+//go:generate go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@v1.13.0
+//go:generate oapi-codegen -package handler -generate echo-server,strict-server -o handler/server.gen.go openapi.yaml
+//go:generate oapi-codegen -package handler -generate spec -o handler/spec.gen.go openapi.yaml
+//go:generate oapi-codegen -package handler -generate types -o handler/types.gen.go openapi.yaml
+
 import (
 	"context"
 	"log"
@@ -9,6 +14,8 @@ import (
 	"os/signal"
 	"time"
 
+	oapiMiddleware "github.com/deepmap/oapi-codegen/pkg/middleware"
+	"github.com/getkin/kin-openapi/openapi3filter"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
@@ -36,10 +43,33 @@ func main() {
 		dbConn.Exec("PRAGMA foreign_keys = ON")
 	}
 
+	swagger, _ := handler.GetSwagger()
+	swagger.Servers = nil
 
+	e.Use(
+		oapiMiddleware.OapiRequestValidatorWithOptions(swagger,
+			&oapiMiddleware.Options{
+				Options: openapi3filter.Options{
+					AuthenticationFunc: handler.NewAuthenticator(),
+				},
+			}),
 
+		func(next echo.HandlerFunc) echo.HandlerFunc {
+			return func(c echo.Context) error {
+				ctx := handler.NewDBContext(c.Request().Context(), dbConn)
 
+				// into a value http.Request.Context from echo.Context
+				if userid := c.Get(handler.SessionContextKey); userid != nil {
+					ctx = handler.NewUserContext(ctx, userid.(uint64))
+				}
+				c.SetRequest(c.Request().WithContext(ctx))
+				return next(c)
+			}
+		})
+	e.Use(middleware.Logger())
+	e.Use(middleware.Recover())
 
+	handler.RegisterHandlers(e, handler.NewStrictHandler(handler.NewApiServer(), nil))
 
 	go func() {
 		if err := e.Start(net.JoinHostPort(cfg.HTTPHost, cfg.HTTPPort)); err != nil && err != http.ErrServerClosed {
