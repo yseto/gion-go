@@ -316,3 +316,21 @@ func (*ApiServer) ChangeSubscription(ctx context.Context, request ChangeSubscrip
 	}
 	return ChangeSubscription200JSONResponse{Result: "OK"}, nil
 }
+
+func (*ApiServer) UpdateProfile(ctx context.Context, request UpdateProfileRequestObject) (UpdateProfileResponseObject, error) {
+	if request.Body == nil {
+		return UpdateProfile400Response{}, nil
+	}
+
+	err := DBUserFromContext(ctx).UpdateProfile(db.UserProfile{
+		AutoSeen:        request.Body.Autoseen,
+		EntryCount:      request.Body.Numentry,
+		NoPinList:       request.Body.Nopinlist,
+		SubstringLength: request.Body.Numsubstr,
+	})
+
+	if err != nil {
+		return UpdateProfile400Response{}, nil
+	}
+	return UpdateProfile200JSONResponse{Result: "OK"}, nil
+}

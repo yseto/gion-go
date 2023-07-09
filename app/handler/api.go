@@ -45,19 +45,6 @@ type commonResult struct {
 	Result string `json:"r"`
 }
 
-func UpdateProfile(c echo.Context) error {
-	var profile db.UserProfile
-	if err := json.NewDecoder(c.Request().Body).Decode(&profile); err != nil {
-		return c.JSON(http.StatusBadRequest, nil)
-	}
-	defer c.Request().Body.Close()
-
-	if c.(*CustomContext).DBUser().UpdateProfile(profile) != nil {
-		return c.JSON(http.StatusBadRequest, nil)
-	}
-	return c.JSON(http.StatusOK, commonResult{"OK"})
-}
-
 func RemoveAllPin(c echo.Context) error {
 	if c.(*CustomContext).DBUser().RemovePinnedItem() != nil {
 		return c.JSON(http.StatusBadRequest, nil)
