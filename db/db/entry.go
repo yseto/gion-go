@@ -2,27 +2,19 @@ package db
 
 import (
 	"fmt"
-	"strconv"
 	"time"
 )
 
-type pubdate time.Time
-
-func (h *pubdate) MarshalJSON() ([]byte, error) {
-	ht := time.Time(*h)
-	return []byte(strconv.FormatInt(ht.Unix(), 10)), nil
-}
-
 type EntryDetail struct {
-	EntrySerial    uint64   `db:"serial" json:"serial"`
-	EntryFeedID    uint64   `db:"feed_id" json:"feed_id"`
-	Title          string   `db:"title" json:"title"`
-	Description    string   `db:"description" json:"description"`
-	PubDate        pubdate  `db:"pubdate" json:"date_epoch"`
-	ReadFlag       ReadFlag `db:"readflag" json:"readflag"`
-	URL            string   `db:"url" json:"url"`
-	SubscriptionID uint64   `db:"subscription_id" json:"subscription_id"`
-	SiteTitle      string   `db:"site_title" json:"site_title"`
+	EntrySerial    uint64    `db:"serial" json:"serial"`
+	EntryFeedID    uint64    `db:"feed_id" json:"feed_id"`
+	Title          string    `db:"title" json:"title"`
+	Description    string    `db:"description" json:"description"`
+	PubDate        time.Time `db:"pubdate" json:"date_epoch"`
+	ReadFlag       ReadFlag  `db:"readflag" json:"readflag"`
+	URL            string    `db:"url" json:"url"`
+	SubscriptionID uint64    `db:"subscription_id" json:"subscription_id"`
+	SiteTitle      string    `db:"site_title" json:"site_title"`
 }
 
 func (c *UserClient) UnreadEntryByCategory(categoryID uint64) ([]*EntryDetail, error) {
