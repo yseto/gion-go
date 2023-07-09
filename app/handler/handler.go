@@ -415,3 +415,48 @@ func examineSubscriptionGetContent(rawUrl string) (*ExamineSubscription, error) 
 		Title: title,
 	}, nil
 }
+
+func (*ApiServer) ExamineSubscription(ctx context.Context, request ExamineSubscriptionRequestObject) (ExamineSubscriptionResponseObject, error) {
+	var empty = ExamineSubscription200JSONResponse{
+		Success: false,
+	}
+
+	content, err := examineSubscriptionGetContent(request.Body.Url)
+	if err != nil {
+		return empty, nil
+	}
+
+	empty.Title = content.Title
+
+	resp, err := paranoidhttp.DefaultClient.Get(content.URL)
+	if err != nil {
+		return empty, nil
+	}
+	defer resp.Body.Close()
+
+	feed, err := gofeed.NewParser().Parse(resp.Body)
+	if err != nil {
+		return empty, nil
+	}
+
+	var sampleFeeed = []ExamineFeed{}
+	for i := range feed.Items {
+		var date string
+		if dt := feed.Items[i].PublishedParsed; dt != nil {
+			date = dt.Format("01/02 15:04")
+		}
+		sampleFeeed = append(sampleFeeed, ExamineFeed{
+			Title: feed.Items[i].Title,
+			Url:   feed.Items[i].Link,
+			Date:  date,
+		})
+
+		if len(sampleFeeed) == 3 {
+			break
+		}
+	}
+	content.PreviewFeed = sampleFeeed
+	content.Success = true
+
+	return ExamineSubscription200JSONResponse(*content), nil
+}
