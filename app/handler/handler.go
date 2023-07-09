@@ -9,6 +9,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/antchfx/htmlquery"
+	"github.com/gilliek/go-opml/opml"
 	"github.com/hakobe/paranoidhttp"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/mmcdole/gofeed"
