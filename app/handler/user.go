@@ -15,48 +15,6 @@ type jwtCustomClaims struct {
 	jwt.StandardClaims
 }
 
-// https://echo.labstack.com/middleware/jwt/
-// https://echo.labstack.com/cookbook/jwt/
-func Login(c echo.Context) error {
-	username := c.FormValue("id")
-	password := c.FormValue("password")
-
-	db := c.(*CustomContext).DBCommon()
-
-	user, err := db.UserByName(username)
-	if err != nil {
-		c.Response().Header().Set("WWW-Authenticate", `Bearer realm="need token" error="invalid_token"`)
-		return echo.ErrUnauthorized
-	}
-
-	if check := bcrypt.CompareHashAndPassword([]byte(user.Digest), []byte(password)); check != nil {
-		c.Response().Header().Set("WWW-Authenticate", `Bearer realm="need token" error="invalid_token"`)
-		return echo.ErrUnauthorized
-	}
-
-	if err := db.UpdateUserLastLogin(user.ID); err != nil {
-		fmt.Println(err)
-	}
-
-	claims := &jwtCustomClaims{
-		user.ID,
-		jwt.StandardClaims{},
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-
-	// Generate encoded token and send it as response.
-	signedToken, err := token.SignedString([]byte(JwtSignedKey))
-	if err != nil {
-		return err
-	}
-
-	return c.JSON(http.StatusOK, echo.Map{
-		"autoseen": user.UserProfile.AutoSeen,
-		"token":    signedToken,
-	})
-}
-
 func Logout(c echo.Context) error {
 	return c.JSON(http.StatusOK, echo.Map{})
 }

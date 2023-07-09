@@ -594,3 +594,42 @@ func (*ApiServer) OpmlImport(ctx context.Context, request OpmlImportRequestObjec
 
 	return OpmlImport200JSONResponse{true}, nil
 }
+
+// https://echo.labstack.com/middleware/jwt/
+// https://echo.labstack.com/cookbook/jwt/
+func (*ApiServer) Login(ctx context.Context, request LoginRequestObject) (LoginResponseObject, error) {
+	db := DBCommonFromContext(ctx)
+
+	user, err := db.UserByName(request.Body.Id)
+	if err != nil {
+		return LogindefaultResponse{
+			StatusCode: http.StatusUnauthorized,
+			Headers: LogindefaultResponseHeaders{
+				WWWAuthenticate: `Bearer realm="need token" error="invalid_token"`,
+			},
+		}, nil
+	}
+
+	if check := bcrypt.CompareHashAndPassword([]byte(user.Digest), []byte(request.Body.Password)); check != nil {
+		return LogindefaultResponse{
+			StatusCode: http.StatusUnauthorized,
+			Headers: LogindefaultResponseHeaders{
+				WWWAuthenticate: `Bearer realm="need token" error="invalid_token"`,
+			},
+		}, nil
+	}
+
+	if err := db.UpdateUserLastLogin(user.ID); err != nil {
+		fmt.Println(err)
+	}
+
+	signedToken, err := GenerateToken(user.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return Login200JSONResponse{
+		Autoseen: user.UserProfile.AutoSeen,
+		Token:    signedToken,
+	}, nil
+}
