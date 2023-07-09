@@ -128,7 +128,7 @@ func (*ApiServer) UnreadEntry(ctx context.Context, request UnreadEntryRequestObj
 			DateEpoch:      uint64(i.PubDate.Unix()),
 			Description:    d,
 			FeedId:         i.EntryFeedID,
-			Readflag:       i.ReadFlag.ToPinReadFlag(),
+			Readflag:       i.ReadFlag,
 			Serial:         i.EntrySerial,
 			SiteTitle:      i.SiteTitle,
 			SubscriptionId: i.SubscriptionID,
@@ -193,14 +193,14 @@ func (*ApiServer) SetAsRead(ctx context.Context, request SetAsReadRequestObject)
 }
 
 func (*ApiServer) SetPin(ctx context.Context, request SetPinRequestObject) (SetPinResponseObject, error) {
-	var readflag db.ReadFlag
+	var readflag pin.ReadFlag
 	if request.Body.Readflag == pin.Setpin {
-		readflag = db.Seen
+		readflag = pin.Seen
 	} else {
-		readflag = db.SetPin
+		readflag = pin.Setpin
 	}
 
-	fmt.Printf("PIN feed_id:%d\tserial:%d\treadflag:%d\n", request.Body.FeedId, request.Body.Serial, readflag)
+	fmt.Printf("PIN feed_id:%d\tserial:%d\treadflag:%s\n", request.Body.FeedId, request.Body.Serial, readflag)
 
 	tx := DBUserFromContext(ctx).MustBegin()
 	if tx.UpdateEntry(request.Body.FeedId, request.Body.Serial, readflag) != nil {
@@ -209,7 +209,7 @@ func (*ApiServer) SetPin(ctx context.Context, request SetPinRequestObject) (SetP
 	}
 	tx.Commit()
 
-	return SetPin200JSONResponse{readflag.ToPinReadFlag()}, nil
+	return SetPin200JSONResponse{readflag}, nil
 }
 
 func (*ApiServer) RegisterCategory(ctx context.Context, request RegisterCategoryRequestObject) (RegisterCategoryResponseObject, error) {

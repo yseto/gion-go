@@ -3,18 +3,20 @@ package db
 import (
 	"fmt"
 	"time"
+
+	"github.com/yseto/gion-go/internal/pin"
 )
 
 type EntryDetail struct {
-	EntrySerial    uint64    `db:"serial"`
-	EntryFeedID    uint64    `db:"feed_id"`
-	Title          string    `db:"title"`
-	Description    string    `db:"description"`
-	PubDate        time.Time `db:"pubdate"`
-	ReadFlag       ReadFlag  `db:"readflag"`
-	URL            string    `db:"url"`
-	SubscriptionID uint64    `db:"subscription_id"`
-	SiteTitle      string    `db:"site_title"`
+	EntrySerial    uint64       `db:"serial"`
+	EntryFeedID    uint64       `db:"feed_id"`
+	Title          string       `db:"title"`
+	Description    string       `db:"description"`
+	PubDate        time.Time    `db:"pubdate"`
+	ReadFlag       pin.ReadFlag `db:"readflag"`
+	URL            string       `db:"url"`
+	SubscriptionID uint64       `db:"subscription_id"`
+	SiteTitle      string       `db:"site_title"`
 }
 
 func (c *UserClient) UnreadEntryByCategory(categoryID uint64) ([]*EntryDetail, error) {

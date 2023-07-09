@@ -6,40 +6,6 @@ import (
 	"github.com/yseto/gion-go/internal/pin"
 )
 
-type ReadFlag uint64
-
-const (
-	Unseen ReadFlag = iota
-	Seen
-	SetPin
-)
-
-func (c ReadFlag) String() string {
-	switch c {
-	case Unseen:
-		return "Unseen"
-	case Seen:
-		return "Seen"
-	case SetPin:
-		return "Setpin"
-	default:
-		panic("Unknown")
-	}
-}
-
-func (c ReadFlag) ToPinReadFlag() pin.ReadFlag {
-	switch c {
-	case Unseen:
-		return pin.Unseen
-	case Seen:
-		return pin.Seen
-	case SetPin:
-		return pin.Setpin
-	default:
-		panic("Unknown")
-	}
-}
-
 type PinnedItem struct {
 	Title         string `db:"title"`
 	URL           string `db:"url"`
@@ -74,8 +40,8 @@ ORDER BY pubdate DESC
 	return items, nil
 }
 
-func (c *UserClientTxn) UpdateEntry(feedID, serial uint64, readflag ReadFlag) error {
-	if readflag == Unseen {
+func (c *UserClientTxn) UpdateEntry(feedID, serial uint64, readflag pin.ReadFlag) error {
+	if readflag == pin.Unseen {
 		return fmt.Errorf("UpdateEntry : Readflag is invalid. UserID: %d feedID: %d Serial: %d", c.UserID, feedID, serial)
 	}
 	_, err := c.Exec(`
