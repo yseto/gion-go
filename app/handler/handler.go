@@ -499,3 +499,31 @@ func (*ApiServer) OpmlExport(ctx context.Context, request OpmlExportRequestObjec
 
 	return OpmlExport200JSONResponse{Xml: xml}, nil
 }
+
+func categoryByName(ctx context.Context, categoryName string) (*db.Category, error) {
+	db := DBUserFromContext(ctx)
+	tx := db.MustBegin()
+	cat, err := tx.CategoryByName(categoryName)
+	if err != nil && err != sql.ErrNoRows {
+		tx.Rollback()
+		return nil, err
+	}
+	if cat != nil {
+		tx.Commit()
+		return cat, nil
+	}
+
+	err = tx.InsertCategory(categoryName)
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	cat, err = tx.CategoryByName(categoryName)
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+	tx.Commit()
+	return cat, nil
+}

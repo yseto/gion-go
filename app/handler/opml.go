@@ -15,34 +15,6 @@ type opmlResult struct {
 	Xml string `json:"xml"`
 }
 
-func categoryByName(c echo.Context, categoryName string) (*db.Category, error) {
-	db := c.(*CustomContext).DBUser()
-	tx := db.MustBegin()
-	cat, err := tx.CategoryByName(categoryName)
-	if err != nil && err != sql.ErrNoRows {
-		tx.Rollback()
-		return nil, err
-	}
-	if cat != nil {
-		tx.Commit()
-		return cat, nil
-	}
-
-	err = tx.InsertCategory(categoryName)
-	if err != nil {
-		tx.Rollback()
-		return nil, err
-	}
-
-	cat, err = tx.CategoryByName(categoryName)
-	if err != nil {
-		tx.Rollback()
-		return nil, err
-	}
-	tx.Commit()
-	return cat, nil
-}
-
 func saveOutline(c echo.Context, categoryName string, o opml.Outline) error {
 	if o.XMLURL == "" || o.HTMLURL == "" || o.Title == "" {
 		fmt.Printf("missing required parameter : %+v\n", o)
