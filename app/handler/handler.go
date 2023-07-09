@@ -580,3 +580,16 @@ func walkOutlines(ctx context.Context, categoryName string, o []opml.Outline) er
 	}
 	return nil
 }
+
+func (*ApiServer) OpmlImport(ctx context.Context, request OpmlImportRequestObject) (OpmlImportResponseObject, error) {
+	o, err := opml.NewOPML([]byte(request.Body.Xml))
+	if err != nil {
+		return OpmlImport400Response{}, nil
+	}
+
+	if err = walkOutlines(ctx, "Default Category", o.Outlines()); err != nil {
+		return OpmlImport400Response{}, nil
+	}
+
+	return OpmlImport200JSONResponse{true}, nil
+}
