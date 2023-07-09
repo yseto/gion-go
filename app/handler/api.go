@@ -15,14 +15,6 @@ import (
 	"github.com/yseto/gion-go/db/db"
 )
 
-func CategoryAndUnreadEntryCount(c echo.Context) error {
-	cat, err := c.(*CustomContext).DBUser().CategoryAndUnreadEntryCount()
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, nil)
-	}
-	return c.JSON(http.StatusOK, cat)
-}
-
 func UnreadEntry(c echo.Context) error {
 	category, err := strconv.ParseUint(c.FormValue("category"), 10, 64)
 	if err != nil {

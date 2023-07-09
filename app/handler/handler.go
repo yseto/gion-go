@@ -57,3 +57,21 @@ func (*ApiServer) Categories(ctx context.Context, request CategoriesRequestObjec
 	}
 	return Categories200JSONResponse(items), nil
 }
+
+func (*ApiServer) CategoryAndUnreadEntryCount(ctx context.Context, request CategoryAndUnreadEntryCountRequestObject) (CategoryAndUnreadEntryCountResponseObject, error) {
+	cat, err := DBUserFromContext(ctx).CategoryAndUnreadEntryCount()
+	if err != nil {
+		return CategoryAndUnreadEntryCount400Response{}, nil
+	}
+
+	items := []CategoryAndUnreadEntryCount{}
+	for _, i := range cat {
+		items = append(items, CategoryAndUnreadEntryCount{
+			ID:    i.ID,
+			Name:  i.Name,
+			Count: i.Count,
+		})
+	}
+
+	return CategoryAndUnreadEntryCount200JSONResponse(items), nil
+}
