@@ -25,7 +25,7 @@
               class="tw card"
               :class="{
                 'tw--active border-info': index == contentStore.selected,
-                'tw--pinned': item.readflag == 2,
+                'tw--pinned': item.readflag == 'Setpin',
               }"
             >
               <h5 class="viewpage">
@@ -45,11 +45,11 @@
                   >{{ item.date }} - {{ item.site_title }}</span
                 >
                 <span class="float-right d-inline d-md-inline">
-                  <span v-if="item.readflag == 1"> &#x2714; </span>
+                  <span v-if="item.readflag == 'Seen'"> &#x2714; </span>
                   <span
                     :class="{
-                      pinned: item.readflag == 2,
-                      unpinned: item.readflag != 2,
+                      pinned: item.readflag == 'Setpin',
+                      unpinned: item.readflag != 'Setpin',
                     }"
                     @click="togglePin(index)"
                     >&#x1f4cc;</span
@@ -88,6 +88,7 @@ import {
   Category,
   Entry,
   useContentStore,
+  ReadFlag,
 } from "./Reader/Store";
 import { useUserStore } from "./UserStore";
 import CategoryPager from "./Reader/CategoryPager.vue";
@@ -188,7 +189,7 @@ export default defineComponent({
 
       // 未読ステータスのものだけ送るため、フィードのアイテム既読リストを作成をする
       const params = contentStore.list
-        .filter((item) => item.readflag === 0)
+        .filter((item) => item.readflag === "Unseen")
         .map((item) => {
           return { serial: item.serial, feed_id: item.feed_id };
         });
@@ -227,7 +228,7 @@ export default defineComponent({
       if (typeof index !== "undefined") {
         contentStore.setIndex(index);
       }
-      await Agent<{ readflag: number }>({
+      await Agent<{ readflag: ReadFlag }>({
         url: "/api/set_pin",
         data: contentStore.currentEntrySerialData(),
       }).then((data) => {
