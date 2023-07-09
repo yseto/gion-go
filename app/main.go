@@ -36,42 +36,10 @@ func main() {
 		dbConn.Exec("PRAGMA foreign_keys = ON")
 	}
 
-	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
-			cc := &handler.CustomContext{Context: c, Conn: dbConn}
-			return next(cc)
-		}
-	})
-	e.Use(middleware.Logger())
-	e.Use(middleware.Recover())
 
-	e.POST("/api/login", handler.Login, handler.CheckXHR())
-	e.POST("/api/logout", handler.Logout, handler.CheckXHR())
 
-	e.Static("/", "public")
 
-	r := e.Group("/api/")
-	r.Use(middleware.JWTWithConfig(handler.JWTConfig()))
-	r.Use(handler.CheckXHR())
 
-	r.POST("register_category", handler.RegisterCategory)
-	r.POST("register_subscription", handler.RegisterSubscription)
-	r.POST("examine_subscription", handler.ExamineSubscription)
-	r.POST("delete_subscription", handler.DeleteSubscription)
-	r.POST("change_subscription", handler.ChangeSubscription)
-	r.POST("profile", handler.Profile)
-	r.POST("set_profile", handler.UpdateProfile)
-	r.POST("categories", handler.Categories)
-	r.POST("category_with_count", handler.CategoryAndUnreadEntryCount)
-	r.POST("unread_entry", handler.UnreadEntry)
-	r.POST("set_asread", handler.SetAsread)
-	r.POST("subscriptions", handler.Subscriptions)
-	r.POST("pinned_items", handler.PinnedItems)
-	r.POST("set_pin", handler.SetPin)
-	r.POST("remove_all_pin", handler.RemoveAllPin)
-	r.POST("update_password", handler.UpdatePassword)
-	r.POST("opml_export", handler.OpmlExport)
-	r.POST("opml_import", handler.OpmlImport)
 
 	go func() {
 		if err := e.Start(net.JoinHostPort(cfg.HTTPHost, cfg.HTTPPort)); err != nil && err != http.ErrServerClosed {
