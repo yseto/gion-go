@@ -633,3 +633,7 @@ func (*ApiServer) Login(ctx context.Context, request LoginRequestObject) (LoginR
 		Token:    signedToken,
 	}, nil
 }
+
+func (*ApiServer) Logout(ctx context.Context, request LogoutRequestObject) (LogoutResponseObject, error) {
+	return Logout200JSONResponse{}, nil
+}

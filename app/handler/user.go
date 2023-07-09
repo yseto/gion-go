@@ -15,10 +15,6 @@ type jwtCustomClaims struct {
 	jwt.StandardClaims
 }
 
-func Logout(c echo.Context) error {
-	return c.JSON(http.StatusOK, echo.Map{})
-}
-
 type updatePasswordResult struct {
 	Result string `json:"result"`
 }
