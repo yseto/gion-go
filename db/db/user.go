@@ -1,5 +1,7 @@
 package db
 
+import "time"
+
 type UserProfile struct {
 	AutoSeen           bool   `db:"autoseen"`
 	EntryCount         uint64 `db:"numentry"`
@@ -27,10 +29,10 @@ func (c *UserClient) UpdateProfile(item UserProfile) error {
 }
 
 type User struct {
-	ID        uint64 `db:"id"`
-	Name      string `db:"name"`
-	Digest    string `db:"digest"`
-	LastLogin MyTime `db:"last_login"`
+	ID        uint64    `db:"id"`
+	Name      string    `db:"name"`
+	Digest    string    `db:"digest"`
+	LastLogin time.Time `db:"last_login"`
 	UserProfile
 }
 
