@@ -23,55 +23,6 @@ type examine struct {
 	PreviewFeed []*previewFeed `json:"preview_feed"`
 }
 
-func examineSubscriptionGetContent(rawUrl string) (e examine) {
-	urlParam, err := url.Parse(rawUrl)
-	if err != nil {
-		return
-	}
-
-	resp, err := paranoidhttp.DefaultClient.Get(urlParam.String())
-	if err != nil {
-		return
-	}
-	defer resp.Body.Close()
-
-	r, err := charset.NewReader(resp.Body, resp.Header.Get("Content-Type"))
-	if err != nil {
-		return
-	}
-
-	doc, err := htmlquery.Parse(r)
-	if err != nil {
-		return
-	}
-	title := htmlquery.FindOne(doc, "//title")
-	if title == nil {
-		return
-	}
-
-	e.Title = htmlquery.InnerText(title)
-
-	// most blog service is /html/head/link....
-	// but youtube /hrml/body/link....
-	// each inclusive query.
-	rssUrlNode := htmlquery.FindOne(doc, `//link[@type="application/rss+xml"][1]/@href`)
-	if rssUrlNode == nil {
-		rssUrlNode = htmlquery.FindOne(doc, `//link[@type="application/atom+xml"][1]/@href`)
-	}
-	if rssUrlNode == nil {
-		return
-	}
-
-	if r := htmlquery.InnerText(rssUrlNode); r != "" {
-		u, err := url.Parse(r)
-		if err != nil {
-			return
-		}
-		e.URL = urlParam.ResolveReference(u).String()
-	}
-	return
-}
-
 func ExamineSubscription(c echo.Context) error {
 	v := examineSubscriptionGetContent(c.FormValue("url"))
 	if v.URL == "" {

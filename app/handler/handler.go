@@ -354,3 +354,64 @@ func (*ApiServer) RemoveAllPin(ctx context.Context, request RemoveAllPinRequestO
 	}
 	return RemoveAllPin200JSONResponse{Result: "OK"}, nil
 }
+
+var (
+	ErrFeedIsMissing = errors.New("FEED IS MISSING")
+)
+
+func examineSubscriptionGetContent(rawUrl string) (*ExamineSubscription, error) {
+	urlParam, err := url.Parse(rawUrl)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := paranoidhttp.DefaultClient.Get(urlParam.String())
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	r, err := charset.NewReader(resp.Body, resp.Header.Get("Content-Type"))
+	if err != nil {
+		return nil, err
+	}
+
+	doc, err := htmlquery.Parse(r)
+	if err != nil {
+		return nil, err
+	}
+
+	titleElement := htmlquery.FindOne(doc, "//title")
+	if titleElement == nil {
+		return nil, err
+	}
+
+	var title = htmlquery.InnerText(titleElement)
+
+	// most blog service is /html/head/link....
+	// but youtube /hrml/body/link....
+	// each inclusive query.
+	rssUrlNode := htmlquery.FindOne(doc, `//link[@type="application/rss+xml"][1]/@href`)
+	if rssUrlNode == nil {
+		rssUrlNode = htmlquery.FindOne(doc, `//link[@type="application/atom+xml"][1]/@href`)
+	}
+	if rssUrlNode == nil {
+		return nil, ErrFeedIsMissing
+	}
+	var feedUrl string
+	if r := htmlquery.InnerText(rssUrlNode); r != "" {
+		u, err := url.Parse(r)
+		if err != nil {
+			return nil, err
+		}
+		feedUrl = urlParam.ResolveReference(u).String()
+	}
+	if len(feedUrl) == 0 {
+		return nil, ErrFeedIsMissing
+	}
+
+	return &ExamineSubscription{
+		URL:   feedUrl,
+		Title: title,
+	}, nil
+}
