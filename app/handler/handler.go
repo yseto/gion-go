@@ -27,3 +27,16 @@ func (*ApiServer) PinnedItems(ctx context.Context, request PinnedItemsRequestObj
 
 	return PinnedItems200JSONResponse(items), nil
 }
+
+func (*ApiServer) Profile(ctx context.Context, request ProfileRequestObject) (ProfileResponseObject, error) {
+	pin, err := DBUserFromContext(ctx).Profile()
+	if err != nil {
+		return Profile400Response{}, nil
+	}
+	return Profile200JSONResponse(Profile{
+		Autoseen:  pin.AutoSeen,
+		Nopinlist: pin.NoPinList,
+		Numentry:  pin.EntryCount,
+		Numsubstr: pin.SubstringLength,
+	}), nil
+}

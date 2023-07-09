@@ -15,14 +15,6 @@ import (
 	"github.com/yseto/gion-go/db/db"
 )
 
-func Profile(c echo.Context) error {
-	pin, err := c.(*CustomContext).DBUser().Profile()
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, nil)
-	}
-	return c.JSON(http.StatusOK, pin)
-}
-
 func Categories(c echo.Context) error {
 	cat, err := c.(*CustomContext).DBUser().Category()
 	if err != nil {
