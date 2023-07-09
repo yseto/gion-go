@@ -15,20 +15,6 @@ type opmlResult struct {
 	Xml string `json:"xml"`
 }
 
-func walkOutlines(c echo.Context, categoryName string, o []opml.Outline) error {
-	for i := range o {
-		if o[i].Type == "rss" {
-			if err := saveOutline(c, categoryName, o[i]); err != nil {
-				return err
-			}
-		}
-		if err := walkOutlines(c, o[i].Title, o[i].Outlines); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 type opmlImportResult struct {
 	Done bool `json:"done"`
 }
