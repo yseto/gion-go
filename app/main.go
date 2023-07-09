@@ -71,18 +71,23 @@ func main() {
 
 	handler.RegisterHandlers(e, handler.NewStrictHandler(handler.NewApiServer(), nil))
 
+	idleConnsClosed := make(chan struct{})
+
 	go func() {
-		if err := e.Start(net.JoinHostPort(cfg.HTTPHost, cfg.HTTPPort)); err != nil && err != http.ErrServerClosed {
-			e.Logger.Fatal("shutting down the server")
+		quit := make(chan os.Signal, 1)
+		signal.Notify(quit, os.Interrupt)
+		<-quit
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		if err := e.Shutdown(ctx); err != nil {
+			e.Logger.Fatal(err)
 		}
+		close(idleConnsClosed)
 	}()
 
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, os.Interrupt)
-	<-quit
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-	if err := e.Shutdown(ctx); err != nil {
-		e.Logger.Fatal(err)
+	if err := e.Start(net.JoinHostPort(cfg.HTTPHost, cfg.HTTPPort)); err != nil && err != http.ErrServerClosed {
+		e.Logger.Fatal("shutting down the server")
 	}
+
+	<-idleConnsClosed
 }
