@@ -40,3 +40,20 @@ func (*ApiServer) Profile(ctx context.Context, request ProfileRequestObject) (Pr
 		Numsubstr: pin.SubstringLength,
 	}), nil
 }
+
+func (*ApiServer) Categories(ctx context.Context, request CategoriesRequestObject) (CategoriesResponseObject, error) {
+	cats, err := DBUserFromContext(ctx).Category()
+	if err != nil {
+		return Categories400Response{}, nil
+	}
+
+	items := []Category{}
+	for _, i := range cats {
+		items = append(items, Category{
+			ID:   i.ID,
+			Name: i.Name,
+		})
+
+	}
+	return Categories200JSONResponse(items), nil
+}
