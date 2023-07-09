@@ -602,18 +602,18 @@ components:
       description: 個人設定
       required:
       - autoseen
-      - numentry
-      - nopinlist
-      - numsubstr
+      - entryCount
+      - onLoginSkipPinList
+      - substringLength
       properties:
         autoseen:
           type: boolean
-        numentry:
+        entryCount:
           type: integer
           format: uint64
-        nopinlist:
+        onLoginSkipPinList:
           type: boolean
-        numsubstr:
+        substringLength:
           type: integer
           format: uint64
     PinnedItem:

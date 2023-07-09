@@ -86,10 +86,10 @@ type PinnedItem struct {
 
 // Profile 個人設定
 type Profile struct {
-	Autoseen  bool   `json:"autoseen"`
-	Nopinlist bool   `json:"nopinlist"`
-	Numentry  uint64 `json:"numentry"`
-	Numsubstr uint64 `json:"numsubstr"`
+	Autoseen           bool   `json:"autoseen"`
+	EntryCount         uint64 `json:"entryCount"`
+	OnLoginSkipPinList bool   `json:"onLoginSkipPinList"`
+	SubstringLength    uint64 `json:"substringLength"`
 }
 
 // SimpleResult defines model for SimpleResult.

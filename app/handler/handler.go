@@ -57,10 +57,10 @@ func (*ApiServer) Profile(ctx context.Context, request ProfileRequestObject) (Pr
 		return Profile400Response{}, nil
 	}
 	return Profile200JSONResponse(Profile{
-		Autoseen:  pin.AutoSeen,
-		Nopinlist: pin.NoPinList,
-		Numentry:  pin.EntryCount,
-		Numsubstr: pin.SubstringLength,
+		Autoseen:           pin.AutoSeen,
+		OnLoginSkipPinList: pin.OnLoginSkipPinList,
+		EntryCount:         pin.EntryCount,
+		SubstringLength:    pin.SubstringLength,
 	}), nil
 }
 
@@ -346,10 +346,10 @@ func (*ApiServer) UpdateProfile(ctx context.Context, request UpdateProfileReques
 	}
 
 	err := DBUserFromContext(ctx).UpdateProfile(db.UserProfile{
-		AutoSeen:        request.Body.Autoseen,
-		EntryCount:      request.Body.Numentry,
-		NoPinList:       request.Body.Nopinlist,
-		SubstringLength: request.Body.Numsubstr,
+		AutoSeen:           request.Body.Autoseen,
+		EntryCount:         request.Body.EntryCount,
+		OnLoginSkipPinList: request.Body.OnLoginSkipPinList,
+		SubstringLength:    request.Body.SubstringLength,
 	})
 
 	if err != nil {

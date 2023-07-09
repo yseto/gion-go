@@ -1,10 +1,10 @@
 package db
 
 type UserProfile struct {
-	AutoSeen        bool   `db:"autoseen"`
-	EntryCount      uint64 `db:"numentry"`
-	NoPinList       bool   `db:"nopinlist"`
-	SubstringLength uint64 `db:"numsubstr"`
+	AutoSeen           bool   `db:"autoseen"`
+	EntryCount         uint64 `db:"numentry"`
+	OnLoginSkipPinList bool   `db:"nopinlist"`
+	SubstringLength    uint64 `db:"numsubstr"`
 }
 
 func (c *UserClient) Profile() (*UserProfile, error) {
@@ -20,7 +20,7 @@ func (c *UserClient) UpdateProfile(item UserProfile) error {
 	_, err := c.Exec("UPDATE users SET autoseen = ?, numentry = ?, nopinlist = ?, numsubstr = ? WHERE id = ?",
 		item.AutoSeen,
 		item.EntryCount,
-		item.NoPinList,
+		item.OnLoginSkipPinList,
 		item.SubstringLength,
 		c.UserID)
 	return err
