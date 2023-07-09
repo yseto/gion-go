@@ -2,6 +2,8 @@ package db
 
 import (
 	"fmt"
+
+	"github.com/yseto/gion-go/internal/pin"
 )
 
 type ReadFlag uint64
@@ -19,9 +21,22 @@ func (c ReadFlag) String() string {
 	case Seen:
 		return "Seen"
 	case SetPin:
-		return "SetPin"
+		return "Setpin"
 	default:
-		return "Unknown"
+		panic("Unknown")
+	}
+}
+
+func (c ReadFlag) ToPinReadFlag() pin.ReadFlag {
+	switch c {
+	case Unseen:
+		return pin.Unseen
+	case Seen:
+		return pin.Seen
+	case SetPin:
+		return pin.Setpin
+	default:
+		panic("Unknown")
 	}
 }
 
