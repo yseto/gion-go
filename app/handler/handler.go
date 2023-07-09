@@ -527,3 +527,42 @@ func categoryByName(ctx context.Context, categoryName string) (*db.Category, err
 	tx.Commit()
 	return cat, nil
 }
+
+func saveOutline(ctx context.Context, categoryName string, o opml.Outline) error {
+	if o.XMLURL == "" || o.HTMLURL == "" || o.Title == "" {
+		fmt.Printf("missing required parameter : %+v\n", o)
+		return nil
+	}
+
+	category, err := categoryByName(ctx, categoryName)
+	if err != nil {
+		return err
+	}
+
+	feed, err := insertFeed(ctx, o.XMLURL, o.HTMLURL, o.Title)
+	if err != nil {
+		return err
+	}
+
+	tx := DBUserFromContext(ctx).MustBegin()
+
+	sub, err := tx.SubscriptionByFeedID(feed.ID)
+	if err != nil && err != sql.ErrNoRows {
+		tx.Rollback()
+		return err
+	}
+	if sub != nil {
+		fmt.Printf("already registered : %s\n", o.Title)
+		tx.Commit()
+		return nil
+	}
+
+	if err = tx.InsertSubscription(feed.ID, category.ID); err != nil {
+		tx.Rollback()
+		return err
+	}
+	fmt.Printf("registered : %s\n", o.Title)
+	tx.Commit()
+
+	return nil
+}

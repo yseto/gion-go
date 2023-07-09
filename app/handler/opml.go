@@ -15,45 +15,6 @@ type opmlResult struct {
 	Xml string `json:"xml"`
 }
 
-func saveOutline(c echo.Context, categoryName string, o opml.Outline) error {
-	if o.XMLURL == "" || o.HTMLURL == "" || o.Title == "" {
-		fmt.Printf("missing required parameter : %+v\n", o)
-		return nil
-	}
-
-	category, err := categoryByName(c, categoryName)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, nil)
-	}
-
-	feed, err := insertFeed(c, o.XMLURL, o.HTMLURL, o.Title)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, nil)
-	}
-
-	tx := c.(*CustomContext).DBUser().MustBegin()
-
-	sub, err := tx.SubscriptionByFeedID(feed.ID)
-	if err != nil && err != sql.ErrNoRows {
-		tx.Rollback()
-		return c.JSON(http.StatusBadRequest, nil)
-	}
-	if sub != nil {
-		fmt.Printf("already registered : %s\n", o.Title)
-		tx.Commit()
-		return nil
-	}
-
-	if err = tx.InsertSubscription(feed.ID, category.ID); err != nil {
-		tx.Rollback()
-		return err
-	}
-	fmt.Printf("registered : %s\n", o.Title)
-	tx.Commit()
-
-	return nil
-}
-
 func walkOutlines(c echo.Context, categoryName string, o []opml.Outline) error {
 	for i := range o {
 		if o[i].Type == "rss" {
