@@ -638,6 +638,38 @@ func (*ApiServer) Logout(ctx context.Context, request LogoutRequestObject) (Logo
 	return Logout200JSONResponse{}, nil
 }
 
+func (*ApiServer) Index(ctx context.Context, request IndexRequestObject) (IndexResponseObject, error) {
+	b, err := os.ReadFile("public/index.html")
+	if err != nil {
+		return nil, err
+	}
+
+	return Index200TexthtmlResponse{
+		Body: bytes.NewReader(b),
+	}, nil
+}
+
+func (*ApiServer) ServeRootFile(ctx context.Context, request ServeRootFileRequestObject) (ServeRootFileResponseObject, error) {
+	var filename string
+	switch request.Filename {
+	case "index.html":
+		filename = "public/index.html"
+	case "gion.js":
+		filename = "public/gion.js"
+	default:
+		return ServeRootFile404Response{}, nil
+	}
+
+	b, err := os.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
+
+	return ServeRootFile200TexthtmlResponse{
+		Body: bytes.NewReader(b),
+	}, nil
+}
+
 func (*ApiServer) UpdatePassword(ctx context.Context, request UpdatePasswordRequestObject) (UpdatePasswordResponseObject, error) {
 	passwordOld := request.Body.PasswordOld
 	password := request.Body.Password
