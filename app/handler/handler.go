@@ -151,3 +151,20 @@ func (*ApiServer) Subscriptions(ctx context.Context, request SubscriptionsReques
 
 	return Subscriptions200JSONResponse(resp), nil
 }
+
+func (*ApiServer) SetAsRead(ctx context.Context, request SetAsReadRequestObject) (SetAsReadResponseObject, error) {
+	if request.Body == nil {
+		return SetAsRead400Response{}, nil
+	}
+
+	// return SetAsRead200JSONResponse{Result: "OK"}, nil // FOR DEBUG
+
+	db := DBUserFromContext(ctx)
+	for _, i := range *request.Body {
+		err := db.UpdateEntrySeen(i.FeedID, i.Serial)
+		if err != nil {
+			return SetAsRead400Response{}, nil
+		}
+	}
+	return SetAsRead200JSONResponse{Result: "OK"}, nil
+}

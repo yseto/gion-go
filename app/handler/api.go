@@ -29,26 +29,6 @@ type asreadResult struct {
 	Result bool `json:"result"`
 }
 
-func SetAsread(c echo.Context) error {
-	var reads []asread
-	err := json.NewDecoder(c.Request().Body).Decode(&reads)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, nil)
-	}
-	defer c.Request().Body.Close()
-
-	//	return c.JSON(http.StatusOK, asreadResult{true}) // FOR DEBUG
-
-	db := c.(*CustomContext).DBUser()
-	for i := range reads {
-		err := db.UpdateEntrySeen(reads[i].FeedID, reads[i].Serial)
-		if err != nil {
-			return c.JSON(http.StatusBadRequest, nil)
-		}
-	}
-	return c.JSON(http.StatusOK, asreadResult{true})
-}
-
 type setPinResult struct {
 	Readflag uint64 `json:"readflag"`
 }
