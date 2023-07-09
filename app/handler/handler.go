@@ -1,11 +1,14 @@
 package handler
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
 	"errors"
 	"fmt"
+	"net/http"
 	"net/url"
+	"os"
 	"unicode/utf8"
 
 	"github.com/antchfx/htmlquery"
@@ -13,6 +16,7 @@ import (
 	"github.com/hakobe/paranoidhttp"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/mmcdole/gofeed"
+	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/net/html/charset"
 
 	"github.com/yseto/gion-go/db/db"
