@@ -18,33 +18,3 @@ type jwtCustomClaims struct {
 type updatePasswordResult struct {
 	Result string `json:"result"`
 }
-
-func UpdatePassword(c echo.Context) error {
-	passwordOld := c.FormValue("password_old")
-	password := c.FormValue("password")
-	passwordCheck := c.FormValue("passwordc")
-
-	if password != passwordCheck || utf8.RuneCountInString(password) < 8 {
-		return c.JSON(http.StatusOK, updatePasswordResult{"error"})
-	}
-
-	db := c.(*CustomContext).DBUser()
-	user, err := db.User()
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, nil)
-	}
-
-	if check := bcrypt.CompareHashAndPassword([]byte(user.Digest), []byte(passwordOld)); check != nil {
-		return c.JSON(http.StatusOK, updatePasswordResult{"unmatch now password"})
-	}
-
-	newDigest, err := bcrypt.GenerateFromPassword([]byte(password), 8)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, nil)
-	}
-
-	if db.UpdateUserDigest(string(newDigest)) != nil {
-		return c.JSON(http.StatusBadRequest, nil)
-	}
-	return c.JSON(http.StatusOK, updatePasswordResult{"update password"})
-}

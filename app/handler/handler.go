@@ -637,3 +637,33 @@ func (*ApiServer) Login(ctx context.Context, request LoginRequestObject) (LoginR
 func (*ApiServer) Logout(ctx context.Context, request LogoutRequestObject) (LogoutResponseObject, error) {
 	return Logout200JSONResponse{}, nil
 }
+
+func (*ApiServer) UpdatePassword(ctx context.Context, request UpdatePasswordRequestObject) (UpdatePasswordResponseObject, error) {
+	passwordOld := request.Body.PasswordOld
+	password := request.Body.Password
+	passwordCheck := request.Body.Passwordc
+
+	if password != passwordCheck || utf8.RuneCountInString(password) < 8 {
+		return UpdatePassword200JSONResponse{Result: "error"}, nil
+	}
+
+	db := DBUserFromContext(ctx)
+	user, err := db.User()
+	if err != nil {
+		return UpdatePassword400Response{}, nil
+	}
+
+	if check := bcrypt.CompareHashAndPassword([]byte(user.Digest), []byte(passwordOld)); check != nil {
+		return UpdatePassword200JSONResponse{Result: "unmatch current password"}, nil
+	}
+
+	newDigest, err := bcrypt.GenerateFromPassword([]byte(password), 8)
+	if err != nil {
+		return UpdatePassword400Response{}, nil
+	}
+
+	if db.UpdateUserDigest(string(newDigest)) != nil {
+		return UpdatePassword400Response{}, nil
+	}
+	return UpdatePassword200JSONResponse{Result: "update password"}, nil
+}
