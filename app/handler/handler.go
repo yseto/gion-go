@@ -75,3 +75,43 @@ func (*ApiServer) CategoryAndUnreadEntryCount(ctx context.Context, request Categ
 
 	return CategoryAndUnreadEntryCount200JSONResponse(items), nil
 }
+
+func (*ApiServer) UnreadEntry(ctx context.Context, request UnreadEntryRequestObject) (UnreadEntryResponseObject, error) {
+	db := DBUserFromContext(ctx)
+	u, err := db.Profile()
+	if err != nil {
+		return UnreadEntry400Response{}, nil
+	}
+
+	cat, err := db.UnreadEntryByCategory(request.Body.Category)
+	if err != nil {
+		return UnreadEntry400Response{}, nil
+	}
+
+	if u.EntryCount > 0 && len(cat) > int(u.EntryCount) {
+		cat = cat[:u.EntryCount]
+	}
+
+	items := []UnreadEntry{}
+
+	p := bluemonday.NewPolicy()
+	for _, i := range cat {
+		d := p.Sanitize(i.Description)
+		if u.SubstringLength > 0 && uint64(utf8.RuneCountInString(d)) > u.SubstringLength {
+			d = string([]rune(d)[:u.SubstringLength])
+		}
+
+		items = append(items, UnreadEntry{
+			DateEpoch:      uint64(i.PubDate.Unix()),
+			Description:    d,
+			FeedId:         i.EntryFeedID,
+			Readflag:       i.ReadFlag.ToPinReadFlag(),
+			Serial:         i.EntrySerial,
+			SiteTitle:      i.SiteTitle,
+			SubscriptionId: i.SubscriptionID,
+			Title:          i.Title,
+			Url:            i.URL,
+		})
+	}
+	return UnreadEntry200JSONResponse(items), nil
+}

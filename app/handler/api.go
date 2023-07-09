@@ -15,39 +15,6 @@ import (
 	"github.com/yseto/gion-go/db/db"
 )
 
-func UnreadEntry(c echo.Context) error {
-	category, err := strconv.ParseUint(c.FormValue("category"), 10, 64)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, nil)
-	}
-
-	db := c.(*CustomContext).DBUser()
-	u, err := db.Profile()
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, nil)
-	}
-
-	cat, err := db.UnreadEntryByCategory(category)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, nil)
-	}
-
-	if u.EntryCount > 0 && len(cat) > int(u.EntryCount) {
-		cat = cat[:u.EntryCount]
-	}
-
-	p := bluemonday.NewPolicy()
-	for i := range cat {
-		d := p.Sanitize(cat[i].Description)
-		if u.SubstringLength > 0 && uint64(utf8.RuneCountInString(d)) > u.SubstringLength {
-			d = string([]rune(d)[:u.SubstringLength])
-		}
-		cat[i].Description = d
-	}
-
-	return c.JSON(http.StatusOK, cat)
-}
-
 type categoryAndSubscription struct {
 	ID   uint64                    `json:"id"`
 	Name string                    `json:"name"`
