@@ -41,33 +41,6 @@ type registerSubscriptionResult struct {
 	Result string `json:"result"`
 }
 
-func insertFeed(c echo.Context, rssUrl, siteUrl, title string) (*db.Feed, error) {
-	tx := c.(*CustomContext).DBUser().MustBegin()
-	feed, err := tx.FeedByUrl(rssUrl, siteUrl)
-	if err != nil && err != sql.ErrNoRows {
-		tx.Rollback()
-		return nil, err
-	}
-	if feed != nil {
-		tx.Commit()
-		return feed, nil
-	}
-
-	err = tx.InsertFeed(rssUrl, siteUrl, title)
-	if err != nil {
-		tx.Rollback()
-		return nil, err
-	}
-
-	feed, err = tx.FeedByUrl(rssUrl, siteUrl)
-	if err != nil {
-		tx.Rollback()
-		return nil, err
-	}
-	tx.Commit()
-	return feed, nil
-}
-
 func RegisterSubscription(c echo.Context) error {
 	rssUrl, rErr := url.Parse(c.FormValue("rss"))
 	siteUrl, sErr := url.Parse(c.FormValue("url"))

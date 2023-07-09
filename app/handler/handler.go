@@ -215,3 +215,30 @@ func (*ApiServer) RegisterCategory(ctx context.Context, request RegisterCategory
 
 	return RegisterCategory200JSONResponse{Result: "OK"}, nil
 }
+
+func insertFeed(ctx context.Context, rssUrl, siteUrl, title string) (*db.Feed, error) {
+	tx := DBUserFromContext(ctx).MustBegin()
+	feed, err := tx.FeedByUrl(rssUrl, siteUrl)
+	if err != nil && err != sql.ErrNoRows {
+		tx.Rollback()
+		return nil, err
+	}
+	if feed != nil {
+		tx.Commit()
+		return feed, nil
+	}
+
+	err = tx.InsertFeed(rssUrl, siteUrl, title)
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	feed, err = tx.FeedByUrl(rssUrl, siteUrl)
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+	tx.Commit()
+	return feed, nil
+}
