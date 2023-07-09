@@ -309,3 +309,10 @@ func (*ApiServer) DeleteSubscription(ctx context.Context, request DeleteSubscrip
 	}
 	return DeleteSubscription200JSONResponse{Result: "OK"}, nil
 }
+
+func (*ApiServer) ChangeSubscription(ctx context.Context, request ChangeSubscriptionRequestObject) (ChangeSubscriptionResponseObject, error) {
+	if DBUserFromContext(ctx).UpdateSubscription(request.Body.Id, request.Body.Category) != nil {
+		return ChangeSubscription400Response{}, nil
+	}
+	return ChangeSubscription200JSONResponse{Result: "OK"}, nil
+}

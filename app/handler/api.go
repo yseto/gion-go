@@ -45,19 +45,6 @@ type commonResult struct {
 	Result string `json:"r"`
 }
 
-func ChangeSubscription(c echo.Context) error {
-	categoryID, cErr := strconv.ParseUint(c.FormValue("category"), 10, 64)
-	feedID, iErr := strconv.ParseUint(c.FormValue("id"), 10, 64)
-	if cErr != nil || iErr != nil {
-		return c.JSON(http.StatusBadRequest, nil)
-	}
-
-	if c.(*CustomContext).DBUser().UpdateSubscription(feedID, categoryID) != nil {
-		return c.JSON(http.StatusBadRequest, nil)
-	}
-	return c.JSON(http.StatusOK, commonResult{"OK"})
-}
-
 func UpdateProfile(c echo.Context) error {
 	var profile db.UserProfile
 	if err := json.NewDecoder(c.Request().Body).Decode(&profile); err != nil {
