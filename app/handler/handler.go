@@ -242,3 +242,47 @@ func insertFeed(ctx context.Context, rssUrl, siteUrl, title string) (*db.Feed, e
 	tx.Commit()
 	return feed, nil
 }
+
+func (*ApiServer) RegisterSubscription(ctx context.Context, request RegisterSubscriptionRequestObject) (RegisterSubscriptionResponseObject, error) {
+	rssUrl, rErr := url.Parse(request.Body.Rss)
+	siteUrl, sErr := url.Parse(request.Body.Url)
+	title := request.Body.Title
+	category := request.Body.Category
+	if rErr != nil || sErr != nil || title == "" {
+		return RegisterSubscription400Response{}, nil
+	}
+
+	feed, err := insertFeed(ctx, rssUrl.String(), siteUrl.String(), title)
+	if err != nil {
+		return RegisterSubscription400Response{}, nil
+	}
+
+	db := DBUserFromContext(ctx)
+	tx := db.MustBegin()
+	sub, err := tx.SubscriptionByFeedID(feed.ID)
+	if err != nil && err != sql.ErrNoRows {
+		tx.Rollback()
+		return RegisterSubscription400Response{}, nil
+	}
+	if sub != nil {
+		tx.Rollback()
+		return RegisterSubscription200JSONResponse{"ERROR_ALREADY_REGISTER"}, nil
+	}
+
+	cat, err := db.CategoryByID(category)
+	if err != nil {
+		tx.Rollback()
+		return RegisterSubscription400Response{}, nil
+	}
+	if cat == nil {
+		tx.Rollback()
+		return RegisterSubscription400Response{}, nil
+	}
+	if tx.InsertSubscription(feed.ID, cat.ID) != nil {
+		tx.Rollback()
+		return RegisterSubscription400Response{}, nil
+	}
+	tx.Commit()
+
+	return RegisterSubscription200JSONResponse{"OK"}, nil
+}

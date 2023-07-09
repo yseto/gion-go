@@ -41,50 +41,6 @@ type registerSubscriptionResult struct {
 	Result string `json:"result"`
 }
 
-func RegisterSubscription(c echo.Context) error {
-	rssUrl, rErr := url.Parse(c.FormValue("rss"))
-	siteUrl, sErr := url.Parse(c.FormValue("url"))
-	title := c.FormValue("title")
-	category, cErr := strconv.ParseUint(c.FormValue("category"), 10, 64)
-	if rErr != nil || sErr != nil || title == "" || cErr != nil {
-		return c.JSON(http.StatusBadRequest, nil)
-	}
-
-	feed, err := insertFeed(c, rssUrl.String(), siteUrl.String(), title)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, nil)
-	}
-
-	db := c.(*CustomContext).DBUser()
-	tx := db.MustBegin()
-	sub, err := tx.SubscriptionByFeedID(feed.ID)
-	if err != nil && err != sql.ErrNoRows {
-		tx.Rollback()
-		return c.JSON(http.StatusBadRequest, nil)
-	}
-	if sub != nil {
-		tx.Rollback()
-		return c.JSON(http.StatusOK, registerResult{"ERROR_ALREADY_REGISTER"})
-	}
-
-	cat, err := db.CategoryByID(category)
-	if err != nil {
-		tx.Rollback()
-		return c.JSON(http.StatusBadRequest, nil)
-	}
-	if cat == nil {
-		tx.Rollback()
-		return c.JSON(http.StatusBadRequest, nil)
-	}
-	if tx.InsertSubscription(feed.ID, cat.ID) != nil {
-		tx.Rollback()
-		return c.JSON(http.StatusBadRequest, nil)
-	}
-	tx.Commit()
-
-	return c.JSON(http.StatusOK, registerResult{"OK"})
-}
-
 type commonResult struct {
 	Result string `json:"r"`
 }
