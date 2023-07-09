@@ -152,10 +152,10 @@ func (*ApiServer) Subscriptions(ctx context.Context, request SubscriptionsReques
 
 	var resp []Subscription
 	for i := range cat {
-		var subsOnCategory []SubscriptionForUser
+		var subsOnCategory []CategorySubscription
 		for j := range subs {
 			if cat[i].ID == subs[j].CategoryID {
-				subsOnCategory = append(subsOnCategory, SubscriptionForUser{
+				subsOnCategory = append(subsOnCategory, CategorySubscription{
 					CategoryId: subs[j].CategoryID,
 					HttpStatus: subs[j].HTTPStatus,
 					FeedID:     subs[j].FeedID,
@@ -166,7 +166,7 @@ func (*ApiServer) Subscriptions(ctx context.Context, request SubscriptionsReques
 		}
 
 		resp = append(resp, Subscription{
-			ID:           cat[i].ID,
+			CategoryID:   cat[i].ID,
 			Name:         cat[i].Name,
 			Subscription: subsOnCategory,
 		})

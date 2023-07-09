@@ -18,25 +18,25 @@ const (
 	DeleteSubscriptionFormdataBodySubscriptionEntry    DeleteSubscriptionFormdataBodySubscription = "entry"
 )
 
-// Account defines model for Account.
-type Account struct {
-	Autoseen bool   `json:"autoseen"`
-	Token    string `json:"token"`
-}
-
-// AsRead defines model for AsRead.
+// AsRead 既読情報
 type AsRead struct {
 	FeedID uint64 `json:"feed_id"`
 	Serial uint64 `json:"serial"`
 }
 
-// Category defines model for Category.
+// Authorization ログイン情報
+type Authorization struct {
+	Autoseen bool   `json:"autoseen"`
+	Token    string `json:"token"`
+}
+
+// Category カテゴリ一覧
 type Category struct {
 	ID   uint64 `json:"id"`
 	Name string `json:"name"`
 }
 
-// CategoryAndUnreadEntryCount defines model for CategoryAndUnreadEntryCount.
+// CategoryAndUnreadEntryCount カテゴリごとに未読記事数
 type CategoryAndUnreadEntryCount struct {
 	Count uint64 `json:"count"`
 
@@ -45,14 +45,29 @@ type CategoryAndUnreadEntryCount struct {
 	Name string `json:"name"`
 }
 
-// ExamineFeed defines model for ExamineFeed.
+// CategorySubscription defines model for CategorySubscription.
+type CategorySubscription struct {
+	CategoryId uint64 `json:"category_id"`
+
+	// HttpStatus 最終アクセス時のレスポンスコード
+	HttpStatus string `json:"http_status"`
+
+	// Id フィードID
+	FeedID uint64 `json:"id"`
+
+	// Siteurl フィード配信元サイトURL
+	Siteurl string `json:"siteurl"`
+	Title   string `json:"title"`
+}
+
+// ExamineFeed フィード探索におけるフィード詳細
 type ExamineFeed struct {
 	Date  string `json:"date"`
 	Title string `json:"title"`
 	Url   string `json:"url"`
 }
 
-// ExamineSubscription defines model for ExamineSubscription.
+// ExamineSubscription フィード探索
 type ExamineSubscription struct {
 	PreviewFeed []ExamineFeed `json:"preview_feed"`
 	Success     bool          `json:"success"`
@@ -60,7 +75,7 @@ type ExamineSubscription struct {
 	URL         string        `json:"url"`
 }
 
-// PinnedItem defines model for PinnedItem.
+// PinnedItem ピン止めしたアイテム
 type PinnedItem struct {
 	FeedId   uint64    `json:"feed_id"`
 	Serial   uint64    `json:"serial"`
@@ -69,7 +84,7 @@ type PinnedItem struct {
 	Url      string    `json:"url"`
 }
 
-// Profile defines model for Profile.
+// Profile 個人設定
 type Profile struct {
 	Autoseen  bool   `json:"autoseen"`
 	Nopinlist bool   `json:"nopinlist"`
@@ -82,23 +97,19 @@ type SimpleResult struct {
 	Result string `json:"result"`
 }
 
-// Subscription defines model for Subscription.
+// Subscription カテゴリおよび購読一覧
 type Subscription struct {
-	ID           uint64                `json:"id"`
-	Name         interface{}           `json:"name"`
-	Subscription []SubscriptionForUser `json:"subscription"`
+	// Id カテゴリID
+	CategoryID uint64 `json:"id"`
+
+	// Name カテゴリ名
+	Name interface{} `json:"name"`
+
+	// Subscription カテゴリに属するフィード一覧
+	Subscription []CategorySubscription `json:"subscription"`
 }
 
-// SubscriptionForUser defines model for SubscriptionForUser.
-type SubscriptionForUser struct {
-	CategoryId uint64 `json:"category_id"`
-	HttpStatus string `json:"http_status"`
-	FeedID     uint64 `json:"id"`
-	Siteurl    string `json:"siteurl"`
-	Title      string `json:"title"`
-}
-
-// UnreadEntry defines model for UnreadEntry.
+// UnreadEntry カテゴリに属した未読記事一覧
 type UnreadEntry struct {
 	DateEpoch      uint64       `json:"date_epoch"`
 	Description    string       `json:"description"`

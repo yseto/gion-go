@@ -7,6 +7,8 @@ tags:
     description: Everything about accounts
   - name: reader
     description: read a entry
+  - name: subscription
+    description: manage a feed
 paths:
   /:
     get:
@@ -59,14 +61,13 @@ paths:
                   type: string
                 password:
                   type: string
-
       responses:
         "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Account"
+                $ref: "#/components/schemas/Authorization"
         default:
           description: Error
           headers:
@@ -88,7 +89,6 @@ paths:
             application/json:
               schema:
                 type: object
-
   /api/profile:
     post:
       tags:
@@ -106,7 +106,6 @@ paths:
                 $ref: "#/components/schemas/Profile"
         "400":
           description: error
-
   /api/pinned_items:
     post:
       tags:
@@ -127,7 +126,6 @@ paths:
                   $ref: "#/components/schemas/PinnedItem"
         "400":
           description: error
-
   /api/category_with_count:
     post:
       tags:
@@ -180,7 +178,6 @@ paths:
                   $ref: "#/components/schemas/UnreadEntry"
         "400":
           description: error
-
   /api/set_pin:
     post:
       tags:
@@ -237,11 +234,10 @@ paths:
                       path: github.com/yseto/gion-go/internal/pin
         "400":
           description: error
-
   /api/register_category:
     post:
       tags:
-        - reader
+        - subscription
       description: register category
       operationId: RegisterCategory
       security:
@@ -265,11 +261,10 @@ paths:
                 $ref: "#/components/schemas/SimpleResult"
         "400":
           description: error
-
   /api/categories:
     post:
       tags:
-        - reader
+        - subscription
       description: category list
       operationId: Categories
       security:
@@ -286,11 +281,10 @@ paths:
                   $ref: "#/components/schemas/Category"
         "400":
           description: error
-
   /api/register_subscription:
     post:
       tags:
-        - reader
+        - subscription
       description: register subscription
       operationId: RegisterSubscription
       security:
@@ -327,11 +321,10 @@ paths:
                 $ref: "#/components/schemas/SimpleResult"
         "400":
           description: error
-
   /api/opml_import:
     post:
       tags:
-        - reader
+        - subscription
       description: import opml into subscription
       operationId: OpmlImport
       security:
@@ -361,11 +354,10 @@ paths:
                     type: boolean
         "400":
           description: error
-
   /api/opml_export:
     post:
       tags:
-        - reader
+        - subscription
       description: export subscription via opml document
       operationId: OpmlExport
       security:
@@ -385,12 +377,10 @@ paths:
                     description: XML document
         "400":
           description: error
-
-
   /api/examine_subscription:
     post:
       tags:
-        - reader
+        - subscription
       description: probe web site
       operationId: ExamineSubscription
       security:
@@ -413,11 +403,10 @@ paths:
             application/json: 
               schema:
                 $ref: "#/components/schemas/ExamineSubscription"
-
   /api/delete_subscription:
     post:
       tags:
-        - reader
+        - subscription
       description: delete subscription
       operationId: DeleteSubscription
       security:
@@ -449,11 +438,10 @@ paths:
                 $ref: "#/components/schemas/SimpleResult"
         "400":
           description: error
-
   /api/change_subscription:
     post:
       tags:
-        - reader
+        - subscription
       description: change subscription
       operationId: ChangeSubscription
       security:
@@ -483,11 +471,10 @@ paths:
                 $ref: "#/components/schemas/SimpleResult"
         "400":
           description: error
-
   /api/set_profile:
     post:
       tags:
-        - reader
+        - account
       description: update profile
       operationId: UpdateProfile
       security:
@@ -506,7 +493,6 @@ paths:
                 $ref: "#/components/schemas/SimpleResult"
         "400":
           description: error
-
   /api/set_asread:
     post:
       tags:
@@ -531,11 +517,10 @@ paths:
                 $ref: "#/components/schemas/SimpleResult"
         "400":
           description: error
-
   /api/subscriptions:
     post:
       tags:
-        - reader
+        - subscription
       description: subscription list
       operationId: Subscriptions
       security:
@@ -551,7 +536,6 @@ paths:
                   $ref: "#/components/schemas/Subscription"
         "400":
           description: error
-
   /api/remove_all_pin:
     post:
       tags:
@@ -569,11 +553,10 @@ paths:
                 $ref: "#/components/schemas/SimpleResult"
         "400":
           description: error
-
   /api/update_password:
     post:
       tags:
-        - reader
+        - account
       description: update password
       operationId: UpdatePassword
       security:
@@ -603,11 +586,10 @@ paths:
                 $ref: "#/components/schemas/SimpleResult"
         "400":
           description: error
-
-
 components:
   schemas:
-    Account:
+    Authorization:
+      description: ログイン情報
       required:
       - autoseen
       - token
@@ -617,6 +599,7 @@ components:
         token:
           type: string
     Profile:
+      description: 個人設定
       required:
       - autoseen
       - numentry
@@ -634,6 +617,7 @@ components:
           type: integer
           format: uint64
     PinnedItem:
+      description: ピン止めしたアイテム
       required:
         - title
         - url
@@ -655,6 +639,7 @@ components:
           type: string
           x-go-type: db.MyTime
     CategoryAndUnreadEntryCount:
+      description: カテゴリごとに未読記事数
       required:
       - name
       - count
@@ -671,6 +656,7 @@ components:
           format: uint64
           x-go-name: ID
     UnreadEntry:
+      description: カテゴリに属した未読記事一覧
       required:
       - serial
       - feed_id
@@ -713,6 +699,7 @@ components:
         site_title:
           type: string
     Category:
+      description: カテゴリ一覧
       required:
       - id
       - name
@@ -724,6 +711,7 @@ components:
         name:
           type: string
     ExamineSubscription: 
+      description: フィード探索
       required:
       - success
       - title
@@ -742,6 +730,7 @@ components:
           items:
             $ref: "#/components/schemas/ExamineFeed"
     ExamineFeed:
+      description: フィード探索におけるフィード詳細
       required:
       - title
       - url
@@ -760,6 +749,7 @@ components:
         result:
           type: string
     AsRead:
+      description: 既読情報
       required:
       - feed_id
       - serial
@@ -772,22 +762,26 @@ components:
           type: integer
           format: uint64
     Subscription:
+      description: カテゴリおよび購読一覧
       required:
       - id
       - name
       - subscription
       properties:
         id:
+          description: カテゴリID
           type: integer
           format: uint64
-          x-go-name: ID
+          x-go-name: CategoryID
         name:
+          description: カテゴリ名
           format: string
         subscription:
+          description: カテゴリに属するフィード一覧
           type: array
           items: 
-            $ref: "#/components/schemas/SubscriptionForUser"
-    SubscriptionForUser:
+            $ref: "#/components/schemas/CategorySubscription"
+    CategorySubscription:
       required:
       - id
       - title
@@ -796,6 +790,7 @@ components:
       - siteurl
       properties:
         id:
+          description: フィードID
           type: integer
           format: uint64
           x-go-name: FeedID
@@ -805,10 +800,11 @@ components:
           type: integer
           format: uint64
         http_status:
+          description: 最終アクセス時のレスポンスコード
           type: string
         siteurl:
+          description: フィード配信元サイトURL
           type: string
-
   securitySchemes:
     BearerAuth:
       type: http
