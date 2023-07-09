@@ -168,3 +168,23 @@ func (*ApiServer) SetAsRead(ctx context.Context, request SetAsReadRequestObject)
 	}
 	return SetAsRead200JSONResponse{Result: "OK"}, nil
 }
+
+func (*ApiServer) SetPin(ctx context.Context, request SetPinRequestObject) (SetPinResponseObject, error) {
+	var readflag db.ReadFlag
+	if request.Body.Readflag == pin.Setpin {
+		readflag = db.Seen
+	} else {
+		readflag = db.SetPin
+	}
+
+	fmt.Printf("PIN feed_id:%d\tserial:%d\treadflag:%d\n", request.Body.FeedId, request.Body.Serial, readflag)
+
+	tx := DBUserFromContext(ctx).MustBegin()
+	if tx.UpdateEntry(request.Body.FeedId, request.Body.Serial, readflag) != nil {
+		tx.Rollback()
+		return SetPin400Response{}, nil
+	}
+	tx.Commit()
+
+	return SetPin200JSONResponse{readflag.ToPinReadFlag()}, nil
+}

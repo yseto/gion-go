@@ -33,35 +33,6 @@ type setPinResult struct {
 	Readflag uint64 `json:"readflag"`
 }
 
-func SetPin(c echo.Context) error {
-	rawReadflag, rErr := strconv.ParseUint(c.FormValue("readflag"), 10, 64)
-	serial, sErr := strconv.ParseUint(c.FormValue("serial"), 10, 64)
-	feedID, fErr := strconv.ParseUint(c.FormValue("feed_id"), 10, 64)
-	if rErr != nil || sErr != nil || fErr != nil {
-		return c.JSON(http.StatusBadRequest, nil)
-	}
-
-	var readflag db.ReadFlag
-	if rawReadflag == 2 {
-		readflag = db.Seen
-		rawReadflag = 1
-	} else {
-		readflag = db.SetPin
-		rawReadflag = 2
-	}
-
-	fmt.Printf("PIN feed_id:%d\tserial:%d\treadflag:%d\n", feedID, serial, readflag)
-
-	tx := c.(*CustomContext).DBUser().MustBegin()
-	if tx.UpdateEntry(feedID, serial, readflag) != nil {
-		tx.Rollback()
-		return c.JSON(http.StatusBadRequest, nil)
-	}
-	tx.Commit()
-
-	return c.JSON(http.StatusOK, setPinResult{rawReadflag})
-}
-
 type registerResult struct {
 	Result string `json:"result"`
 }
