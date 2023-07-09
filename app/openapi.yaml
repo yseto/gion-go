@@ -637,7 +637,10 @@ components:
           format: uint64
         update_at:
           type: string
-          x-go-type: db.MyTime
+          x-go-type: pin.UpdateTime
+          x-go-type-import:
+            name: pin
+            path: github.com/yseto/gion-go/internal/pin
     CategoryAndUnreadEntryCount:
       description: カテゴリごとに未読記事数
       required:

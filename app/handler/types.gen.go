@@ -4,7 +4,6 @@
 package handler
 
 import (
-	"github.com/yseto/gion-go/db/db"
 	pin "github.com/yseto/gion-go/internal/pin"
 )
 
@@ -77,11 +76,11 @@ type ExamineSubscription struct {
 
 // PinnedItem ピン止めしたアイテム
 type PinnedItem struct {
-	FeedId   uint64    `json:"feed_id"`
-	Serial   uint64    `json:"serial"`
-	Title    string    `json:"title"`
-	UpdateAt db.MyTime `json:"update_at"`
-	Url      string    `json:"url"`
+	FeedId   uint64         `json:"feed_id"`
+	Serial   uint64         `json:"serial"`
+	Title    string         `json:"title"`
+	UpdateAt pin.UpdateTime `json:"update_at"`
+	Url      string         `json:"url"`
 }
 
 // Profile 個人設定

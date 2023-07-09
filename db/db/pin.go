@@ -2,16 +2,17 @@ package db
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/yseto/gion-go/internal/pin"
 )
 
 type PinnedItem struct {
-	Title         string `db:"title"`
-	URL           string `db:"url"`
-	EntrySerial   uint64 `db:"serial"`
-	EntryFeedID   uint64 `db:"feed_id"`
-	EntryUpdateAt MyTime `db:"update_at"`
+	Title         string    `db:"title"`
+	URL           string    `db:"url"`
+	EntrySerial   uint64    `db:"serial"`
+	EntryFeedID   uint64    `db:"feed_id"`
+	EntryUpdateAt time.Time `db:"update_at"`
 }
 
 func (c *UserClient) PinnedItems() ([]*PinnedItem, error) {

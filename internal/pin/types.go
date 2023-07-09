@@ -4,6 +4,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
+	"time"
 )
 
 type ReadFlag string
@@ -63,4 +64,11 @@ func (j *ReadFlag) Scan(src interface{}) error {
 		return errors.New("incompatible type for ReadFlag")
 	}
 	return nil
+}
+
+type UpdateTime time.Time
+
+func (h *UpdateTime) MarshalJSON() ([]byte, error) {
+	ht := time.Time(*h)
+	return []byte(`"` + ht.Format("2006-01-02 15:04:05") + `"`), nil
 }

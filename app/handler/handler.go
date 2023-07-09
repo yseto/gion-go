@@ -43,7 +43,7 @@ func (*ApiServer) PinnedItems(ctx context.Context, request PinnedItemsRequestObj
 			FeedId:   i.EntryFeedID,
 			Serial:   i.EntrySerial,
 			Title:    i.Title,
-			UpdateAt: i.EntryUpdateAt,
+			UpdateAt: pin.UpdateTime(i.EntryUpdateAt),
 			Url:      i.URL,
 		})
 	}
