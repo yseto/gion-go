@@ -188,3 +188,30 @@ func (*ApiServer) SetPin(ctx context.Context, request SetPinRequestObject) (SetP
 
 	return SetPin200JSONResponse{readflag.ToPinReadFlag()}, nil
 }
+
+func (*ApiServer) RegisterCategory(ctx context.Context, request RegisterCategoryRequestObject) (RegisterCategoryResponseObject, error) {
+	categoryName := request.Body.Name
+	if categoryName == "" {
+		return RegisterCategory400Response{}, nil
+	}
+
+	tx := DBUserFromContext(ctx).MustBegin()
+
+	cat, err := tx.CategoryByName(categoryName)
+	if err != nil && err != sql.ErrNoRows {
+		tx.Rollback()
+		return RegisterCategory400Response{}, nil
+	}
+	if cat != nil {
+		tx.Commit()
+		return RegisterCategory200JSONResponse{Result: "ERROR_ALREADY_REGISTER"}, nil
+	}
+
+	if err = tx.InsertCategory(categoryName); err != nil {
+		tx.Rollback()
+		return RegisterCategory400Response{}, nil
+	}
+	tx.Commit()
+
+	return RegisterCategory200JSONResponse{Result: "OK"}, nil
+}

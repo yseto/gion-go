@@ -37,33 +37,6 @@ type registerResult struct {
 	Result string `json:"result"`
 }
 
-func RegisterCategory(c echo.Context) error {
-	categoryName := c.FormValue("name")
-	if categoryName == "" {
-		return c.JSON(http.StatusBadRequest, nil)
-	}
-
-	tx := c.(*CustomContext).DBUser().MustBegin()
-
-	cat, err := tx.CategoryByName(categoryName)
-	if err != nil && err != sql.ErrNoRows {
-		tx.Rollback()
-		return c.JSON(http.StatusBadRequest, nil)
-	}
-	if cat != nil {
-		tx.Commit()
-		return c.JSON(http.StatusOK, registerResult{"ERROR_ALREADY_REGISTER"})
-	}
-
-	if err = tx.InsertCategory(categoryName); err != nil {
-		tx.Rollback()
-		return c.JSON(http.StatusBadRequest, nil)
-	}
-	tx.Commit()
-
-	return c.JSON(http.StatusOK, registerResult{"OK"})
-}
-
 type registerSubscriptionResult struct {
 	Result string `json:"result"`
 }
