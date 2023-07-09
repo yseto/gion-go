@@ -44,10 +44,3 @@ type registerSubscriptionResult struct {
 type commonResult struct {
 	Result string `json:"r"`
 }
-
-func RemoveAllPin(c echo.Context) error {
-	if c.(*CustomContext).DBUser().RemovePinnedItem() != nil {
-		return c.JSON(http.StatusBadRequest, nil)
-	}
-	return c.JSON(http.StatusOK, asreadResult{true})
-}

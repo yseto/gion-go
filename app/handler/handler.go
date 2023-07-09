@@ -334,3 +334,10 @@ func (*ApiServer) UpdateProfile(ctx context.Context, request UpdateProfileReques
 	}
 	return UpdateProfile200JSONResponse{Result: "OK"}, nil
 }
+
+func (*ApiServer) RemoveAllPin(ctx context.Context, request RemoveAllPinRequestObject) (RemoveAllPinResponseObject, error) {
+	if DBUserFromContext(ctx).RemovePinnedItem() != nil {
+		return RemoveAllPin400Response{}, nil
+	}
+	return RemoveAllPin200JSONResponse{Result: "OK"}, nil
+}
