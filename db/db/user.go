@@ -1,10 +1,10 @@
 package db
 
 type UserProfile struct {
-	AutoSeen        bool   `db:"autoseen" json:"autoseen"`
-	EntryCount      uint64 `db:"numentry" json:"numentry"`
-	NoPinList       bool   `db:"nopinlist" json:"nopinlist"`
-	SubstringLength uint64 `db:"numsubstr" json:"numsubstr"`
+	AutoSeen        bool   `db:"autoseen"`
+	EntryCount      uint64 `db:"numentry"`
+	NoPinList       bool   `db:"nopinlist"`
+	SubstringLength uint64 `db:"numsubstr"`
 }
 
 func (c *UserClient) Profile() (*UserProfile, error) {

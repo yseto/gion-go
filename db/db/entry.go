@@ -6,15 +6,15 @@ import (
 )
 
 type EntryDetail struct {
-	EntrySerial    uint64    `db:"serial" json:"serial"`
-	EntryFeedID    uint64    `db:"feed_id" json:"feed_id"`
-	Title          string    `db:"title" json:"title"`
-	Description    string    `db:"description" json:"description"`
-	PubDate        time.Time `db:"pubdate" json:"date_epoch"`
-	ReadFlag       ReadFlag  `db:"readflag" json:"readflag"`
-	URL            string    `db:"url" json:"url"`
-	SubscriptionID uint64    `db:"subscription_id" json:"subscription_id"`
-	SiteTitle      string    `db:"site_title" json:"site_title"`
+	EntrySerial    uint64    `db:"serial"`
+	EntryFeedID    uint64    `db:"feed_id"`
+	Title          string    `db:"title"`
+	Description    string    `db:"description"`
+	PubDate        time.Time `db:"pubdate"`
+	ReadFlag       ReadFlag  `db:"readflag"`
+	URL            string    `db:"url"`
+	SubscriptionID uint64    `db:"subscription_id"`
+	SiteTitle      string    `db:"site_title"`
 }
 
 func (c *UserClient) UnreadEntryByCategory(categoryID uint64) ([]*EntryDetail, error) {

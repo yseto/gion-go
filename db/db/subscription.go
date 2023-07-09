@@ -26,11 +26,11 @@ func (c *ClientTxn) SubscriptionByFeedID(feedID uint64) ([]*Subscription, error)
 }
 
 type SubscriptionForUser struct {
-	FeedID     uint64 `db:"id" json:"id"`
-	FeedTitle  string `db:"title" json:"title"`
-	CategoryID uint64 `db:"category_id" json:"category_id"`
-	HTTPStatus string `db:"http_status" json:"http_status"`
-	SiteURL    string `db:"siteurl" json:"siteurl"`
+	FeedID     uint64 `db:"id"`
+	FeedTitle  string `db:"title"`
+	CategoryID uint64 `db:"category_id"`
+	HTTPStatus string `db:"http_status"`
+	SiteURL    string `db:"siteurl"`
 }
 
 func (c *UserClient) Subscriptions() ([]*SubscriptionForUser, error) {

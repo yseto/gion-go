@@ -41,11 +41,11 @@ func (c ReadFlag) ToPinReadFlag() pin.ReadFlag {
 }
 
 type PinnedItem struct {
-	Title         string `db:"title" json:"title"`
-	URL           string `db:"url" json:"url"`
-	EntrySerial   uint64 `db:"serial" json:"serial"`
-	EntryFeedID   uint64 `db:"feed_id" json:"feed_id"`
-	EntryUpdateAt MyTime `db:"update_at" json:"update_at"`
+	Title         string `db:"title"`
+	URL           string `db:"url"`
+	EntrySerial   uint64 `db:"serial"`
+	EntryFeedID   uint64 `db:"feed_id"`
+	EntryUpdateAt MyTime `db:"update_at"`
 }
 
 func (c *UserClient) PinnedItems() ([]*PinnedItem, error) {
