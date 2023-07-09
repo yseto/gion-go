@@ -1,8 +1,8 @@
 export type Profile = {
   autoseen: boolean;
-  nopinlist: boolean;
-  numentry: number;
-  numsubstr: number;
+  onLoginSkipPinList: boolean;
+  entryCount: number;
+  substringLength: number;
 };
 
 export type PinList = {
