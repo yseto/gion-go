@@ -45,28 +45,6 @@ type commonResult struct {
 	Result string `json:"r"`
 }
 
-func DeleteSubscription(c echo.Context) error {
-	deleteType := c.FormValue("subscription")
-	id, err := strconv.ParseUint(c.FormValue("id"), 10, 64)
-	if err != nil || deleteType == "" {
-		return c.JSON(http.StatusBadRequest, nil)
-	}
-
-	db := c.(*CustomContext).DBUser()
-	switch deleteType {
-	case "category":
-		err = db.DeleteCategory(id)
-	case "entry":
-		err = db.DeleteSubscription(id)
-	default:
-		err = fmt.Errorf("invalid type")
-	}
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, nil)
-	}
-	return c.JSON(http.StatusOK, commonResult{"OK"})
-}
-
 func ChangeSubscription(c echo.Context) error {
 	categoryID, cErr := strconv.ParseUint(c.FormValue("category"), 10, 64)
 	feedID, iErr := strconv.ParseUint(c.FormValue("id"), 10, 64)
