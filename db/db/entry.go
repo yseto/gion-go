@@ -21,7 +21,7 @@ type EntryDetail struct {
 
 func (c *UserClient) UnreadEntryByCategory(categoryID uint64) ([]*EntryDetail, error) {
 	e := []*EntryDetail{}
-	err := c.Select(&e, `
+	err := c.Select(&e, c.sql(`
 SELECT
     entry.serial,
     entry.feed_id,
@@ -40,7 +40,7 @@ WHERE subscription.category_id = ?
     AND readflag <> 1
     AND entry.user_id = ?
 ORDER BY entry.pubdate DESC
-`, categoryID, c.UserID)
+`), categoryID, c.UserID)
 
 	if err != nil {
 		return nil, err
@@ -49,7 +49,7 @@ ORDER BY entry.pubdate DESC
 }
 
 func (c *UserClient) UpdateEntrySeen(feedID, serial uint64) error {
-	_, err := c.Exec(`
+	_, err := c.Exec(c.sql(`
 UPDATE entry
 SET
     readflag = 1,
@@ -58,22 +58,22 @@ WHERE readflag = 0
     AND user_id = ?
     AND feed_id = ?
     AND serial = ?
-    `, c.UserID, feedID, serial)
+    `), c.UserID, feedID, serial)
 	return err
 }
 
 func (c *ClientTxn) InsertEntry(userID, feedID, serial, subscriptionID uint64, pubdate time.Time) error {
-	_, err := c.Exec(`
+	_, err := c.Exec(c.sql(`
 INSERT INTO entry
 (user_id, feed_id, serial, subscription_id, pubdate, readflag,  update_at)
 VALUES (?, ?, ?, ?, ?, 0, CURRENT_TIMESTAMP)
-    `, userID, feedID, serial, subscriptionID, pubdate)
+    `), userID, feedID, serial, subscriptionID, pubdate)
 	return err
 }
 
 func (c *ClientTxn) ExistEntry(feedID, serial uint64) (uint64, error) {
 	var count uint64
-	err := c.Get(&count, "SELECT COUNT(*) FROM entry WHERE feed_id = ? AND serial = ?", feedID, serial)
+	err := c.Get(&count, c.sql("SELECT COUNT(*) FROM entry WHERE feed_id = ? AND serial = ?"), feedID, serial)
 	return count, err
 }
 
@@ -84,6 +84,8 @@ func (c *Client) PurgeReadEntry() error {
 		_, err = c.Exec("DELETE FROM entry WHERE readflag = 1 AND update_at < DATETIME('NOW', '-1 DAY')")
 	case "mysql":
 		_, err = c.Exec("DELETE FROM entry WHERE readflag = 1 AND update_at < DATE_ADD(CURRENT_TIMESTAMP, INTERVAL -1 DAY)")
+	case "postgres":
+		_, err = c.Exec("DELETE FROM entry WHERE readflag = 1 AND update_at < DATE_TRUNC('second', (CURRENT_TIMESTAMP - interval '24 hours'))")
 	default:
 		err = fmt.Errorf("invalid DB Driver: %s", c.DriverName())
 	}

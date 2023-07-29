@@ -9,7 +9,7 @@ type Subscription struct {
 
 func (c *UserClientTxn) SubscriptionByFeedID(feedID uint64) (*Subscription, error) {
 	s := Subscription{}
-	err := c.Get(&s, "SELECT * FROM subscription WHERE user_id = ? AND feed_id = ?", c.UserID, feedID)
+	err := c.Get(&s, c.sql("SELECT * FROM subscription WHERE user_id = ? AND feed_id = ?"), c.UserID, feedID)
 	if err != nil {
 		return nil, err
 	}
@@ -18,7 +18,7 @@ func (c *UserClientTxn) SubscriptionByFeedID(feedID uint64) (*Subscription, erro
 
 func (c *ClientTxn) SubscriptionByFeedID(feedID uint64) ([]*Subscription, error) {
 	s := []*Subscription{}
-	err := c.Select(&s, "SELECT * FROM subscription WHERE feed_id = ?", feedID)
+	err := c.Select(&s, c.sql("SELECT * FROM subscription WHERE feed_id = ?"), feedID)
 	if err != nil {
 		return nil, err
 	}
@@ -35,7 +35,7 @@ type SubscriptionForUser struct {
 
 func (c *UserClient) Subscriptions() ([]*SubscriptionForUser, error) {
 	s := []*SubscriptionForUser{}
-	err := c.Select(&s, `
+	err := c.Select(&s, c.sql(`
 SELECT
     feed.id,
     feed.title,
@@ -46,7 +46,7 @@ FROM subscription
 INNER JOIN feed ON feed_id = feed.id
 WHERE subscription.user_id = ?
 ORDER BY title ASC
-`, c.UserID)
+`), c.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +55,7 @@ ORDER BY title ASC
 
 func (c *UserClient) FeedsByCategoryID(categoryID uint64) ([]*Feed, error) {
 	f := []*Feed{}
-	err := c.Select(&f, `
+	err := c.Select(&f, c.sql(`
 SELECT
     feed.* 
 FROM subscription
@@ -64,7 +64,7 @@ WHERE
     subscription.user_id = ?
 AND
     subscription.category_id = ?
-`, c.UserID, categoryID)
+`), c.UserID, categoryID)
 	if err != nil {
 		return nil, err
 	}
@@ -72,16 +72,16 @@ AND
 }
 
 func (c *UserClient) DeleteSubscription(feedID uint64) error {
-	_, err := c.Exec("DELETE FROM subscription WHERE feed_id = ? AND user_id = ?", feedID, c.UserID)
+	_, err := c.Exec(c.sql("DELETE FROM subscription WHERE feed_id = ? AND user_id = ?"), feedID, c.UserID)
 	return err
 }
 
 func (c *UserClientTxn) InsertSubscription(feedID, categoryID uint64) error {
-	_, err := c.Exec("INSERT INTO subscription (category_id, feed_id, user_id) VALUES (?, ?, ?)", categoryID, feedID, c.UserID)
+	_, err := c.Exec(c.sql("INSERT INTO subscription (category_id, feed_id, user_id) VALUES (?, ?, ?)"), categoryID, feedID, c.UserID)
 	return err
 }
 
 func (c *UserClient) UpdateSubscription(feedID, categoryID uint64) error {
-	_, err := c.Exec("UPDATE subscription SET category_id = ? WHERE feed_id = ? AND user_id = ?", categoryID, feedID, c.UserID)
+	_, err := c.Exec(c.sql("UPDATE subscription SET category_id = ? WHERE feed_id = ? AND user_id = ?"), categoryID, feedID, c.UserID)
 	return err
 }

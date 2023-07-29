@@ -10,7 +10,7 @@ type Category struct {
 
 func (c *UserClient) CategoryByID(id uint64) (*Category, error) {
 	category := Category{}
-	err := c.Get(&category, "SELECT * FROM category WHERE user_id = ? AND id = ?", c.UserID, id)
+	err := c.Get(&category, c.sql("SELECT * FROM category WHERE user_id = ? AND id = ?"), c.UserID, id)
 	if err != nil {
 		return nil, err
 	}
@@ -19,7 +19,7 @@ func (c *UserClient) CategoryByID(id uint64) (*Category, error) {
 
 func (c *UserClientTxn) CategoryByName(name string) (*Category, error) {
 	category := Category{}
-	err := c.Get(&category, "SELECT * FROM category WHERE user_id = ? AND name = ?", c.UserID, name)
+	err := c.Get(&category, c.sql("SELECT * FROM category WHERE user_id = ? AND name = ?"), c.UserID, name)
 	if err != nil {
 		return nil, err
 	}
@@ -28,7 +28,7 @@ func (c *UserClientTxn) CategoryByName(name string) (*Category, error) {
 
 func (c *UserClient) Category() ([]*Category, error) {
 	categories := []*Category{}
-	err := c.Select(&categories, "SELECT * FROM category WHERE user_id = ? ORDER BY name ASC", c.UserID)
+	err := c.Select(&categories, c.sql("SELECT * FROM category WHERE user_id = ? ORDER BY name ASC"), c.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +43,7 @@ type UnreadEntryCount struct {
 
 func (c *UserClient) CategoryAndUnreadEntryCount() ([]*UnreadEntryCount, error) {
 	counts := []*UnreadEntryCount{}
-	err := c.Select(&counts, `
+	err := c.Select(&counts, c.sql(`
 SELECT
     COUNT(0) AS count,
     category.id AS id,
@@ -55,7 +55,7 @@ WHERE readflag <> 1
     AND category.user_id = ?
 GROUP BY category.id
 ORDER BY category.name ASC
-    `, c.UserID)
+    `), c.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +63,7 @@ ORDER BY category.name ASC
 }
 
 func (c *UserClient) DeleteCategory(id uint64) error {
-	res, err := c.Exec("DELETE FROM category WHERE id = ? AND user_id = ?", id, c.UserID)
+	res, err := c.Exec(c.sql("DELETE FROM category WHERE id = ? AND user_id = ?"), id, c.UserID)
 	if err != nil {
 		return err
 	}
@@ -78,7 +78,7 @@ func (c *UserClient) DeleteCategory(id uint64) error {
 }
 
 func (c *UserClientTxn) InsertCategory(name string) error {
-	_, err := c.Exec("INSERT INTO category (user_id, name) VALUES (?, ?)", c.UserID, name)
+	_, err := c.Exec(c.sql("INSERT INTO category (user_id, name) VALUES (?, ?)"), c.UserID, name)
 	if err != nil {
 		return err
 	}

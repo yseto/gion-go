@@ -1,12 +1,12 @@
 package db
 
 func (c *ClientTxn) InsertStory(feedID, serial uint64, title, description, url string) error {
-	_, err := c.Exec(`
+	_, err := c.Exec(c.sql(`
 INSERT INTO story
 (feed_id, serial, title, description, url)
 VALUES
 (?, ?, ?, ?, ?)
-`, feedID, serial, title, description, url)
+`), feedID, serial, title, description, url)
 	return err
 }
 
@@ -26,6 +26,6 @@ func (c *ClientTxn) Stories() ([]*Story, error) {
 }
 
 func (c *ClientTxn) DeleteStory(feedID, serial uint64) error {
-	_, err := c.Exec("DELETE FROM story WHERE feed_id = ? AND serial = ?", feedID, serial)
+	_, err := c.Exec(c.sql("DELETE FROM story WHERE feed_id = ? AND serial = ?"), feedID, serial)
 	return err
 }
