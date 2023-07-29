@@ -166,6 +166,11 @@ func HandleCrawlerTask(ctx context.Context, t *asynq.Task) error {
 			continue
 		}
 
+		// UNIX epoch で表現できない時刻のエントリは取り込まない
+		if items[i].PublishedParsed.Unix() < 0 {
+			continue
+		}
+
 		// フィードの記事データからフィードの最終更新時間を更新する
 		if items[i].PublishedParsed.After(pubdate) {
 			pubdate = *items[i].PublishedParsed
