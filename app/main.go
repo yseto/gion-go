@@ -16,14 +16,12 @@ import (
 
 	oapiMiddleware "github.com/deepmap/oapi-codegen/pkg/middleware"
 	"github.com/getkin/kin-openapi/openapi3filter"
-	_ "github.com/go-sql-driver/mysql"
-	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	_ "github.com/mattn/go-sqlite3"
 
 	"github.com/yseto/gion-go/app/handler"
 	"github.com/yseto/gion-go/config"
+	"github.com/yseto/gion-go/db"
 )
 
 func main() {
@@ -34,14 +32,11 @@ func main() {
 		log.Fatal(err)
 	}
 
-	dbConn, err := sqlx.Open(cfg.DBDriverName, cfg.DBDataSourceName)
+	dbConn, err := db.Open(cfg)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer dbConn.Close()
-	if dbConn.DriverName() == "sqlite3" {
-		dbConn.Exec("PRAGMA foreign_keys = ON")
-	}
 
 	swagger, _ := handler.GetSwagger()
 	swagger.Servers = nil

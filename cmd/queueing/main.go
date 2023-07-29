@@ -4,10 +4,7 @@ import (
 	"flag"
 	"log"
 
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/hibiken/asynq"
-	"github.com/jmoiron/sqlx"
-	_ "github.com/mattn/go-sqlite3"
 
 	"github.com/yseto/gion-go/cmd/worker/cleaner"
 	"github.com/yseto/gion-go/cmd/worker/crawler"
@@ -56,14 +53,11 @@ func doCleaner(client *asynq.Client) {
 }
 
 func doCrawler(client *asynq.Client, cfg *config.Config, term *uint64) {
-	dbConn, err := sqlx.Open(cfg.DBDriverName, cfg.DBDataSourceName)
+	dbConn, err := db.Open(cfg)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer dbConn.Close()
-	if dbConn.DriverName() == "sqlite3" {
-		dbConn.Exec("PRAGMA foreign_keys = ON")
-	}
 
 	dbc := db.New(dbConn)
 
