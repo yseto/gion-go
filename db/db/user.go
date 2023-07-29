@@ -38,7 +38,7 @@ type User struct {
 
 func (c *UserClient) User() (*User, error) {
 	u := User{}
-	err := c.Get(&u, c.sql("SELECT id, `name`, `digest`, last_login, autoseen, numentry, nopinlist, numsubstr FROM users WHERE id = ?"), c.UserID)
+	err := c.Get(&u, c.sql("SELECT id, name, digest, last_login, autoseen, numentry, nopinlist, numsubstr FROM users WHERE id = ?"), c.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +47,7 @@ func (c *UserClient) User() (*User, error) {
 
 func (c *Client) UserByName(name string) (*User, error) {
 	u := User{}
-	err := c.Get(&u, c.sql(`SELECT "id", "name", "digest", "last_login", "autoseen", "numentry", "nopinlist", "numsubstr" FROM users WHERE name = ?`), name)
+	err := c.Get(&u, c.sql("SELECT id, name, digest, last_login, autoseen, numentry, nopinlist, numsubstr FROM users WHERE name = ?"), name)
 	if err != nil {
 		return nil, err
 	}

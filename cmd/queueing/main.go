@@ -13,8 +13,6 @@ import (
 	dbType "github.com/yseto/gion-go/db/db"
 )
 
-var redisAddr string
-
 func main() {
 	mode := flag.String("mode", "", "cleanup or crawler")
 	term := flag.Uint64("term", 0, "0=all, =1,2,3...")
@@ -34,6 +32,7 @@ func main() {
 	case *mode == "cleanup":
 		doCleaner(client)
 	default:
+		flag.Usage()
 		log.Fatal("mode is empty")
 	}
 
@@ -49,7 +48,6 @@ func doCleaner(client *asynq.Client) {
 		log.Fatalf("could not enqueue task: %v", err)
 	}
 	log.Printf("enqueued task: id=%s queue=%s", info.ID, info.Queue)
-	return
 }
 
 func doCrawler(client *asynq.Client, cfg *config.Config, term *uint64) {

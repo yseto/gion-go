@@ -24,13 +24,13 @@ type CacheJson struct {
 	Modified string `json:"If-Modified-Since,omitempty"`
 }
 
-func (f Feed) GetCache() CacheJson {
+func (f *Feed) GetCache() CacheJson {
 	var cache CacheJson
 	json.Unmarshal([]byte(f.Cache), &cache)
 	return cache
 }
 
-func (f Feed) SetCache(c CacheJson) {
+func (f *Feed) SetCache(c CacheJson) {
 	b, err := json.Marshal(c)
 	if err != nil {
 		f.Cache = "{}"
