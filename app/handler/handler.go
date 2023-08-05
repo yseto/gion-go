@@ -13,13 +13,13 @@ import (
 
 	"github.com/antchfx/htmlquery"
 	"github.com/gilliek/go-opml/opml"
-	"github.com/hakobe/paranoidhttp"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/mmcdole/gofeed"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/net/html/charset"
 
 	"github.com/yseto/gion-go/db/db"
+	"github.com/yseto/gion-go/internal/client"
 	"github.com/yseto/gion-go/internal/pin"
 )
 
@@ -375,7 +375,7 @@ func examineSubscriptionGetContent(rawUrl string) (*ExamineSubscription, error) 
 		return nil, err
 	}
 
-	resp, err := paranoidhttp.DefaultClient.Get(urlParam.String())
+	resp, err := client.Get(urlParam.String())
 	if err != nil {
 		return nil, err
 	}
@@ -438,7 +438,7 @@ func (*ApiServer) ExamineSubscription(ctx context.Context, request ExamineSubscr
 
 	empty.Title = content.Title
 
-	resp, err := paranoidhttp.DefaultClient.Get(content.URL)
+	resp, err := client.Get(content.URL)
 	if err != nil {
 		return empty, nil
 	}
