@@ -2,10 +2,10 @@ package client
 
 import (
 	"io"
+	"net"
 	"net/http"
 	"net/url"
-
-	"github.com/hakobe/paranoidhttp"
+	"time"
 )
 
 type Response struct {
@@ -23,15 +23,31 @@ type Cache struct {
 }
 
 var client *http.Client
+var transport *http.Transport
 
 func init() {
-	client = paranoidhttp.DefaultClient
-	client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
-		return http.ErrUseLastResponse
+	transport = http.DefaultTransport.(*http.Transport).Clone()
+	transport.DialContext = (&net.Dialer{
+		Timeout:   30 * time.Second,
+		KeepAlive: 30 * time.Second,
+		Control:   control,
+	}).DialContext
+
+	client = &http.Client{
+		Transport: transport,
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
 	}
 }
 
-func Get(xmlUrl string, cache Cache) (*Response, error) {
+func Get(url string) (*http.Response, error) {
+	return (&http.Client{
+		Transport: transport,
+	}).Get(url)
+}
+
+func GetWithCache(xmlUrl string, cache Cache) (*Response, error) {
 	req, err := http.NewRequest("GET", xmlUrl, nil)
 	if err != nil {
 		return nil, err
@@ -111,7 +127,7 @@ func Get(xmlUrl string, cache Cache) (*Response, error) {
 			return u, nil
 		}
 
-		return Get(nextLocation, cache)
+		return GetWithCache(nextLocation, cache)
 	}
 
 	return u, nil

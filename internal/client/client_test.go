@@ -27,7 +27,7 @@ func TestClient_200(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	actual, err := Get(ts.URL, Cache{})
+	actual, err := GetWithCache(ts.URL, Cache{})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -50,7 +50,7 @@ func TestClient_302(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	actual, err := Get(ts.URL, Cache{})
+	actual, err := GetWithCache(ts.URL, Cache{})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -73,7 +73,7 @@ func TestClient_CheckRedirectLoop(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	actual, err := Get(ts.URL, Cache{})
+	actual, err := GetWithCache(ts.URL, Cache{})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -100,7 +100,7 @@ func TestClient_304(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	actual, err := Get(ts.URL, Cache{Etag: "etag", Modified: "modified"})
+	actual, err := GetWithCache(ts.URL, Cache{Etag: "etag", Modified: "modified"})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -117,7 +117,7 @@ func TestClient_404(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	actual, err := Get(ts.URL, Cache{})
+	actual, err := GetWithCache(ts.URL, Cache{})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -143,7 +143,7 @@ func TestClient_301(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	actual, err := Get(ts.URL, Cache{})
+	actual, err := GetWithCache(ts.URL, Cache{})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -165,7 +165,7 @@ func TestClient_301_invalid(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	actual, err := Get(ts.URL, Cache{})
+	actual, err := GetWithCache(ts.URL, Cache{})
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -70,7 +70,7 @@ func HandleCrawlerTask(ctx context.Context, t *asynq.Task) error {
 	}
 
 	fmt.Printf(">>> %s\n", feedRow.URL)
-	res, err := client.Get(
+	res, err := client.GetWithCache(
 		feedRow.URL,
 		client.Cache{
 			Etag:     feedRow.Cache.Etag,
