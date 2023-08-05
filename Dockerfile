@@ -6,7 +6,7 @@ RUN npm install
 COPY frontend/ /app/frontend/
 RUN npm run build
 
-FROM golang:1.19-bullseye AS build-go
+FROM golang:1.20-bullseye AS build-go
 
 WORKDIR /usr/src/app/
 COPY go.mod go.sum  /usr/src/app/
@@ -15,6 +15,7 @@ COPY app/           /usr/src/app/app/
 COPY cmd/           /usr/src/app/cmd/
 COPY config/        /usr/src/app/config/
 COPY db/            /usr/src/app/db/
+COPY internal/      /usr/src/app/internal/
 ENV CGO_ENABLED=0
 RUN go build -o /app/gion       ./app
 RUN go build -o /app/queueing   ./cmd/queueing/
