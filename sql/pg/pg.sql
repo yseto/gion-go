@@ -27,7 +27,7 @@ CREATE TABLE "feed" (
   "http_status" character varying(3) NOT NULL,
   "pubdate" timestamp(0) DEFAULT CURRENT_TIMESTAMP NOT NULL,
   "term" character varying(1) DEFAULT '1' NOT NULL,
-  "cache" text NOT NULL,
+  "cache" jsonb NOT NULL,
   "next_serial" bigint DEFAULT 0 NOT NULL,
   PRIMARY KEY ("id")
 );
