@@ -1,10 +1,12 @@
 package db
 
+import "time"
+
 type UserProfile struct {
-	AutoSeen        bool   `db:"autoseen" json:"autoseen"`
-	EntryCount      uint64 `db:"numentry" json:"numentry"`
-	NoPinList       bool   `db:"nopinlist" json:"nopinlist"`
-	SubstringLength uint64 `db:"numsubstr" json:"numsubstr"`
+	AutoSeen           bool   `db:"autoseen"`
+	EntryCount         uint64 `db:"numentry"`
+	OnLoginSkipPinList bool   `db:"nopinlist"`
+	SubstringLength    uint64 `db:"numsubstr"`
 }
 
 func (c *UserClient) Profile() (*UserProfile, error) {
@@ -20,17 +22,17 @@ func (c *UserClient) UpdateProfile(item UserProfile) error {
 	_, err := c.Exec("UPDATE users SET autoseen = ?, numentry = ?, nopinlist = ?, numsubstr = ? WHERE id = ?",
 		item.AutoSeen,
 		item.EntryCount,
-		item.NoPinList,
+		item.OnLoginSkipPinList,
 		item.SubstringLength,
 		c.UserID)
 	return err
 }
 
 type User struct {
-	ID        uint64 `db:"id"`
-	Name      string `db:"name"`
-	Digest    string `db:"digest"`
-	LastLogin MyTime `db:"last_login"`
+	ID        uint64    `db:"id"`
+	Name      string    `db:"name"`
+	Digest    string    `db:"digest"`
+	LastLogin time.Time `db:"last_login"`
 	UserProfile
 }
 

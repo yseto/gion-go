@@ -11,7 +11,7 @@ export default defineComponent({
   setup: () => {
     const router = useRouter();
     Agent<Profile>({ url: "/api/profile" }).then((data) => {
-      const next = data.nopinlist === true ? "/entry" : "/pin";
+      const next = data.onLoginSkipPinList === true ? "/entry" : "/pin";
       router.push(next);
     });
   },

@@ -3,9 +3,9 @@ package db
 import "fmt"
 
 type Category struct {
-	ID     uint64 `db:"id" json:"id"`
-	UserID uint64 `db:"user_id" json:"-"`
-	Name   string `db:"name" json:"name"`
+	ID     uint64 `db:"id"`
+	UserID uint64 `db:"user_id"`
+	Name   string `db:"name"`
 }
 
 func (c *UserClient) CategoryByID(id uint64) (*Category, error) {
@@ -36,9 +36,9 @@ func (c *UserClient) Category() ([]*Category, error) {
 }
 
 type UnreadEntryCount struct {
-	Count uint64 `db:"count" json:"count"`
-	ID    uint64 `db:"id" json:"id"`
-	Name  string `db:"name" json:"name"`
+	Count uint64 `db:"count"`
+	ID    uint64 `db:"id"`
+	Name  string `db:"name"`
 }
 
 func (c *UserClient) CategoryAndUnreadEntryCount() ([]*UnreadEntryCount, error) {

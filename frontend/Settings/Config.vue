@@ -1,12 +1,12 @@
 <template>
   <div role="form">
     <div class="row form-group">
-      <label class="col-form-label col-sm-4" for="numentry"
+      <label class="col-form-label col-sm-4" for="entryCount"
         >表示件数の上限</label
       >
       <div class="col-sm-8">
         <input
-          v-model="profile.numentry"
+          v-model="profile.entryCount"
           type="number"
           placeholder="0で無制限"
           class="form-control"
@@ -15,12 +15,12 @@
       </div>
     </div>
     <div class="row form-group">
-      <label class="col-form-label col-sm-4" for="numsubstr"
+      <label class="col-form-label col-sm-4" for="substringLength"
         >概要の文字数制限</label
       >
       <div class="col-sm-8">
         <input
-          v-model="profile.numsubstr"
+          v-model="profile.substringLength"
           type="number"
           placeholder="0で無制限"
           class="form-control"
@@ -33,12 +33,12 @@
       <div class="col-sm-8">
         <div class="form-check">
           <input
-            id="nopinlist"
-            v-model="profile.nopinlist"
+            id="onLoginSkipPinList"
+            v-model="profile.onLoginSkipPinList"
             type="checkbox"
             class="form-check-input"
           />
-          <label class="form-check-label" for="nopinlist"
+          <label class="form-check-label" for="onLoginSkipPinList"
             >ログインしたらすぐにエントリ一覧を表示する</label
           >
         </div>
@@ -79,9 +79,9 @@ import { Profile } from "../types";
 
 class CProfile {
   autoseen = false;
-  nopinlist = false;
-  numentry = 0;
-  numsubstr = 0;
+  onLoginSkipPinList = false;
+  entryCount = 0;
+  substringLength = 0;
 }
 
 export default defineComponent({
@@ -96,9 +96,9 @@ export default defineComponent({
         jsonRequest: true,
         data: {
           autoseen: !!profile.autoseen,
-          nopinlist: !!profile.nopinlist,
-          numentry: profile.numentry,
-          numsubstr: profile.numsubstr,
+          onLoginSkipPinList: !!profile.onLoginSkipPinList,
+          entryCount: profile.entryCount,
+          substringLength: profile.substringLength,
         },
       }).then(() => {
         store.user.autoSeen = profile.autoseen;
@@ -111,9 +111,9 @@ export default defineComponent({
 
     Agent<Profile>({ url: "/api/profile" }).then((data) => {
       profile.autoseen = !!data.autoseen;
-      profile.nopinlist = !!data.nopinlist;
-      profile.numentry = data.numentry;
-      profile.numsubstr = data.numsubstr;
+      profile.onLoginSkipPinList = !!data.onLoginSkipPinList;
+      profile.entryCount = data.entryCount;
+      profile.substringLength = data.substringLength;
     });
 
     return {

@@ -58,12 +58,14 @@ export const useCategoryStore = defineStore("category", () => {
   };
 });
 
+export type ReadFlag = "Unseen" | "Seen" | "Setpin";
+
 export type Entry = {
   date_epoch: number;
   date: string;
   description: string;
   feed_id: number;
-  readflag: number;
+  readflag: ReadFlag;
   serial: number;
   site_title: string;
   subscription_id: number;
@@ -74,7 +76,7 @@ export type Entry = {
 type ContentSerialData = {
   serial: number;
   feed_id: number;
-  readflag: number;
+  readflag: ReadFlag;
 };
 
 export const useContentStore = defineStore("content", () => {
@@ -88,7 +90,7 @@ export const useContentStore = defineStore("content", () => {
   const setIndex = (index: number) => {
     selected.value = index;
   };
-  const setReadflag = (flag: number) => {
+  const setReadflag = (flag: ReadFlag) => {
     list.value[selected.value].readflag = flag;
   };
   const setSeen = (s: { feed_id: number; serial: number }) => {
@@ -96,7 +98,7 @@ export const useContentStore = defineStore("content", () => {
       (e) => e.feed_id === s.feed_id && e.serial === s.serial
     );
     if (item) {
-      item.readflag = 1;
+      item.readflag = "Seen";
     }
   };
   const currentEntrySerialData = (): ContentSerialData => {

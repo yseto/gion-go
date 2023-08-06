@@ -6,6 +6,7 @@ import (
 	"github.com/jmoiron/sqlx"
 
 	"github.com/yseto/gion-go/db/db"
+	"github.com/yseto/gion-go/internal/pin"
 )
 
 type UserScopedDB interface {
@@ -41,7 +42,7 @@ type UserClientTxn interface {
 	CategoryByName(name string) (*db.Category, error)
 	InsertCategory(name string) error
 
-	UpdateEntry(feedID, serial uint64, readflag db.ReadFlag) error
+	UpdateEntry(feedID, serial uint64, readflag pin.ReadFlag) error
 }
 
 func NewUserScopedDB(conn *sqlx.DB, userID uint64) UserScopedDB {

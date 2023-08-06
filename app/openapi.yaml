@@ -1,0 +1,815 @@
+openapi: 3.0.3
+info:
+  title: Gion
+  version: 1.0.0
+tags:
+  - name: account
+    description: Everything about accounts
+  - name: reader
+    description: read a entry
+  - name: subscription
+    description: manage a feed
+paths:
+  /:
+    get:
+      description: index page
+      operationId: Index
+      responses:
+        "200":
+          description: OK
+          content:
+            text/html:
+              schema:
+                type: string
+  /{filename}:
+    get:
+      description: serve file
+      operationId: ServeRootFile
+      parameters:
+        - name: filename
+          in: path
+          description: filename
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            text/html:
+              schema:
+                type: string
+        "404":
+          description: missing file
+  /api/login:
+    post:
+      tags:
+        - account
+      description: login
+      operationId: Login
+      security: [] 
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+              - id
+              - password
+              properties:
+                id:
+                  type: string
+                password:
+                  type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Authorization"
+        default:
+          description: Error
+          headers:
+            WWW-Authenticate:
+              description: error
+              schema:
+                type: string
+  /api/logout:
+    post:
+      tags:
+        - account
+      description: logout
+      operationId: Logout
+      security: [] 
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+  /api/profile:
+    post:
+      tags:
+        - account
+      description: user profile
+      operationId: Profile
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json: 
+              schema:
+                $ref: "#/components/schemas/Profile"
+        "400":
+          description: error
+  /api/pinned_items:
+    post:
+      tags:
+        - reader
+      description: return Pinned items
+      operationId: PinnedItems
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json: 
+              schema:
+                type: array
+                items:
+                  type:
+                  $ref: "#/components/schemas/PinnedItem"
+        "400":
+          description: error
+  /api/category_with_count:
+    post:
+      tags:
+        - reader
+      description: categories with unread entry count.
+      operationId: CategoryAndUnreadEntryCount
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json: 
+              schema:
+                type: array
+                items:
+                  type:
+                  $ref: "#/components/schemas/CategoryAndUnreadEntryCount"
+        "400":
+          description: error
+      
+  /api/unread_entry:
+    post:
+      tags:
+        - reader
+      description: unread entries
+      operationId: UnreadEntry
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+              - category
+              properties:
+                category:
+                  type: integer
+                  format: uint64
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json: 
+              schema:
+                type: array
+                items:
+                  type:
+                  $ref: "#/components/schemas/UnreadEntry"
+        "400":
+          description: error
+  /api/set_pin:
+    post:
+      tags:
+        - reader
+      description: set pin into entry
+      operationId: SetPin
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+              - readflag
+              - serial
+              - feed_id
+              properties:
+                readflag:
+                  type: string
+                  enum:
+                  - Unseen
+                  - Seen
+                  - Setpin
+                  x-go-type: pin.ReadFlag
+                  x-go-type-import:
+                    name: pin
+                    path: github.com/yseto/gion-go/internal/pin
+                serial:
+                  type: integer
+                  format: uint64
+                feed_id:
+                  type: integer
+                  format: uint64
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json: 
+              schema:
+                type: object
+                required:
+                - readflag
+                properties:
+                  readflag:
+                    type: string
+                    enum:
+                    - Unseen
+                    - Seen
+                    - Setpin
+                    x-go-type: pin.ReadFlag
+                    x-go-type-import:
+                      name: pin
+                      path: github.com/yseto/gion-go/internal/pin
+        "400":
+          description: error
+  /api/register_category:
+    post:
+      tags:
+        - subscription
+      description: register category
+      operationId: RegisterCategory
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+              - name
+              properties:
+                name:
+                  type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json: 
+              schema:
+                $ref: "#/components/schemas/SimpleResult"
+        "400":
+          description: error
+  /api/categories:
+    post:
+      tags:
+        - subscription
+      description: category list
+      operationId: Categories
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json: 
+              schema:
+                type: array
+                items:
+                  type:
+                  $ref: "#/components/schemas/Category"
+        "400":
+          description: error
+  /api/register_subscription:
+    post:
+      tags:
+        - subscription
+      description: register subscription
+      operationId: RegisterSubscription
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+              - title
+              - rss
+              - url
+              - category
+              properties:
+                title:
+                  type: string
+                  description: Site Title
+                rss:
+                  type: string
+                  description: RSS Feed URL
+                url:
+                  type: string
+                  description: Site URL
+                category:
+                  type: integer
+                  format: uint64
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json: 
+              schema:
+                $ref: "#/components/schemas/SimpleResult"
+        "400":
+          description: error
+  /api/opml_import:
+    post:
+      tags:
+        - subscription
+      description: import opml into subscription
+      operationId: OpmlImport
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+              - xml
+              properties:
+                xml:
+                  type: string
+                  description: Opml xml document
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json: 
+              schema:
+                type: object
+                required:
+                - done
+                properties:
+                  done:
+                    type: boolean
+        "400":
+          description: error
+  /api/opml_export:
+    post:
+      tags:
+        - subscription
+      description: export subscription via opml document
+      operationId: OpmlExport
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json: 
+              schema:
+                type: object
+                required:
+                - xml
+                properties:
+                  xml:
+                    type: string
+                    description: XML document
+        "400":
+          description: error
+  /api/examine_subscription:
+    post:
+      tags:
+        - subscription
+      description: probe web site
+      operationId: ExamineSubscription
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+              - url
+              properties:
+                url:
+                  type: string
+                  description: Site URL
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json: 
+              schema:
+                $ref: "#/components/schemas/ExamineSubscription"
+  /api/delete_subscription:
+    post:
+      tags:
+        - subscription
+      description: delete subscription
+      operationId: DeleteSubscription
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+              - subscription
+              - id
+              properties:
+                subscription:
+                  type: string
+                  description: choose type
+                  enum: 
+                  - category
+                  - entry
+                id:
+                  type: integer
+                  format: uint64
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json: 
+              schema:
+                $ref: "#/components/schemas/SimpleResult"
+        "400":
+          description: error
+  /api/change_subscription:
+    post:
+      tags:
+        - subscription
+      description: change subscription
+      operationId: ChangeSubscription
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+              - category
+              - id
+              properties:
+                category:
+                  type: integer
+                  format: uint64
+                id:
+                  description: Feed ID
+                  type: integer
+                  format: uint64
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json: 
+              schema:
+                $ref: "#/components/schemas/SimpleResult"
+        "400":
+          description: error
+  /api/set_profile:
+    post:
+      tags:
+        - account
+      description: update profile
+      operationId: UpdateProfile
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Profile"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json: 
+              schema:
+                $ref: "#/components/schemas/SimpleResult"
+        "400":
+          description: error
+  /api/set_asread:
+    post:
+      tags:
+        - reader
+      description: set readflag
+      operationId: SetAsRead
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/AsRead"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json: 
+              schema:
+                $ref: "#/components/schemas/SimpleResult"
+        "400":
+          description: error
+  /api/subscriptions:
+    post:
+      tags:
+        - subscription
+      description: subscription list
+      operationId: Subscriptions
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json: 
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Subscription"
+        "400":
+          description: error
+  /api/remove_all_pin:
+    post:
+      tags:
+        - reader
+      description: remove all pins
+      operationId: RemoveAllPin
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json: 
+              schema:
+                $ref: "#/components/schemas/SimpleResult"
+        "400":
+          description: error
+  /api/update_password:
+    post:
+      tags:
+        - account
+      description: update password
+      operationId: UpdatePassword
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+              - password_old
+              - password
+              - passwordc
+              properties:
+                password_old:
+                  type: string
+                password:
+                  type: string
+                passwordc:
+                  type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json: 
+              schema:
+                $ref: "#/components/schemas/SimpleResult"
+        "400":
+          description: error
+components:
+  schemas:
+    Authorization:
+      description: ログイン情報
+      required:
+      - autoseen
+      - token
+      properties:
+        autoseen:
+          type: boolean
+        token:
+          type: string
+    Profile:
+      description: 個人設定
+      required:
+      - autoseen
+      - entryCount
+      - onLoginSkipPinList
+      - substringLength
+      properties:
+        autoseen:
+          type: boolean
+        entryCount:
+          type: integer
+          format: uint64
+        onLoginSkipPinList:
+          type: boolean
+        substringLength:
+          type: integer
+          format: uint64
+    PinnedItem:
+      description: ピン止めしたアイテム
+      required:
+        - title
+        - url
+        - serial
+        - feed_id
+        - update_at
+      properties:
+        title:
+          type: string
+        url:
+          type: string
+        serial:
+          type: integer
+          format: uint64
+        feed_id:
+          type: integer
+          format: uint64
+        update_at:
+          type: string
+          x-go-type: pin.UpdateTime
+          x-go-type-import:
+            name: pin
+            path: github.com/yseto/gion-go/internal/pin
+    CategoryAndUnreadEntryCount:
+      description: カテゴリごとに未読記事数
+      required:
+      - name
+      - count
+      - id
+      properties:
+        name:
+          type: string
+        count:
+          type: integer
+          format: uint64
+        id:
+          description: category ID
+          type: integer
+          format: uint64
+          x-go-name: ID
+    UnreadEntry:
+      description: カテゴリに属した未読記事一覧
+      required:
+      - serial
+      - feed_id
+      - title
+      - description
+      - date_epoch
+      - readflag
+      - url
+      - subscription_id
+      - site_title
+      properties:
+        serial:
+          type: integer
+          format: uint64
+        feed_id:
+          type: integer
+          format: uint64
+        title:
+          type: string
+        description:
+          type: string
+        date_epoch:
+          type: integer
+          format: uint64
+        readflag:
+          type: string
+          enum:
+          - Unseen
+          - Seen
+          - Setpin
+          x-go-type: pin.ReadFlag
+          x-go-type-import:
+            name: pin
+            path: github.com/yseto/gion-go/internal/pin
+        url:
+          type: string
+        subscription_id:
+          type: integer
+          format: uint64
+        site_title:
+          type: string
+    Category:
+      description: カテゴリ一覧
+      required:
+      - id
+      - name
+      properties:
+        id:
+          type: integer
+          format: uint64
+          x-go-name: ID
+        name:
+          type: string
+    ExamineSubscription: 
+      description: フィード探索
+      required:
+      - success
+      - title
+      - url
+      - preview_feed
+      properties:
+        success:
+          type: boolean
+        title:
+          type: string
+        url:
+          type: string
+          x-go-name: URL
+        preview_feed:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExamineFeed"
+    ExamineFeed:
+      description: フィード探索におけるフィード詳細
+      required:
+      - title
+      - url
+      - date
+      properties:
+        title:
+          type: string
+        url: 
+          type: string
+        date: 
+          type: string
+    SimpleResult:
+      required:
+      - result
+      properties:
+        result:
+          type: string
+    AsRead:
+      description: 既読情報
+      required:
+      - feed_id
+      - serial
+      properties:
+        feed_id:
+          type: integer
+          format: uint64
+          x-go-name: FeedID
+        serial:
+          type: integer
+          format: uint64
+    Subscription:
+      description: カテゴリおよび購読一覧
+      required:
+      - id
+      - name
+      - subscription
+      properties:
+        id:
+          description: カテゴリID
+          type: integer
+          format: uint64
+          x-go-name: CategoryID
+        name:
+          description: カテゴリ名
+          format: string
+        subscription:
+          description: カテゴリに属するフィード一覧
+          type: array
+          items: 
+            $ref: "#/components/schemas/CategorySubscription"
+    CategorySubscription:
+      required:
+      - id
+      - title
+      - category_id
+      - http_status
+      - siteurl
+      properties:
+        id:
+          description: フィードID
+          type: integer
+          format: uint64
+          x-go-name: FeedID
+        title:
+          type: string
+        category_id:
+          type: integer
+          format: uint64
+        http_status:
+          description: 最終アクセス時のレスポンスコード
+          type: string
+        siteurl:
+          description: フィード配信元サイトURL
+          type: string
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

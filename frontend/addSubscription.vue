@@ -154,6 +154,12 @@ export default defineComponent({
     const category = ref(0);
 
     const feedDetail = () => {
+      if (site.url === "") {
+        return;
+      }
+      if (!site.url.startsWith("http")) {
+        return;
+      }
       searchState.value = true;
       Agent<ExamineSubscription>({
         url: "/api/examine_subscription",
