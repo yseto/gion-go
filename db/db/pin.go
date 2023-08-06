@@ -17,7 +17,7 @@ type PinnedItem struct {
 
 func (c *UserClient) PinnedItems() ([]*PinnedItem, error) {
 	items := []*PinnedItem{}
-	err := c.Select(&items, `
+	err := c.Select(&items, c.sql(`
 SELECT
     story.title,
     story.url,
@@ -34,7 +34,7 @@ WHERE
 AND
     entry.user_id = ?
 ORDER BY pubdate DESC
-`, c.UserID)
+`), c.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -45,23 +45,23 @@ func (c *UserClientTxn) UpdateEntry(feedID, serial uint64, readflag pin.ReadFlag
 	if readflag == pin.Unseen {
 		return fmt.Errorf("UpdateEntry : Readflag is invalid. UserID: %d feedID: %d Serial: %d", c.UserID, feedID, serial)
 	}
-	_, err := c.Exec(`
+	_, err := c.Exec(c.sql(`
 UPDATE entry
 SET
     readflag = ?,
     update_at = CURRENT_TIMESTAMP
 WHERE user_id = ? AND serial = ? AND feed_id = ?
-    `, readflag, c.UserID, serial, feedID)
+    `), readflag, c.UserID, serial, feedID)
 	return err
 }
 
 func (c *UserClient) RemovePinnedItem() error {
-	_, err := c.Exec(`
+	_, err := c.Exec(c.sql(`
 UPDATE entry
 SET
     readflag = 1,
     update_at = CURRENT_TIMESTAMP
 WHERE readflag = 2 AND user_id = ?
-    `, c.UserID)
+    `), c.UserID)
 	return err
 }

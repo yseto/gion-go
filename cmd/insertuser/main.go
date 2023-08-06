@@ -4,9 +4,6 @@ import (
 	"flag"
 	"log"
 
-	_ "github.com/go-sql-driver/mysql"
-	"github.com/jmoiron/sqlx"
-	_ "github.com/mattn/go-sqlite3"
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/yseto/gion-go/config"
@@ -23,14 +20,11 @@ func main() {
 		log.Fatal(err)
 	}
 
-	dbConn, err := sqlx.Open(cfg.DBDriverName, cfg.DBDataSourceName)
+	dbConn, err := db.Open(cfg)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer dbConn.Close()
-	if dbConn.DriverName() == "sqlite3" {
-		dbConn.Exec("PRAGMA foreign_keys = ON")
-	}
 
 	digest, err := bcrypt.GenerateFromPassword([]byte(*password), 8)
 	if err != nil {

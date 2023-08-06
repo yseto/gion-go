@@ -5,10 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/hibiken/asynq"
-	"github.com/jmoiron/sqlx"
-	_ "github.com/mattn/go-sqlite3"
 
 	"github.com/yseto/gion-go/config"
 	"github.com/yseto/gion-go/db"
@@ -37,14 +34,11 @@ func HandleCleanerTask(ctx context.Context, t *asynq.Task) error {
 		return fmt.Errorf("json.Unmarshal failed: %v: %w", err, asynq.SkipRetry)
 	}
 
-	dbConn, err := sqlx.Open(cfg.DBDriverName, cfg.DBDataSourceName)
+	dbConn, err := db.Open(cfg)
 	if err != nil {
 		return err
 	}
 	defer dbConn.Close()
-	if dbConn.DriverName() == "sqlite3" {
-		dbConn.Exec("PRAGMA foreign_keys = ON")
-	}
 
 	dbc := db.New(dbConn)
 	if err = dbc.PurgeReadEntry(); err != nil {

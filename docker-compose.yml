@@ -2,6 +2,8 @@ x-common-env: &cenv
   DB_DRIVER: mysql
   DSN: user:pass@tcp(db:3306)/gion?parseTime=true
   REDIS_ADDR: redis:6379
+# DB_DRIVER: postgres
+# DSN: user=gion password=pass dbname=gion host=127.0.0.1 sslmode=disable
 
 x-common-depends-on: &depends
   db:
@@ -81,6 +83,16 @@ services:
       timeout: 5s
       retries: 10
 
+# db:
+#   image: postgres
+#   volumes:
+#     - postgres:/var/lib/postgresql/data
+#     - "./sql/pg:/docker-entrypoint-initdb.d"
+#   environment:
+#     - POSTGRES_USER=gion
+#     - POSTGRES_PASSWORD=pass
+
 volumes:
   mysql:
+  postgres:
 

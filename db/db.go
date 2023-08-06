@@ -46,7 +46,7 @@ type UserClientTxn interface {
 }
 
 func NewUserScopedDB(conn *sqlx.DB, userID uint64) UserScopedDB {
-	return &db.UserClient{conn, userID}
+	return &db.UserClient{DB: conn, UserID: userID}
 }
 
 type DB interface {
@@ -84,5 +84,5 @@ type ClientTxn interface {
 }
 
 func New(conn *sqlx.DB) DB {
-	return &db.Client{conn}
+	return &db.Client{DB: conn}
 }

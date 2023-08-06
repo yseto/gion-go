@@ -10,10 +10,7 @@ import (
 	"strconv"
 	"time"
 
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/hibiken/asynq"
-	"github.com/jmoiron/sqlx"
-	_ "github.com/mattn/go-sqlite3"
 	"github.com/mmcdole/gofeed"
 
 	"github.com/yseto/gion-go/config"
@@ -44,14 +41,11 @@ func HandleCrawlerTask(ctx context.Context, t *asynq.Task) error {
 		return fmt.Errorf("json.Unmarshal failed: %v: %w", err, asynq.SkipRetry)
 	}
 
-	dbConn, err := sqlx.Open(cfg.DBDriverName, cfg.DBDataSourceName)
+	dbConn, err := db.Open(cfg)
 	if err != nil {
 		return err
 	}
 	defer dbConn.Close()
-	if dbConn.DriverName() == "sqlite3" {
-		dbConn.Exec("PRAGMA foreign_keys = ON")
-	}
 
 	dbc := db.New(dbConn)
 	tx := dbc.MustBegin()
@@ -68,13 +62,13 @@ func HandleCrawlerTask(ctx context.Context, t *asynq.Task) error {
 
 	fmt.Printf(">>> %s\n", feedRow.URL)
 	u := userAgent{}
-	err = u.Get(feedRow.URL, feedRow.GetCache())
+	err = u.Get(feedRow.URL, feedRow.Cache)
 
 	// 結果が得られない場合、次の対象を処理する
 	if err != nil || u.StatusCode >= 400 && u.StatusCode < 600 {
 		feedRow.HTTPStatus = "404"
 		feedRow.Term = "4"
-		feedRow.SetCache(u.Cache)
+		feedRow.Cache = u.Cache
 		fmt.Printf("<<< ERR %s : %v\n", feedRow.URL, err)
 		if err = tx.UpdateFeed(*feedRow); err != nil {
 			tx.Rollback()
@@ -102,7 +96,7 @@ func HandleCrawlerTask(ctx context.Context, t *asynq.Task) error {
 		feedRow.UpdateTerm()
 		// 304 応答で、ヘッダによるレスポンス返却がある場合にのみ上書きをする
 		if u.Cache.Etag != "" || u.Cache.Modified != "" {
-			feedRow.SetCache(u.Cache)
+			feedRow.Cache = u.Cache
 		}
 		fmt.Println("<<< 304")
 		if err = tx.UpdateFeed(*feedRow); err != nil {
@@ -115,7 +109,7 @@ func HandleCrawlerTask(ctx context.Context, t *asynq.Task) error {
 
 	feed, err := gofeed.NewParser().ParseString(u.Content)
 	if err != nil {
-		feedRow.SetCache(u.Cache)
+		feedRow.Cache = u.Cache
 		feedRow.HTTPStatus = strconv.Itoa(u.StatusCode)
 		feedRow.Term = "5"
 		fmt.Printf("<<< ERR Parser: %v\n", err)
@@ -137,7 +131,7 @@ func HandleCrawlerTask(ctx context.Context, t *asynq.Task) error {
 
 	// 日付に関するフィールドがすべてのアイテムにない場合、エラーとする
 	if len(items) == 0 && len(items) != len(feed.Items) {
-		feedRow.SetCache(u.Cache)
+		feedRow.Cache = u.Cache
 		feedRow.HTTPStatus = strconv.Itoa(u.StatusCode)
 		feedRow.Term = "5"
 		fmt.Printf("<<< ERR %s : missing <pubdate>\n", feedRow.URL)
@@ -169,6 +163,11 @@ func HandleCrawlerTask(ctx context.Context, t *asynq.Task) error {
 
 		// 遠い未来のエントリは取り込まない
 		if toleranceTime.Before(*items[i].PublishedParsed) {
+			continue
+		}
+
+		// UNIX epoch で表現できない時刻のエントリは取り込まない
+		if items[i].PublishedParsed.Unix() < 0 {
 			continue
 		}
 
@@ -215,7 +214,7 @@ func HandleCrawlerTask(ctx context.Context, t *asynq.Task) error {
 
 	fmt.Printf("UPDATE FEED INFO: feed_id:%d\n", feedRow.ID)
 
-	feedRow.SetCache(u.Cache)
+	feedRow.Cache = u.Cache
 	feedRow.HTTPStatus = strconv.Itoa(u.StatusCode)
 	feedRow.Pubdate = pubdate
 	feedRow.UpdateTerm()

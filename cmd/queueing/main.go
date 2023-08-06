@@ -4,10 +4,7 @@ import (
 	"flag"
 	"log"
 
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/hibiken/asynq"
-	"github.com/jmoiron/sqlx"
-	_ "github.com/mattn/go-sqlite3"
 
 	"github.com/yseto/gion-go/cmd/worker/cleaner"
 	"github.com/yseto/gion-go/cmd/worker/crawler"
@@ -15,8 +12,6 @@ import (
 	"github.com/yseto/gion-go/db"
 	dbType "github.com/yseto/gion-go/db/db"
 )
-
-var redisAddr string
 
 func main() {
 	mode := flag.String("mode", "", "cleanup or crawler")
@@ -37,6 +32,7 @@ func main() {
 	case *mode == "cleanup":
 		doCleaner(client)
 	default:
+		flag.Usage()
 		log.Fatal("mode is empty")
 	}
 
@@ -52,18 +48,14 @@ func doCleaner(client *asynq.Client) {
 		log.Fatalf("could not enqueue task: %v", err)
 	}
 	log.Printf("enqueued task: id=%s queue=%s", info.ID, info.Queue)
-	return
 }
 
 func doCrawler(client *asynq.Client, cfg *config.Config, term *uint64) {
-	dbConn, err := sqlx.Open(cfg.DBDriverName, cfg.DBDataSourceName)
+	dbConn, err := db.Open(cfg)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer dbConn.Close()
-	if dbConn.DriverName() == "sqlite3" {
-		dbConn.Exec("PRAGMA foreign_keys = ON")
-	}
 
 	dbc := db.New(dbConn)
 

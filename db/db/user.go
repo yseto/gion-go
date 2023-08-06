@@ -11,7 +11,7 @@ type UserProfile struct {
 
 func (c *UserClient) Profile() (*UserProfile, error) {
 	p := UserProfile{}
-	err := c.Get(&p, "SELECT autoseen, numentry, nopinlist, numsubstr FROM users WHERE id = ?", c.UserID)
+	err := c.Get(&p, c.sql("SELECT autoseen, numentry, nopinlist, numsubstr FROM users WHERE id = ?"), c.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -19,7 +19,7 @@ func (c *UserClient) Profile() (*UserProfile, error) {
 }
 
 func (c *UserClient) UpdateProfile(item UserProfile) error {
-	_, err := c.Exec("UPDATE users SET autoseen = ?, numentry = ?, nopinlist = ?, numsubstr = ? WHERE id = ?",
+	_, err := c.Exec(c.sql("UPDATE users SET autoseen = ?, numentry = ?, nopinlist = ?, numsubstr = ? WHERE id = ?"),
 		item.AutoSeen,
 		item.EntryCount,
 		item.OnLoginSkipPinList,
@@ -38,7 +38,7 @@ type User struct {
 
 func (c *UserClient) User() (*User, error) {
 	u := User{}
-	err := c.Get(&u, "SELECT id, `name`, `digest`, last_login, autoseen, numentry, nopinlist, numsubstr FROM users WHERE id = ?", c.UserID)
+	err := c.Get(&u, c.sql("SELECT id, name, digest, last_login, autoseen, numentry, nopinlist, numsubstr FROM users WHERE id = ?"), c.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +47,7 @@ func (c *UserClient) User() (*User, error) {
 
 func (c *Client) UserByName(name string) (*User, error) {
 	u := User{}
-	err := c.Get(&u, "SELECT id, `name`, `digest`, last_login, autoseen, numentry, nopinlist, numsubstr FROM users WHERE name = ?", name)
+	err := c.Get(&u, c.sql("SELECT id, name, digest, last_login, autoseen, numentry, nopinlist, numsubstr FROM users WHERE name = ?"), name)
 	if err != nil {
 		return nil, err
 	}
@@ -55,16 +55,16 @@ func (c *Client) UserByName(name string) (*User, error) {
 }
 
 func (c *UserClient) UpdateUserDigest(digest string) error {
-	_, err := c.Exec("UPDATE users SET digest = ?  WHERE id = ?", digest, c.UserID)
+	_, err := c.Exec(c.sql("UPDATE users SET digest = ?  WHERE id = ?"), digest, c.UserID)
 	return err
 }
 
 func (c *Client) UpdateUserLastLogin(userID uint64) error {
-	_, err := c.Exec("UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?", userID)
+	_, err := c.Exec(c.sql("UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?"), userID)
 	return err
 }
 
 func (c *Client) InsertUser(username, password string) error {
-	_, err := c.Exec("INSERT INTO users (name, digest) VALUES (?, ?)", username, password)
+	_, err := c.Exec(c.sql("INSERT INTO users (name, digest) VALUES (?, ?)"), username, password)
 	return err
 }
