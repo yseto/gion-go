@@ -15,6 +15,8 @@ import (
 
 	"github.com/yseto/gion-go/config"
 	"github.com/yseto/gion-go/db"
+	dbType "github.com/yseto/gion-go/db/db"
+	"github.com/yseto/gion-go/internal/client"
 )
 
 const (
@@ -31,6 +33,13 @@ func NewCrawlerTask(feedID uint64) (*asynq.Task, error) {
 		return nil, err
 	}
 	return asynq.NewTask(TypeCrawler, payload), nil
+}
+
+func toDbTypeCacheJson(u *client.Response) dbType.CacheJson {
+	if u == nil {
+		return dbType.CacheJson{}
+	}
+	return dbType.CacheJson{Etag: u.Cache.Etag, Modified: u.Cache.Modified}
 }
 
 func HandleCrawlerTask(ctx context.Context, t *asynq.Task) error {
@@ -61,14 +70,19 @@ func HandleCrawlerTask(ctx context.Context, t *asynq.Task) error {
 	}
 
 	fmt.Printf(">>> %s\n", feedRow.URL)
-	u := userAgent{}
-	err = u.Get(feedRow.URL, feedRow.Cache)
+	res, err := client.GetWithCache(
+		feedRow.URL,
+		client.Cache{
+			Etag:     feedRow.Cache.Etag,
+			Modified: feedRow.Cache.Modified,
+		},
+	)
 
 	// 結果が得られない場合、次の対象を処理する
-	if err != nil || u.StatusCode >= 400 && u.StatusCode < 600 {
+	if err != nil || res.StatusCode >= 400 && res.StatusCode < 600 {
 		feedRow.HTTPStatus = "404"
 		feedRow.Term = "4"
-		feedRow.Cache = u.Cache
+		feedRow.Cache = toDbTypeCacheJson(res)
 		fmt.Printf("<<< ERR %s : %v\n", feedRow.URL, err)
 		if err = tx.UpdateFeed(*feedRow); err != nil {
 			tx.Rollback()
@@ -79,24 +93,24 @@ func HandleCrawlerTask(ctx context.Context, t *asynq.Task) error {
 	}
 
 	// リダイレクト先を保存する
-	if u.Location != "" {
-		fmt.Printf("<<< 301 %s -> %s\n", feedRow.URL, u.Location)
-		feedRow.URL = u.Location
+	if res.Location != "" {
+		fmt.Printf("<<< 301 %s -> %s\n", feedRow.URL, res.Location)
+		feedRow.URL = res.Location
 		if err = tx.UpdateFeedRSSUrl(*feedRow); err != nil {
 			tx.Rollback()
 			return err
 		}
 	}
 
-	fmt.Printf("<<< %3d %s\n", u.StatusCode, feedRow.URL)
+	fmt.Printf("<<< %3d %s\n", res.StatusCode, feedRow.URL)
 
 	// 304 であることを記録
-	if u.StatusCode == 304 {
+	if res.StatusCode == 304 {
 		feedRow.HTTPStatus = "304"
 		feedRow.UpdateTerm()
 		// 304 応答で、ヘッダによるレスポンス返却がある場合にのみ上書きをする
-		if u.Cache.Etag != "" || u.Cache.Modified != "" {
-			feedRow.Cache = u.Cache
+		if res.Cache.Etag != "" || res.Cache.Modified != "" {
+			feedRow.Cache = toDbTypeCacheJson(res)
 		}
 		fmt.Println("<<< 304")
 		if err = tx.UpdateFeed(*feedRow); err != nil {
@@ -107,10 +121,10 @@ func HandleCrawlerTask(ctx context.Context, t *asynq.Task) error {
 		return nil
 	}
 
-	feed, err := gofeed.NewParser().ParseString(u.Content)
+	feed, err := gofeed.NewParser().ParseString(res.Content)
 	if err != nil {
-		feedRow.Cache = u.Cache
-		feedRow.HTTPStatus = strconv.Itoa(u.StatusCode)
+		feedRow.Cache = toDbTypeCacheJson(res)
+		feedRow.HTTPStatus = strconv.Itoa(res.StatusCode)
 		feedRow.Term = "5"
 		fmt.Printf("<<< ERR Parser: %v\n", err)
 		if err = tx.UpdateFeed(*feedRow); err != nil {
@@ -131,8 +145,8 @@ func HandleCrawlerTask(ctx context.Context, t *asynq.Task) error {
 
 	// 日付に関するフィールドがすべてのアイテムにない場合、エラーとする
 	if len(items) == 0 && len(items) != len(feed.Items) {
-		feedRow.Cache = u.Cache
-		feedRow.HTTPStatus = strconv.Itoa(u.StatusCode)
+		feedRow.Cache = toDbTypeCacheJson(res)
+		feedRow.HTTPStatus = strconv.Itoa(res.StatusCode)
 		feedRow.Term = "5"
 		fmt.Printf("<<< ERR %s : missing <pubdate>\n", feedRow.URL)
 		if err = tx.UpdateFeed(*feedRow); err != nil {
@@ -214,8 +228,8 @@ func HandleCrawlerTask(ctx context.Context, t *asynq.Task) error {
 
 	fmt.Printf("UPDATE FEED INFO: feed_id:%d\n", feedRow.ID)
 
-	feedRow.Cache = u.Cache
-	feedRow.HTTPStatus = strconv.Itoa(u.StatusCode)
+	feedRow.Cache = toDbTypeCacheJson(res)
+	feedRow.HTTPStatus = strconv.Itoa(res.StatusCode)
 	feedRow.Pubdate = pubdate
 	feedRow.UpdateTerm()
 	if imported {
