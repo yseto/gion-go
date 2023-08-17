@@ -48,7 +48,7 @@ export default defineComponent({
       Agent({
         url: "/api/set_pin",
         data: {
-          readflag: 2,
+          readflag: "Setpin",
           serial: target.getAttribute("data-serial"),
           feed_id: target.getAttribute("data-feed_id"),
         },
