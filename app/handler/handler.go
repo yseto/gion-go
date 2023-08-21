@@ -393,7 +393,7 @@ func examineSubscriptionGetContent(rawUrl string) (*ExamineSubscription, error) 
 
 	titleElement := htmlquery.FindOne(doc, "//title")
 	if titleElement == nil {
-		return nil, err
+		return nil, ErrFeedIsMissing
 	}
 
 	var title = htmlquery.InnerText(titleElement)

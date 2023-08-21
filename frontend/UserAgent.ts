@@ -36,9 +36,9 @@ export function Agent<T>({
       },
     })
       .then((response) => {
-        if (response.status === 400) {
-          response.json().then((e) => {
-            if (e.message === "missing or malformed jwt") {
+        if (response.status === 400 || response.status === 403) {
+          return response.json().then((e) => {
+            if (e.message.includes("security requirements failed")) {
               store.Logout();
               throw new Error(ReloadMessage);
             }
