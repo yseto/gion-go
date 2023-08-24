@@ -1,12 +1,12 @@
 # syntax = docker/dockerfile:1.3-labs
-FROM node:18-alpine AS build-env
+FROM node:20-alpine AS build-env
 WORKDIR /app/frontend/
 COPY frontend/package*json /app/frontend/
 RUN npm install
 COPY frontend/ /app/frontend/
 RUN npm run build
 
-FROM golang:1.20-bullseye AS build-go
+FROM golang:1.21-bullseye AS build-go
 
 WORKDIR /usr/src/app/
 COPY go.mod go.sum  /usr/src/app/
