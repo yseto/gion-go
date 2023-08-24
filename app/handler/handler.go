@@ -18,6 +18,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/net/html/charset"
 
+	"github.com/yseto/gion-go/config"
 	"github.com/yseto/gion-go/db/db"
 	"github.com/yseto/gion-go/internal/client"
 	"github.com/yseto/gion-go/internal/pin"
@@ -627,7 +628,8 @@ func (*ApiServer) Login(ctx context.Context, request LoginRequestObject) (LoginR
 		fmt.Println(err)
 	}
 
-	signedToken, err := GenerateToken(user.ID)
+	cfg := config.FromContext(ctx)
+	signedToken, err := GenerateToken(user.ID, cfg.JwtSignedKeyBin)
 	if err != nil {
 		return nil, err
 	}

@@ -45,13 +45,15 @@ func main() {
 		oapiMiddleware.OapiRequestValidatorWithOptions(swagger,
 			&oapiMiddleware.Options{
 				Options: openapi3filter.Options{
-					AuthenticationFunc: handler.NewAuthenticator(),
+					AuthenticationFunc: handler.NewAuthenticator(cfg.JwtSignedKeyBin),
 				},
 			}),
 
 		func(next echo.HandlerFunc) echo.HandlerFunc {
 			return func(c echo.Context) error {
 				ctx := handler.NewDBContext(c.Request().Context(), dbConn)
+
+				ctx = config.NewContext(ctx, cfg)
 
 				// into a value http.Request.Context from echo.Context
 				if userid := c.Get(handler.SessionContextKey); userid != nil {

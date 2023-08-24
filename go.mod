@@ -8,7 +8,7 @@ require (
 	github.com/getkin/kin-openapi v0.118.0
 	github.com/gilliek/go-opml v1.0.0
 	github.com/go-sql-driver/mysql v1.6.0
-	github.com/golang-jwt/jwt v3.2.2+incompatible
+	github.com/golang-jwt/jwt/v5 v5.0.0
 	github.com/google/go-cmp v0.5.9
 	github.com/hibiken/asynq v0.23.0
 	github.com/jmoiron/sqlx v1.3.5
@@ -42,6 +42,7 @@ require (
 	github.com/go-playground/validator/v10 v10.14.0 // indirect
 	github.com/go-redis/redis/v8 v8.11.2 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
+	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
 	github.com/golang/protobuf v1.5.0 // indirect
 	github.com/google/uuid v1.3.0 // indirect

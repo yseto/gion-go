@@ -7,10 +7,11 @@ import (
 	"net/http"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/deepmap/oapi-codegen/pkg/middleware"
 	"github.com/getkin/kin-openapi/openapi3filter"
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 var (
@@ -20,11 +21,10 @@ var (
 )
 
 const SessionContextKey = "user"
-const JwtSignedKey = "secret"
 
 type jwtCustomClaims struct {
 	UserID uint64 `json:"user_id"`
-	jwt.StandardClaims
+	jwt.RegisteredClaims
 }
 
 // https://github.com/deepmap/oapi-codegen/blob/master/examples/authenticated-api/README.md あたりを参考にした
@@ -41,13 +41,13 @@ func GetJWTFromRequest(req *http.Request) (string, error) {
 	return strings.TrimPrefix(authHdr, prefix), nil
 }
 
-func NewAuthenticator() openapi3filter.AuthenticationFunc {
+func NewAuthenticator(jwtSignedKey []byte) openapi3filter.AuthenticationFunc {
 	return func(ctx context.Context, input *openapi3filter.AuthenticationInput) error {
-		return Authenticate(ctx, input)
+		return Authenticate(ctx, input, jwtSignedKey)
 	}
 }
 
-func Authenticate(ctx context.Context, input *openapi3filter.AuthenticationInput) error {
+func Authenticate(ctx context.Context, input *openapi3filter.AuthenticationInput, sign []byte) error {
 	if input.SecuritySchemeName != "BearerAuth" {
 		return ErrSecuritySchemeInvalid
 	}
@@ -61,7 +61,7 @@ func Authenticate(ctx context.Context, input *openapi3filter.AuthenticationInput
 		if t.Method.Alg() != jwt.SigningMethodHS256.Alg() {
 			return nil, fmt.Errorf("unexpected jwt signing method=%v", t.Header["alg"])
 		}
-		return []byte(JwtSignedKey), nil
+		return sign, nil
 	}
 
 	t := reflect.ValueOf(&jwtCustomClaims{}).Type().Elem()
@@ -83,11 +83,13 @@ func Authenticate(ctx context.Context, input *openapi3filter.AuthenticationInput
 	return nil
 }
 
-func GenerateToken(userid uint64) (string, error) {
+func GenerateToken(userid uint64, sign []byte) (string, error) {
 	claims := &jwtCustomClaims{
 		userid,
-		jwt.StandardClaims{},
+		jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(7 * 24 * time.Hour)),
+		},
 	}
 
-	return jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString([]byte(JwtSignedKey))
+	return jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString(sign)
 }
