@@ -6,7 +6,7 @@ RUN npm install
 COPY frontend/ /app/frontend/
 RUN npm run build
 
-FROM golang:1.21-bullseye AS build-go
+FROM golang:1.22-bookworm AS build-go
 
 WORKDIR /usr/src/app/
 COPY go.mod go.sum  /usr/src/app/
@@ -22,12 +22,12 @@ RUN go build -o /app/queueing   ./cmd/queueing/
 RUN go build -o /app/worker     ./cmd/worker/
 RUN go build -o /app/insertuser ./cmd/insertuser/
 
-FROM gcr.io/distroless/static-debian11
+FROM gcr.io/distroless/static-debian12:nonroot
 
 WORKDIR /app/
-COPY --from=build-go /app/gion /app/queueing /app/worker /app/insertuser /app/
+COPY --from=build-go --chown=nonroot:nonroot /app/gion /app/queueing /app/worker /app/insertuser /app/
 COPY public/ /app/public/
-COPY --from=build-env /app/public/gion.js /app/public/
+COPY --from=build-env --chown=nonroot:nonroot /app/public/gion.js /app/public/
 
 EXPOSE 8080
 
