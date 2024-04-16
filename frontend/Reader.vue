@@ -259,12 +259,20 @@ export default defineComponent({
           break;
       }
     };
+
+    // https://stackoverflow.com/a/36673184
+    const isMobile = ('ontouchstart' in document.documentElement);
+
     onUpdated(() => {
       const element = document.querySelectorAll(".tw--active");
       if (doScroll.value && element.length === 1) {
         const rect = element[0].getBoundingClientRect();
-        const positionY = rect.top + window.pageYOffset - 40; // offset: 40
-        window.scrollTo(0, positionY);
+        if (!isMobile && contentStore.selected === 0) {
+          window.scrollTo(0, 0);
+        } else {
+          const positionY = rect.top + window.pageYOffset - 40; // offset: 40
+          window.scrollTo(0, positionY);
+        }
       }
       doScroll.value = false;
     });
