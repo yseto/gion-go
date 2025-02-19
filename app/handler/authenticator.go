@@ -9,7 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/deepmap/oapi-codegen/pkg/middleware"
 	"github.com/getkin/kin-openapi/openapi3filter"
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -27,7 +26,7 @@ type jwtCustomClaims struct {
 	jwt.RegisteredClaims
 }
 
-// https://github.com/deepmap/oapi-codegen/blob/master/examples/authenticated-api/README.md あたりを参考にした
+// https://github.com/oapi-codegen/oapi-codegen/blob/8bbe226927c98d11457cb125d3eaf82589022e7f/examples/authenticated-api/README.md あたりを参考にした
 
 func GetJWTFromRequest(req *http.Request) (string, error) {
 	authHdr := req.Header.Get("Authorization")
@@ -77,8 +76,7 @@ func Authenticate(ctx context.Context, input *openapi3filter.AuthenticationInput
 
 	tokenClaims := token.Claims.(*jwtCustomClaims)
 
-	eCtx := middleware.GetEchoContext(ctx)
-	eCtx.Set(SessionContextKey, tokenClaims.UserID)
+	newUserContext(ctx, tokenClaims.UserID)
 
 	return nil
 }
