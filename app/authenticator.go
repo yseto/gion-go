@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"reflect"
+	"strconv"
 	"strings"
 	"time"
 
@@ -21,10 +21,7 @@ var (
 
 const SessionContextKey = "user"
 
-type jwtCustomClaims struct {
-	UserID uint64 `json:"user_id"`
-	jwt.RegisteredClaims
-}
+type claim = jwt.RegisteredClaims
 
 // https://github.com/oapi-codegen/oapi-codegen/blob/8bbe226927c98d11457cb125d3eaf82589022e7f/examples/authenticated-api/README.md あたりを参考にした
 
@@ -57,15 +54,11 @@ func Authenticate(ctx context.Context, input *openapi3filter.AuthenticationInput
 	}
 
 	keyFunc := func(t *jwt.Token) (interface{}, error) {
-		if t.Method.Alg() != jwt.SigningMethodHS256.Alg() {
-			return nil, fmt.Errorf("unexpected jwt signing method=%v", t.Header["alg"])
-		}
 		return sign, nil
 	}
 
-	t := reflect.ValueOf(&jwtCustomClaims{}).Type().Elem()
-	claims := reflect.New(t).Interface().(*jwtCustomClaims)
-	token, err := jwt.ParseWithClaims(bearerToken, claims, keyFunc)
+	claims := &claim{}
+	token, err := jwt.ParseWithClaims(bearerToken, claims, keyFunc, jwt.WithValidMethods([]string{"HS256"}))
 
 	if err != nil {
 		return err
@@ -74,19 +67,25 @@ func Authenticate(ctx context.Context, input *openapi3filter.AuthenticationInput
 		return ErrInvalidAuthHeader
 	}
 
-	tokenClaims := token.Claims.(*jwtCustomClaims)
+	sub, err := token.Claims.GetSubject()
+	if err != nil {
+		return err
+	}
 
-	newUserContext(ctx, tokenClaims.UserID)
+	userid, err := strconv.Atoi(sub)
+	if err != nil {
+		return err
+	}
+
+	newUserContext(ctx, uint64(userid))
 
 	return nil
 }
 
 func GenerateToken(userid uint64, sign []byte) (string, error) {
-	claims := &jwtCustomClaims{
-		userid,
-		jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(7 * 24 * time.Hour)),
-		},
+	claims := &claim{
+		Subject:   fmt.Sprint(userid),
+		ExpiresAt: jwt.NewNumericDate(time.Now().Add(7 * 24 * time.Hour)),
 	}
 
 	return jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString(sign)
