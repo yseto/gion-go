@@ -1,5 +1,9 @@
 package db
 
+import (
+	"errors"
+)
+
 type Subscription struct {
 	ID         uint64 `db:"id"`
 	CategoryID uint64 `db:"category_id"`
@@ -76,12 +80,26 @@ func (c *UserClient) DeleteSubscription(feedID uint64) error {
 	return err
 }
 
+var errCategoryNotOwned = errors.New("category is not owned")
+
 func (c *UserClientTxn) InsertSubscription(feedID, categoryID uint64) error {
-	_, err := c.Exec(c.sql("INSERT INTO subscription (category_id, feed_id, user_id) VALUES (?, ?, ?)"), categoryID, feedID, c.UserID)
+	var exists bool
+	err := c.Get(&exists, c.sql("SELECT EXISTS(SELECT user_id FROM category WHERE id = ? AND user_id = ?)"), categoryID, c.UserID)
+	if err != nil || !exists {
+		return errCategoryNotOwned
+	}
+
+	_, err = c.Exec(c.sql("INSERT INTO subscription (category_id, feed_id, user_id) VALUES (?, ?, ?)"), categoryID, feedID, c.UserID)
 	return err
 }
 
 func (c *UserClient) UpdateSubscription(feedID, categoryID uint64) error {
-	_, err := c.Exec(c.sql("UPDATE subscription SET category_id = ? WHERE feed_id = ? AND user_id = ?"), categoryID, feedID, c.UserID)
+	var exists bool
+	err := c.Get(&exists, c.sql("SELECT EXISTS(SELECT user_id FROM category WHERE id = ? AND user_id = ?)"), categoryID, c.UserID)
+	if err != nil || !exists {
+		return errCategoryNotOwned
+	}
+
+	_, err = c.Exec(c.sql("UPDATE subscription SET category_id = ? WHERE feed_id = ? AND user_id = ?"), categoryID, feedID, c.UserID)
 	return err
 }
