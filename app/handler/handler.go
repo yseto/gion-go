@@ -18,16 +18,17 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/net/html/charset"
 
-	"github.com/yseto/gion-go/config"
 	"github.com/yseto/gion-go/db/db"
 	"github.com/yseto/gion-go/internal/client"
 	"github.com/yseto/gion-go/internal/pin"
 )
 
-type ApiServer struct{}
+type ApiServer struct {
+	jwtSignedKeyBin []byte
+}
 
-func New() *ApiServer {
-	return &ApiServer{}
+func New(jwtSignedKeyBin []byte) *ApiServer {
+	return &ApiServer{jwtSignedKeyBin: jwtSignedKeyBin}
 }
 
 var _ StrictServerInterface = (*ApiServer)(nil)
@@ -595,7 +596,7 @@ func (*ApiServer) OpmlImport(ctx context.Context, request OpmlImportRequestObjec
 
 // https://echo.labstack.com/middleware/jwt/
 // https://echo.labstack.com/cookbook/jwt/
-func (*ApiServer) Login(ctx context.Context, request LoginRequestObject) (LoginResponseObject, error) {
+func (a *ApiServer) Login(ctx context.Context, request LoginRequestObject) (LoginResponseObject, error) {
 	db := DBCommonFromContext(ctx)
 
 	user, err := db.UserByName(request.Body.Id)
@@ -621,8 +622,7 @@ func (*ApiServer) Login(ctx context.Context, request LoginRequestObject) (LoginR
 		fmt.Println(err)
 	}
 
-	cfg := config.FromContext(ctx)
-	signedToken, err := GenerateToken(user.ID, cfg.JwtSignedKeyBin)
+	signedToken, err := GenerateToken(user.ID, a.jwtSignedKeyBin)
 	if err != nil {
 		return nil, err
 	}

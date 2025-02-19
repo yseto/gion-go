@@ -31,7 +31,7 @@ func main() {
 
 	al := accesslog.New().Logger(slog.New(slog.NewJSONHandler(os.Stdout, nil)))
 
-	svr := handler.New()
+	svr := handler.New(cfg.JwtSignedKeyBin)
 	h := handler.Handler(handler.NewStrictHandler(svr, nil))
 
 	mw, err := handler.CreateMiddleware(cfg.JwtSignedKeyBin)
