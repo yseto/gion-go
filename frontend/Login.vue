@@ -5,9 +5,12 @@
       @keydown.enter="login" />
     <input v-model="creds.password" type="password" class="form-control" placeholder="Password" required
       @keydown.enter="login" />
-    <button class="btn btn-primary" style="margin-top: 20px" @click="login">
+    <button class="btn btn-primary" style="margin: 20px 0" @click="login">
       Sign in
     </button>
+    <div class="alert alert-warning" role="alert" v-if="failed">
+      failed sign in
+    </div>
   </div>
 </template>
 <script lang="ts">
@@ -26,37 +29,44 @@ export default defineComponent({
     const store = useUserStore();
     const creds = reactive(new Credentials());
     const focus = ref<HTMLInputElement | null>();
+    const failed = ref<boolean>(false)
     onMounted(() => {
       if (focus.value) {
         focus.value.focus();
       }
     });
-    const login = () => {
-      openapiFetchClient.POST("/api/login", {
+    const login = async () => {
+      failed.value = false
+      const { data, response } = await openapiFetchClient.POST("/api/login", {
         body: {
           id: creds.id,
           password: creds.password,
         },
-      }).then((payload) => {
-        if (payload.data === undefined) {
-          return
-        }
-        store.Login({
-          autoSeen: payload.data.autoseen,
-          token: payload.data.token,
-        });
-
-        if (route.query.redirect) {
-          router.push(route.query.redirect.toString());
-        } else {
-          router.push("/");
-        }
+      })
+      if (response.status === 401) {
+        failed.value = true
+        return
+      }
+      if (data === undefined) {
+        failed.value = true
+        return
+      }
+      store.Login({
+        autoSeen: data.autoseen,
+        token: data.token,
       });
-    };
+
+      if (route.query.redirect) {
+        router.push(route.query.redirect.toString());
+      } else {
+        router.push("/");
+      }
+    }
     return {
       creds,
       login,
       focus,
+      failed,
     };
   },
 });

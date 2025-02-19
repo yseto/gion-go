@@ -463,10 +463,8 @@ export interface operations {
                 };
             };
             /** @description Error */
-            default: {
+            401: {
                 headers: {
-                    /** @description error */
-                    "WWW-Authenticate"?: string;
                     [name: string]: unknown;
                 };
                 content?: never;

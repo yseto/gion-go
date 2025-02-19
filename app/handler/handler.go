@@ -6,7 +6,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"net/http"
 	"net/url"
 	"os"
 	"unicode/utf8"
@@ -590,21 +589,11 @@ func (a *ApiServer) Login(ctx context.Context, request LoginRequestObject) (Logi
 
 	user, err := db.UserByName(request.Body.Id)
 	if err != nil {
-		return LogindefaultResponse{
-			StatusCode: http.StatusUnauthorized,
-			Headers: LogindefaultResponseHeaders{
-				WWWAuthenticate: `Bearer realm="need token" error="invalid_token"`,
-			},
-		}, nil
+		return Login401Response{}, nil
 	}
 
 	if check := bcrypt.CompareHashAndPassword([]byte(user.Digest), []byte(request.Body.Password)); check != nil {
-		return LogindefaultResponse{
-			StatusCode: http.StatusUnauthorized,
-			Headers: LogindefaultResponseHeaders{
-				WWWAuthenticate: `Bearer realm="need token" error="invalid_token"`,
-			},
-		}, nil
+		return Login401Response{}, nil
 	}
 
 	if err := db.UpdateUserLastLogin(user.ID); err != nil {

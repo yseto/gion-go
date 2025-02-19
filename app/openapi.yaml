@@ -68,13 +68,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Authorization"
-        default:
+        "401":
           description: Error
-          headers:
-            WWW-Authenticate:
-              description: error
-              schema:
-                type: string
   /api/logout:
     post:
       tags:
