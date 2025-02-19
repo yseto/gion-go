@@ -1,23 +1,23 @@
-import { createApp } from "vue";
-import { createRouter, createWebHashHistory } from "vue-router";
-import { createPinia } from "pinia";
-import { useUserStore } from "./UserStore";
-import GionHeader from "./Header.vue";
-import Home from "./Home.vue";
-import Login from "./Login.vue";
-import Logout from "./Logout.vue";
-import PinList from "./PinList.vue";
-import addSubscription from "./addSubscription.vue";
-import Reader from "./Reader.vue";
-import Settings from "./Settings/Settings.vue";
-import manageSubscription from "./manageSubscription.vue";
-import NotFound from "./NotFound.vue";
+import { createApp } from "vue"
+import { createRouter, createWebHashHistory } from "vue-router"
+import { createPinia } from "pinia"
+import { useUserStore } from "./UserStore"
+import GionHeader from "./Header.vue"
+import Home from "./Home.vue"
+import Login from "./Login.vue"
+import Logout from "./Logout.vue"
+import PinList from "./PinList.vue"
+import addSubscription from "./addSubscription.vue"
+import Reader from "./Reader.vue"
+import Settings from "./Settings/Settings.vue"
+import manageSubscription from "./manageSubscription.vue"
+import NotFound from "./NotFound.vue"
 
 const app = createApp({
   components: {
     GionHeader,
   },
-});
+})
 
 const router = createRouter({
   history: createWebHashHistory(),
@@ -42,20 +42,20 @@ const router = createRouter({
       meta: { anonymous: true },
     },
   ],
-});
+})
 
 router.beforeEach((to, from, next) => {
-  const store = useUserStore();
+  const store = useUserStore()
   if (
     to.matched.some((record) => record.meta.requiresAuth) &&
     !store.isLogin()
   ) {
-    next({ path: "/login", query: { redirect: to.fullPath } });
+    next({ path: "/login", query: { redirect: to.fullPath } })
   } else {
-    next();
+    next()
   }
-});
+})
 
-const pinia = createPinia();
+const pinia = createPinia()
 
-app.use(router).use(pinia).mount("#app");
+app.use(router).use(pinia).mount("#app")

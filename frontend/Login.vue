@@ -14,27 +14,27 @@
   </div>
 </template>
 <script lang="ts">
-import { defineComponent, reactive, ref, onMounted } from "vue";
-import { useRoute, useRouter } from "vue-router";
-import { openapiFetchClient } from "./UserAgent";
-import { useUserStore } from "./UserStore";
+import { defineComponent, reactive, ref, onMounted } from "vue"
+import { useRoute, useRouter } from "vue-router"
+import { openapiFetchClient } from "./UserAgent"
+import { useUserStore } from "./UserStore"
 class Credentials {
-  id = "";
-  password = "";
+  id = ""
+  password = ""
 }
 export default defineComponent({
   setup: () => {
-    const router = useRouter();
-    const route = useRoute();
-    const store = useUserStore();
-    const creds = reactive(new Credentials());
-    const focus = ref<HTMLInputElement | null>();
+    const router = useRouter()
+    const route = useRoute()
+    const store = useUserStore()
+    const creds = reactive(new Credentials())
+    const focus = ref<HTMLInputElement | null>()
     const failed = ref<boolean>(false)
     onMounted(() => {
       if (focus.value) {
-        focus.value.focus();
+        focus.value.focus()
       }
-    });
+    })
     const login = async () => {
       failed.value = false
       const { data, response } = await openapiFetchClient.POST("/api/login", {
@@ -54,12 +54,12 @@ export default defineComponent({
       store.Login({
         autoSeen: data.autoseen,
         token: data.token,
-      });
+      })
 
       if (route.query.redirect) {
-        router.push(route.query.redirect.toString());
+        router.push(route.query.redirect.toString())
       } else {
-        router.push("/");
+        router.push("/")
       }
     }
     return {
@@ -67,7 +67,7 @@ export default defineComponent({
       login,
       focus,
       failed,
-    };
+    }
   },
-});
+})
 </script>

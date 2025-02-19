@@ -67,25 +67,25 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, reactive } from "vue";
-import BackToTop from "./BackToTop.vue";
-import { openapiFetchClient } from "./UserAgent";
-import CategoryRegister from "./addSubscription/Category.vue";
+import { defineComponent, ref, reactive, onMounted } from "vue"
+import BackToTop from "./BackToTop.vue"
+import { openapiFetchClient } from "./UserAgent"
+import CategoryRegister from "./addSubscription/Category.vue"
 
 type Categories = {
-  id: number;
-  name: string;
-};
+  id: number
+  name: string
+}
 
 type PreviewFeed = {
-  title: string;
-  date: string;
-};
+  title: string
+  date: string
+}
 
 class Site {
-  url = "";
-  title = "";
-  rss = "";
+  url = ""
+  title = ""
+  rss = ""
 }
 
 export default defineComponent({
@@ -94,60 +94,58 @@ export default defineComponent({
     CategoryRegister,
   },
   setup: () => {
-    const previewFeed = ref<PreviewFeed[]>([]);
-    const searchState = ref(false);
-    const site = reactive(new Site());
+    const previewFeed = ref<PreviewFeed[]>([])
+    const searchState = ref(false)
+    const site = reactive(new Site())
 
-    const categories = ref<Categories[]>([]);
-    const success = ref(false);
-    const category = ref(0);
+    const categories = ref<Categories[]>([])
+    const success = ref(false)
+    const category = ref(0)
 
-    const feedDetail = () => {
+    const feedDetail = async () => {
       if (site.url === "") {
-        return;
+        return
       }
       if (!site.url.startsWith("http")) {
-        return;
+        return
       }
-      searchState.value = true;
-      openapiFetchClient.POST("/api/examine_subscription", {
+      searchState.value = true
+      const { data } = await openapiFetchClient.POST("/api/examine_subscription", {
         body: {
           url: site.url,
         },
-      }).then((data) => {
-        if (data.data === undefined) {
-          alert("Failure: Get information.\n please check url... :(");
-          return;
-        }
-        site.rss = data.data.url;
-        site.title = data.data.title;
-        previewFeed.value = data.data.preview_feed;
-        setTimeout(function () {
-          searchState.value = false;
-        }, 500);
-      });
-    };
+      })
+      if (data === undefined) {
+        alert("Failure: Get information.\n please check url... :(")
+        return
+      }
+      site.rss = data.url
+      site.title = data.title
+      previewFeed.value = data.preview_feed
+      setTimeout(function () {
+        searchState.value = false
+      }, 500)
+    }
 
     const clear = () => {
-      site.url = "";
-      site.title = "";
-      site.rss = "";
+      site.url = ""
+      site.title = ""
+      site.rss = ""
       setTimeout(function () {
-        success.value = false;
-      }, 750);
-    };
+        success.value = false
+      }, 750)
+    }
 
-    const fetchList = () => {
-      openapiFetchClient.GET("/api/category").then(data => {
-        if (data.data === undefined) {
-          return
-        }
-        categories.value = data.data;
-        if (data.data.length > 0) {
-          category.value = data.data[0].id;
-        }
-      });
-    };
+    const fetchList = async () => {
+      const { data } = await openapiFetchClient.GET("/api/category")
+      if (data === undefined) {
+        return
+      }
+      categories.value = data
+      if (data.length > 0) {
+        category.value = data[0].id
+      }
+    }
 
     const registerFeed = async () => {
       const { response } = await openapiFetchClient.POST("/api/subscription", {
@@ -161,14 +159,14 @@ export default defineComponent({
         return
       }
       if (!response.ok) {
-        alert("情報の取得に失敗しました。URLを確認してください");
+        alert("情報の取得に失敗しました。URLを確認してください")
         return
       }
-      success.value = true;
-      clear();
+      success.value = true
+      clear()
     }
 
-    fetchList();
+    onMounted(async () => await fetchList())
 
     return {
       previewFeed,
@@ -180,7 +178,7 @@ export default defineComponent({
       fetchList,
       registerFeed,
       feedDetail,
-    };
+    }
   },
   computed: {
     canRegister: function () {
@@ -191,8 +189,8 @@ export default defineComponent({
         this.site.rss.match(/^https?:/g) &&
         this.site.title &&
         this.category
-      );
+      )
     },
   },
-});
+})
 </script>

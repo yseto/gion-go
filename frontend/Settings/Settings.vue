@@ -9,11 +9,11 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent } from "vue"
 
-import Config from "./Config.vue";
-import Opml from "./Opml.vue";
-import Password from "./Password.vue";
+import Config from "./Config.vue"
+import Opml from "./Opml.vue"
+import Password from "./Password.vue"
 
 export default defineComponent({
   components: {
@@ -21,5 +21,5 @@ export default defineComponent({
     Opml,
     Password,
   },
-});
+})
 </script>

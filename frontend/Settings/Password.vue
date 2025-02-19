@@ -32,13 +32,13 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from "vue";
-import { openapiFetchClient } from "../UserAgent";
+import { defineComponent, ref } from "vue"
+import { openapiFetchClient } from "../UserAgent"
 export default defineComponent({
   setup: () => {
-    const password = ref("");
-    const passwordOld = ref("");
-    const passwordChecked = ref("");
+    const password = ref("")
+    const passwordOld = ref("")
+    const passwordChecked = ref("")
 
     const updatePassword = async () => {
       const { error } = await openapiFetchClient.POST("/api/update_password", {
@@ -53,14 +53,14 @@ export default defineComponent({
         return
       }
       alert("update password")
-    };
+    }
 
     return {
       password,
       passwordOld,
       passwordChecked,
       updatePassword,
-    };
+    }
   },
-});
+})
 </script>

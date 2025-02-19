@@ -3,16 +3,17 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
-import { useRouter } from "vue-router";
-import { openapiFetchClient } from "./UserAgent";
+import { defineComponent, onMounted } from "vue"
+import { useRouter } from "vue-router"
+import { openapiFetchClient } from "./UserAgent"
 export default defineComponent({
   setup: () => {
-    const router = useRouter();
-    openapiFetchClient.GET("/api/profile").then(data => {
-      const next = data.data?.onLoginSkipPinList === true ? "/entry" : "/pin";
-      router.push(next);
-    });
+    const router = useRouter()
+    onMounted(async () => {
+      const { data } = await openapiFetchClient.GET("/api/profile")
+      const next = data?.onLoginSkipPinList === true ? "/entry" : "/pin"
+      router.push(next)
+    })
   },
-});
+})
 </script>

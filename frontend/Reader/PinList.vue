@@ -20,57 +20,55 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, onUnmounted, ref } from "vue";
-import { openapiFetchClient } from "../UserAgent";
-import { PinList } from "../types";
+import { defineComponent, onMounted, onUnmounted, ref } from "vue"
+import { openapiFetchClient } from "../UserAgent"
+import { PinList } from "../types"
 export default defineComponent({
   setup: () => {
-    const visibleState = ref(false);
-    const list = ref<PinList[]>([]);
+    const visibleState = ref(false)
+    const list = ref<PinList[]>([])
 
-    const togglePinList = () => {
-      visibleState.value = visibleState.value ? false : true;
+    const togglePinList = async () => {
+      visibleState.value = visibleState.value ? false : true
       if (visibleState.value) {
-        openapiFetchClient.GET("/api/pin").then(data => {
-          if (data.data === undefined) {
-            return
-          }
-          list.value = data.data;
-        });
+        const { data } = await openapiFetchClient.GET("/api/pin")
+        if (data === undefined) {
+          return
+        }
+        list.value = data
       }
-    };
+    }
 
-    const pinlistClean = () => {
+    const pinlistClean = async () => {
       if (!confirm("ピンをすべて外しますか?")) {
-        return;
+        return
       }
-      visibleState.value = false;
-      openapiFetchClient.DELETE("/api/pin").then(() => {
-        list.value = [];
-      });
-    };
+      visibleState.value = false
+      await openapiFetchClient.DELETE("/api/pin")
+      list.value = []
+    }
 
     onUnmounted(() => {
-      document.removeEventListener("keypress", keypressHandler);
-    });
+      document.removeEventListener("keypress", keypressHandler)
+    })
     onMounted(() => {
-      document.addEventListener("keypress", keypressHandler);
-    });
+      document.addEventListener("keypress", keypressHandler)
+    })
 
     const keypressHandler = function (e: KeyboardEvent) {
-      e.preventDefault();
+      e.preventDefault()
       switch (e.code) {
         case "KeyO":
-          togglePinList();
-          break;
+          togglePinList()
+          break
       }
-    };
+    }
     return {
       pinlistClean,
       togglePinList,
       visibleState,
       list,
-    };
+    }
   },
-});
+})
 </script>

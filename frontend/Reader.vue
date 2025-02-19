@@ -57,19 +57,19 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, onUnmounted, onUpdated, ref } from "vue";
-import { format, fromUnixTime } from "date-fns";
-import BackToTop from "./BackToTop.vue";
-import PinList from "./Reader/PinList.vue";
-import { openapiFetchClient } from "./UserAgent";
-import { useCategoryStore, useContentStore } from "./Reader/Store";
-import { useUserStore } from "./UserStore";
-import CategoryPager from "./Reader/CategoryPager.vue";
-import CategoryList from "./Reader/Category.vue";
+import { defineComponent, onMounted, onUnmounted, onUpdated, ref } from "vue"
+import { format, fromUnixTime } from "date-fns"
+import BackToTop from "./BackToTop.vue"
+import PinList from "./Reader/PinList.vue"
+import { openapiFetchClient } from "./UserAgent"
+import { useCategoryStore, useContentStore } from "./Reader/Store"
+import { useUserStore } from "./UserStore"
+import CategoryPager from "./Reader/CategoryPager.vue"
+import CategoryList from "./Reader/Category.vue"
 
 const epochToDateTime = (epoch: number) => {
-  return format(fromUnixTime(epoch), "MM/dd HH:mm");
-};
+  return format(fromUnixTime(epoch), "MM/dd HH:mm")
+}
 
 export default defineComponent({
   components: {
@@ -79,191 +79,189 @@ export default defineComponent({
     CategoryList,
   },
   setup: () => {
-    const userStore = useUserStore();
-    const contentStore = useContentStore();
-    const categoryStore = useCategoryStore();
+    const userStore = useUserStore()
+    const contentStore = useContentStore()
+    const categoryStore = useCategoryStore()
 
-    const readItTimeoutID = ref(0);
-    const autoSeen = ref(false);
-    const doScroll = ref(false);
+    const readItTimeoutID = ref(0)
+    const autoSeen = ref(false)
+    const doScroll = ref(false)
 
     onUnmounted(() => {
-      document.removeEventListener("keypress", keypressHandler);
-    });
+      document.removeEventListener("keypress", keypressHandler)
+    })
     onMounted(() => {
-      document.addEventListener("keypress", keypressHandler);
-    });
+      document.addEventListener("keypress", keypressHandler)
+    })
 
     const contentNext = () => {
-      contentStore.nextContent();
-      doScroll.value = true;
-    };
+      contentStore.nextContent()
+      doScroll.value = true
+    }
     const contentPrevious = () => {
-      contentStore.previousContent();
-      doScroll.value = true;
-    };
+      contentStore.previousContent()
+      doScroll.value = true
+    }
 
-    const contentUpdate = () => {
-      doScroll.value = true;
+    const contentUpdate = async () => {
+      doScroll.value = true
 
       if (categoryStore.list.length == 0) {
-        contentStore.setContents({ list: [], index: 0 });
-        return;
+        contentStore.setContents({ list: [], index: 0 })
+        return
       }
 
-      openapiFetchClient.GET("/api/category/{id}", {
+      const { data } = await openapiFetchClient.GET("/api/category/{id}", {
         params: {
           path: { id: categoryStore.list[categoryStore.selected].id },
         }
-      }).then(data => {
-        if (data.data === undefined) {
+      })
+
+      if (data === undefined) {
+        return
+      }
+      const list = data.map((x) => {
+        return { ...x, date: epochToDateTime(x.date_epoch) }
+      })
+      contentStore.setContents({ list: list, index: 0 })
+      categoryUpdate()
+
+      if (autoSeen.value) {
+        readIt(500)
+      }
+    }
+
+    const categoryUpdate = async () => {
+      const { data } = await openapiFetchClient.GET("/api/category_with_count")
+      if (data === undefined) {
+        return
+      }
+      const list = data
+      let updated = false
+      list.forEach(function (_, index) {
+        // 現在選択している category_id が一致するものがある時
+        // indexを任意の位置に移動する
+        if (categoryStore.currentPointer() === list[index].id) {
+          categoryStore.setCategories({ list: list, index: index })
+          updated = true
           return
         }
-        const list = data.data.map((x) => {
-          return { ...x, date: epochToDateTime(x.date_epoch) };
-        });
-        contentStore.setContents({ list: list, index: 0 });
-        categoryUpdate();
-      }).then(() => {
-        if (autoSeen.value) {
-          readIt(500);
-        }
-      });
-    };
+      })
 
-    const categoryUpdate = () => {
-      openapiFetchClient.GET("/api/category_with_count").then((data) => {
-        if (data.data === undefined) {
-          return
-        }
-        const list = data.data
-        let updated = false;
-        list.forEach(function (_, index) {
-          // 現在選択している category_id が一致するものがある時
-          // indexを任意の位置に移動する
-          if (categoryStore.currentPointer() === list[index].id) {
-            categoryStore.setCategories({ list: list, index: index });
-            updated = true;
-            return;
-          }
-        });
-
-        // 表示していたカテゴリをすべて読み終えた場合などは、
-        // カテゴリ一覧の一番上のカテゴリにindexを設定する
-        // 選択可能なカテゴリがない場合は実行しない
-        if (!updated) {
-          categoryStore.setCategories({ list: list, index: 0 });
-          contentUpdate();
-        }
-      });
-    };
+      // 表示していたカテゴリをすべて読み終えた場合などは、
+      // カテゴリ一覧の一番上のカテゴリにindexを設定する
+      // 選択可能なカテゴリがない場合は実行しない
+      if (!updated) {
+        categoryStore.setCategories({ list: list, index: 0 })
+        contentUpdate()
+      }
+    }
 
     const readIt = (sendDelay: number) => {
       // ダブルタップやキーボードの連続押下の場合にイベントをキャンセルする
       if (readItTimeoutID.value) {
-        clearTimeout(readItTimeoutID.value);
+        clearTimeout(readItTimeoutID.value)
       }
 
       // 未読ステータスのものだけ送るため、フィードのアイテム既読リストを作成をする
       const params = contentStore.list
         .filter((item) => item.readflag === "Unseen")
         .map((item) => {
-          return { serial: item.serial, feed_id: item.feed_id };
-        });
+          return { serial: item.serial, feed_id: item.feed_id }
+        })
 
       if (params.length === 0) {
-        return;
+        return
       }
-      readItTimeoutID.value = window.setTimeout(function () {
-        readItTimeoutID.value = 0;
-
-        openapiFetchClient.POST("/api/pin/asread", {
+      readItTimeoutID.value = window.setTimeout(async function () {
+        readItTimeoutID.value = 0
+        await openapiFetchClient.POST("/api/pin/asread", {
           body: params,
-        }).then(() => {
-          params.map((e) =>
-            contentStore.setSeen({
-              feed_id: e.feed_id,
-              serial: e.serial,
-            })
-          );
-        });
-      }, sendDelay);
-    };
+        })
+        params.map((e) =>
+          contentStore.setSeen({
+            feed_id: e.feed_id,
+            serial: e.serial,
+          })
+        )
+      }, sendDelay)
+    }
     const contentReadIt = () => {
-      readIt(0);
-    };
+      readIt(0)
+    }
     const itemView = () => {
-      const url = contentStore.currentEntryURL();
+      const url = contentStore.currentEntryURL()
       if (url) {
-        window.open(url);
+        window.open(url)
       }
-    };
+    }
 
     const togglePin = async (index: number | undefined) => {
       // for touch device.
       if (typeof index !== "undefined") {
-        contentStore.setIndex(index);
+        contentStore.setIndex(index)
       }
 
-      openapiFetchClient.POST("/api/pin", {
+      const { data } = await openapiFetchClient.POST("/api/pin", {
         body: contentStore.currentEntrySerialData(),
-      }).then(data => {
-        if (data.data === undefined) {
-          return
-        }
-        contentStore.setReadflag(data.data.readflag);
-      });
-    };
-
-    const keypressHandler = function (e: KeyboardEvent) {
-      e.preventDefault();
-      switch (e.code) {
-        case "KeyI":
-          contentReadIt();
-          break;
-        case "KeyP":
-          togglePin(contentStore.selected);
-          break;
-        case "KeyR":
-          contentUpdate();
-          break;
-        case "KeyK":
-          contentPrevious();
-          break;
-        case "KeyJ":
-          contentNext();
-          break;
-        case "KeyV":
-          itemView();
-          break;
-      }
-    };
-
-    // https://stackoverflow.com/a/36673184
-    const isMobile = ('ontouchstart' in document.documentElement);
-
-    onUpdated(() => {
-      const element = document.querySelectorAll(".tw--active");
-      if (doScroll.value && element.length === 1) {
-        const rect = element[0].getBoundingClientRect();
-        if (!isMobile && contentStore.selected === 0) {
-          window.scrollTo(0, 0);
-        } else {
-          const positionY = rect.top + window.pageYOffset - 40; // offset: 40
-          window.scrollTo(0, positionY);
-        }
-      }
-      doScroll.value = false;
-    });
-
-    autoSeen.value = userStore.user.autoSeen;
-    openapiFetchClient.GET("/api/category_with_count").then((data) => {
-      if (data.data === undefined) {
+      })
+      if (data === undefined) {
         return
       }
-      categoryStore.setCategories({ list: data.data, index: 0 });
-      contentUpdate();
-    });
+      contentStore.setReadflag(data.readflag)
+    }
+
+    const keypressHandler = function (e: KeyboardEvent) {
+      e.preventDefault()
+      switch (e.code) {
+        case "KeyI":
+          contentReadIt()
+          break
+        case "KeyP":
+          togglePin(contentStore.selected)
+          break
+        case "KeyR":
+          contentUpdate()
+          break
+        case "KeyK":
+          contentPrevious()
+          break
+        case "KeyJ":
+          contentNext()
+          break
+        case "KeyV":
+          itemView()
+          break
+      }
+    }
+
+    // https://stackoverflow.com/a/36673184
+    const isMobile = ('ontouchstart' in document.documentElement)
+
+    onUpdated(() => {
+      const element = document.querySelectorAll(".tw--active")
+      if (doScroll.value && element.length === 1) {
+        const rect = element[0].getBoundingClientRect()
+        if (!isMobile && contentStore.selected === 0) {
+          window.scrollTo(0, 0)
+        } else {
+          const positionY = rect.top + window.scrollY - 40 // offset: 40
+          window.scrollTo(0, positionY)
+        }
+      }
+      doScroll.value = false
+    })
+
+    autoSeen.value = userStore.user.autoSeen
+
+    onMounted(async () => {
+      const { data } = await openapiFetchClient.GET("/api/category_with_count")
+      if (data === undefined) {
+        return
+      }
+      categoryStore.setCategories({ list: data, index: 0 })
+      contentUpdate()
+    })
 
     return {
       contentStore,
@@ -273,7 +271,7 @@ export default defineComponent({
       contentReadIt,
       contentUpdate,
       togglePin,
-    };
+    }
   },
-});
+})
 </script>

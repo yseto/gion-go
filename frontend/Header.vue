@@ -1,38 +1,23 @@
 <template>
   <div class="bg-light my-navigation">
-    <nav
-      v-if="$route.meta.anonymous ? false : true"
-      class="navbar navbar-expand-lg navbar-light container"
-    >
+    <nav v-if="$route.meta.anonymous ? false : true" class="navbar navbar-expand-lg navbar-light container">
       <span class="navbar-brand">Gion</span>
       <button class="navbar-toggler" type="button" @click="navbar">
         <span class="navbar-toggler-icon" />
       </button>
       <div class="collapse navbar-collapse" :class="{ show: navbarState }">
         <ul class="navbar-nav mr-auto">
-          <li
-            v-for="item in items"
-            :key="item.caption"
-            class="nav-item"
-            :class="{ active: $root?.$route.path === item.route }"
-          >
+          <li v-for="item in items" :key="item.caption" class="nav-item"
+            :class="{ active: $root?.$route.path === item.route }">
             <a class="nav-link" @click="go(item.route)">{{ item.caption }}</a>
           </li>
         </ul>
         <ul class="navbar-nav">
-          <li
-            class="nav-item"
-            :class="{ active: $root?.$route.path === '/settings' }"
-          >
+          <li class="nav-item" :class="{ active: $root?.$route.path === '/settings' }">
             <a class="nav-link" @click="go('/settings')">Settings</a>
           </li>
           <li class="nav-item hidden-sm">
-            <a
-              class="nav-link"
-              style="cursor: pointer"
-              @click="helpModal = true"
-              >Help</a
-            >
+            <a class="nav-link" style="cursor: pointer" @click="helpModal = true">Help</a>
           </li>
           <li class="nav-item">
             <a class="nav-link" @click="go('/logout')">Logout</a>
@@ -41,12 +26,7 @@
       </div>
     </nav>
 
-    <div
-      id="helpModal"
-      :class="{ 'd-block': helpModal }"
-      class="modal"
-      tabindex="-1"
-    >
+    <div id="helpModal" :class="{ 'd-block': helpModal }" class="modal" tabindex="-1">
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
@@ -58,10 +38,7 @@
             <hr />
 
             <p>
-              URLに巡回したいWebサイトのアドレスを入力して、<a
-                class="btn btn-info"
-                >Get Detail</a
-              >をクリックすると、必要な情報を取得します。
+              URLに巡回したいWebサイトのアドレスを入力して、<a class="btn btn-info">Get Detail</a>をクリックすると、必要な情報を取得します。
             </p>
             <p>
               この方法で取得できない場合は、Webページのデータを確認してください。RSSを配信していない可能性があります。
@@ -127,11 +104,7 @@
             <hr />
           </div>
           <div class="modal-footer">
-            <button
-              type="button"
-              class="btn btn-secondary"
-              @click="helpModal = false"
-            >
+            <button type="button" class="btn btn-secondary" @click="helpModal = false">
               Close
             </button>
           </div>
@@ -142,12 +115,12 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { defineComponent, ref } from "vue"
+import { useRoute, useRouter } from "vue-router"
 export default defineComponent({
   setup: () => {
-    const router = useRouter();
-    const route = useRoute();
+    const router = useRouter()
+    const route = useRoute()
 
     const items = [
       {
@@ -166,26 +139,26 @@ export default defineComponent({
         caption: "Manage subscription",
         route: "/subscription",
       },
-    ];
-    const navbarState = ref(false);
-    const helpModal = ref(false);
+    ]
+    const navbarState = ref(false)
+    const helpModal = ref(false)
     const navbar = () => {
-      navbarState.value = navbarState.value ? false : true;
-    };
+      navbarState.value = navbarState.value ? false : true
+    }
     const go = (to: string) => {
-      navbarState.value = false;
+      navbarState.value = false
 
       if (route.path !== to) {
-        router.push(to);
+        router.push(to)
       }
-    };
+    }
     return {
       items,
       navbar,
       go,
       navbarState,
       helpModal,
-    };
+    }
   },
-});
+})
 </script>

@@ -9,7 +9,7 @@
         :class="{ active: index == categoryStore.selected }"
         @click.prevent="
           categoryStore.setIndex(index);
-          $emit('content-update');
+          $emit('content-update')
         "
         >{{ item.name }}
         <span class="badge badge-light d-sm-none d-md-inline">{{
@@ -21,16 +21,16 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
-import { useCategoryStore } from "./Store";
+import { defineComponent } from "vue"
+import { useCategoryStore } from "./Store"
 
 export default defineComponent({
   emits: ["content-update"],
   setup: () => {
-    const categoryStore = useCategoryStore();
+    const categoryStore = useCategoryStore()
     return {
       categoryStore,
-    };
+    }
   },
-});
+})
 </script>

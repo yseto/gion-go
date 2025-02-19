@@ -1,11 +1,11 @@
 import createClient, { type Middleware } from "openapi-fetch"
-import { useUserStore } from "./UserStore";
+import { useUserStore } from "./UserStore"
 import type { paths } from "./api/schema"
 
 const fetchRequestInterceptor: Middleware = {
   async onRequest({ request }) {
 
-    const store = useUserStore();
+    const store = useUserStore()
 
     if (store.isLogin === null) {
       return request
@@ -20,10 +20,10 @@ const fetchRequestInterceptor: Middleware = {
 
 const fetchResponseInterceptor: Middleware = {
   async onResponse({ response }) {
-    const store = useUserStore();
+    const store = useUserStore()
     if (response.status === 401) {
       if (store.isLogin()) {
-        store.Logout();
+        store.Logout()
 
         // show session expired.
         const element = document.getElementById("session-expired-error-modal")

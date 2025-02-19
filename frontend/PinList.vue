@@ -20,25 +20,25 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from "vue";
-import { format, parse } from "date-fns";
-import { openapiFetchClient } from "./UserAgent";
-import BackToTop from "./BackToTop.vue";
-import { PinList } from "./types";
+import { defineComponent, onMounted, ref } from "vue"
+import { format, parse } from "date-fns"
+import { openapiFetchClient } from "./UserAgent"
+import BackToTop from "./BackToTop.vue"
+import { PinList } from "./types"
 const localtime = (mysqlDT: string) => {
   return format(
     parse(`${mysqlDT} Z`, "yyyy-MM-dd HH:mm:ss X", new Date()),
     "yyyy-MM-dd HH:mm"
-  );
-};
+  )
+}
 export default defineComponent({
   components: {
     BackToTop,
   },
   setup: () => {
-    const list = ref<PinList[]>([]);
-    const applyRead = (event: Event) => {
-      const target = event.target as HTMLElement;
+    const list = ref<PinList[]>([])
+    const applyRead = async (event: Event) => {
+      const target = event.target as HTMLElement
       const serial = target.getAttribute("data-serial")
       if (serial === null) {
         return
@@ -47,33 +47,33 @@ export default defineComponent({
       if (feed_id === null) {
         return
       }
-      openapiFetchClient.POST("/api/pin", {
+      await openapiFetchClient.POST("/api/pin", {
         body: {
           readflag: "Setpin",
           serial: parseInt(serial, 10),
           feed_id: parseInt(feed_id, 10),
         }
-      }).then(() => {
-        const idx = target.getAttribute("data-index");
-        if (idx) {
-          list.value.splice(parseInt(idx, 10), 1);
-        }
-      });
-    };
+      })
+      const idx = target.getAttribute("data-index")
+      if (idx) {
+        list.value.splice(parseInt(idx, 10), 1)
+      }
+    }
 
-    openapiFetchClient.GET("/api/pin").then((data) => {
-      if (data.data === undefined) {
+    onMounted(async () => {
+      const { data } = await openapiFetchClient.GET("/api/pin")
+      if (data === undefined) {
         return
       }
-      list.value = data.data.map((x) => {
-        return { ...x, update_at: localtime(x.update_at) };
-      });
-    });
+      list.value = data.map((x) => {
+        return { ...x, update_at: localtime(x.update_at) }
+      })
+    })
 
     return {
       list,
       applyRead,
-    };
+    }
   },
-});
+})
 </script>

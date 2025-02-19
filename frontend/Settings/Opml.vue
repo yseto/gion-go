@@ -28,48 +28,48 @@
 </template>
 
 <script lang="ts">
-import fileDownload from "js-file-download";
-import { defineComponent, ref } from "vue";
-import { openapiFetchClient } from "../UserAgent";
+import fileDownload from "js-file-download"
+import { defineComponent, ref } from "vue"
+import { openapiFetchClient } from "../UserAgent"
 export default defineComponent({
   setup: () => {
-    const fileElement = ref<HTMLInputElement | null>(null);
-    const opmlImport = () => {
+    const fileElement = ref<HTMLInputElement | null>(null)
+    const opmlImport = async () => {
       if (fileElement.value === null || fileElement.value?.files === null) {
-        return;
+        return
       }
-      const reader = new FileReader();
-      reader.addEventListener(
+      const reader = new FileReader()
+      await reader.addEventListener(
         "load",
-        function () {
+        async function () {
           if (reader.result === null) {
             return
           }
-          openapiFetchClient.POST("/api/opml", {
+          await openapiFetchClient.POST("/api/opml", {
             body: {
               xml: reader.result.toString(),
             },
-          }).then(() => alert("sending done."));
+          })
+          alert("sending done.")
         },
         false
-      );
+      )
       if (fileElement.value.files[0]) {
-        reader.readAsText(fileElement.value.files[0]);
+        reader.readAsText(fileElement.value.files[0])
       }
-    };
-    const opmlExport = () => {
-      openapiFetchClient.GET("/api/opml").then((data) => {
-        if (data.data === undefined) {
-          return
-        }
-        fileDownload(data.data?.xml, "opml.xml");
-      });
-    };
+    }
+    const opmlExport = async () => {
+      const { data } = await openapiFetchClient.GET("/api/opml")
+      if (data === undefined) {
+        return
+      }
+      fileDownload(data.xml, "opml.xml")
+    }
     return {
       fileElement,
       opmlImport,
       opmlExport,
-    };
+    }
   },
-});
+})
 </script>

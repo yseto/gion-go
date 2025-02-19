@@ -41,56 +41,56 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, reactive, ref } from "vue";
-import { openapiFetchClient } from "../UserAgent";
-import { useUserStore } from "../UserStore";
+import { defineComponent, onMounted, reactive, ref } from "vue"
+import { openapiFetchClient } from "../UserAgent"
+import { useUserStore } from "../UserStore"
 
 class CProfile {
-  autoseen = false;
-  onLoginSkipPinList = false;
-  entryCount = 0;
-  substringLength = 0;
+  autoseen = false
+  onLoginSkipPinList = false
+  entryCount = 0
+  substringLength = 0
 }
 
 export default defineComponent({
   setup: () => {
-    const store = useUserStore();
-    const profile = reactive(new CProfile());
-    const finished = ref(false);
+    const store = useUserStore()
+    const profile = reactive(new CProfile())
+    const finished = ref(false)
 
-    const apply = () => {
-      openapiFetchClient.PUT("/api/profile", {
+    const apply = async () => {
+      await openapiFetchClient.PUT("/api/profile", {
         body: {
           autoseen: !!profile.autoseen,
           onLoginSkipPinList: !!profile.onLoginSkipPinList,
           entryCount: profile.entryCount,
           substringLength: profile.substringLength,
         },
-      }).then(() => {
-        store.user.autoSeen = profile.autoseen;
-        finished.value = true;
-        setTimeout(function () {
-          finished.value = false;
-        }, 1000);
-      });
-    };
+      })
+      store.user.autoSeen = profile.autoseen
+      finished.value = true
+      setTimeout(function () {
+        finished.value = false
+      }, 1000)
+    }
 
-    openapiFetchClient.GET("/api/profile").then((data) => {
-      if (data.data === undefined) {
+    onMounted(async () => {
+      const { data } = await openapiFetchClient.GET("/api/profile")
+      if (data === undefined) {
         return
       }
-      profile.autoseen = !!data.data.autoseen;
-      profile.onLoginSkipPinList = !!data.data.onLoginSkipPinList;
-      profile.entryCount = data.data.entryCount;
-      profile.substringLength = data.data.substringLength;
-    });
+      profile.autoseen = !!data.autoseen
+      profile.onLoginSkipPinList = !!data.onLoginSkipPinList
+      profile.entryCount = data.entryCount
+      profile.substringLength = data.substringLength
+    })
 
     return {
       store,
       profile,
       finished,
       apply,
-    };
+    }
   },
-});
+})
 </script>

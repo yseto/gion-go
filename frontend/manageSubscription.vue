@@ -62,60 +62,59 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from "vue";
-import BackToTop from "./BackToTop.vue";
-import { openapiFetchClient } from "./UserAgent";
+import { defineComponent, onMounted, ref } from "vue"
+import BackToTop from "./BackToTop.vue"
+import { openapiFetchClient } from "./UserAgent"
 
 type Site = {
-  id: number;
-  category_id: number;
-  http_status: string;
-  siteurl: string;
-  title: string;
-};
+  id: number
+  category_id: number
+  http_status: string
+  siteurl: string
+  title: string
+}
 
 type Subscription = {
-  id: number;
-  name: string;
-  subscription: Site[];
-};
+  id: number
+  name: string
+  subscription: Site[]
+}
 
 type Category = {
-  id: number;
-  name: string;
-};
+  id: number
+  name: string
+}
 
 export default defineComponent({
   components: {
     BackToTop,
   },
   setup: () => {
-    const categories = ref<Category[]>([]);
-    const subscription = ref<Subscription[]>([]);
-    const fieldCategory = ref(0);
-    const fieldId = ref(0);
-    const categoryModal = ref(false);
+    const categories = ref<Category[]>([])
+    const subscription = ref<Subscription[]>([])
+    const fieldCategory = ref(0)
+    const fieldId = ref(0)
+    const categoryModal = ref(false)
 
     const changeCategory = (id: number, category: number) => {
-      fieldCategory.value = category;
-      fieldId.value = id;
-      categoryModal.value = true;
-    };
+      fieldCategory.value = category
+      fieldId.value = id
+      categoryModal.value = true
+    }
 
-    const fetchList = () => {
-      openapiFetchClient.GET("/api/subscription").then((data) => {
-        if (data.data === undefined) {
-          return
-        }
-        subscription.value = data.data;
-        categories.value = data.data.map((x) => {
-          return { id: x.id, name: x.name };
-        });
-      });
-    };
+    const fetchList = async () => {
+      const { data } = await openapiFetchClient.GET("/api/subscription")
+      if (data === undefined) {
+        return
+      }
+      subscription.value = data
+      categories.value = data.map((x) => {
+        return { id: x.id, name: x.name }
+      })
+    }
 
-    const submit = () => {
-      openapiFetchClient.PUT("/api/subscription/{id}", {
+    const submit = async () => {
+      await openapiFetchClient.PUT("/api/subscription/{id}", {
         params: {
           path: {
             id: fieldId.value,
@@ -124,39 +123,36 @@ export default defineComponent({
         body: {
           category: fieldCategory.value,
         },
-      }).then(() => {
-        categoryModal.value = false;
-        fetchList();
-      });
-    };
+      })
+      categoryModal.value = false
+      await fetchList()
+    }
 
-    const removeCategory = (id: number, name: string) => {
+    const removeCategory = async (id: number, name: string) => {
       if (!confirm("カテゴリ:" + name + " を削除しますか?\n内包されている購読もすべて削除されます")) {
-        return;
+        return
       }
-      openapiFetchClient.DELETE("/api/category/{id}", {
+      await openapiFetchClient.DELETE("/api/category/{id}", {
         params: {
           path: { id }
         },
-      }).then(() => {
-        fetchList();
-      });
-    };
+      })
+      await fetchList()
+    }
 
-    const removeSubscription = (id: number, name: string) => {
+    const removeSubscription = async (id: number, name: string) => {
       if (!confirm(name + " を削除しますか")) {
-        return;
+        return
       }
-      openapiFetchClient.DELETE("/api/subscription/{id}", {
+      await openapiFetchClient.DELETE("/api/subscription/{id}", {
         params: {
           path: { id }
         },
-      }).then(() => {
-        fetchList();
-      });
-    };
+      })
+      await fetchList()
+    }
 
-    fetchList();
+    onMounted(async () => await fetchList())
 
     return {
       categories,
@@ -169,7 +165,7 @@ export default defineComponent({
       removeCategory,
       removeSubscription,
       submit,
-    };
+    }
   },
-});
+})
 </script>
