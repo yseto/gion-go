@@ -70,7 +70,7 @@ func Authenticate(ctx context.Context, input *openapi3filter.AuthenticationInput
 	if err != nil {
 		return err
 	}
-	if err == nil && !token.Valid {
+	if !token.Valid {
 		return ErrInvalidAuthHeader
 	}
 

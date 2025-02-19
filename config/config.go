@@ -1,7 +1,6 @@
 package config
 
 import (
-	"context"
 	"crypto/rand"
 
 	"github.com/kelseyhightower/envconfig"
@@ -36,23 +35,4 @@ func ReadConfig() (*Config, error) {
 	}
 
 	return &conf, nil
-}
-
-type webConfigKey struct{}
-
-type WebAppConfig struct {
-	JwtSignedKeyBin []byte
-}
-
-// for web app
-func NewContext(ctx context.Context, cfg *Config) context.Context {
-	c := &WebAppConfig{
-		cfg.JwtSignedKeyBin,
-	}
-	return context.WithValue(ctx, webConfigKey{}, c)
-}
-
-// for web app
-func FromContext(ctx context.Context) *WebAppConfig {
-	return ctx.Value(webConfigKey{}).(*WebAppConfig)
 }
