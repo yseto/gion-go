@@ -11,10 +11,10 @@ const (
 	BearerAuthScopes = "BearerAuth.Scopes"
 )
 
-// Defines values for DeleteSubscriptionFormdataBodySubscription.
+// Defines values for DeleteSubscriptionJSONBodySubscription.
 const (
-	DeleteSubscriptionFormdataBodySubscriptionCategory DeleteSubscriptionFormdataBodySubscription = "category"
-	DeleteSubscriptionFormdataBodySubscriptionEntry    DeleteSubscriptionFormdataBodySubscription = "entry"
+	DeleteSubscriptionJSONBodySubscriptionCategory DeleteSubscriptionJSONBodySubscription = "category"
+	DeleteSubscriptionJSONBodySubscriptionEntry    DeleteSubscriptionJSONBodySubscription = "entry"
 )
 
 // AsRead 既読情報
@@ -102,7 +102,7 @@ type Subscription struct {
 	CategoryID uint64 `json:"id"`
 
 	// Name カテゴリ名
-	Name interface{} `json:"name"`
+	Name string `json:"name"`
 
 	// Subscription カテゴリに属するフィード一覧
 	Subscription []CategorySubscription `json:"subscription"`
@@ -121,116 +121,116 @@ type UnreadEntry struct {
 	Url            string       `json:"url"`
 }
 
-// ChangeSubscriptionFormdataBody defines parameters for ChangeSubscription.
-type ChangeSubscriptionFormdataBody struct {
-	Category uint64 `form:"category" json:"category"`
+// ChangeSubscriptionJSONBody defines parameters for ChangeSubscription.
+type ChangeSubscriptionJSONBody struct {
+	Category uint64 `json:"category"`
 
 	// Id Feed ID
-	Id uint64 `form:"id" json:"id"`
+	Id uint64 `json:"id"`
 }
 
-// DeleteSubscriptionFormdataBody defines parameters for DeleteSubscription.
-type DeleteSubscriptionFormdataBody struct {
-	Id uint64 `form:"id" json:"id"`
+// DeleteSubscriptionJSONBody defines parameters for DeleteSubscription.
+type DeleteSubscriptionJSONBody struct {
+	Id uint64 `json:"id"`
 
 	// Subscription choose type
-	Subscription DeleteSubscriptionFormdataBodySubscription `form:"subscription" json:"subscription"`
+	Subscription DeleteSubscriptionJSONBodySubscription `json:"subscription"`
 }
 
-// DeleteSubscriptionFormdataBodySubscription defines parameters for DeleteSubscription.
-type DeleteSubscriptionFormdataBodySubscription string
+// DeleteSubscriptionJSONBodySubscription defines parameters for DeleteSubscription.
+type DeleteSubscriptionJSONBodySubscription string
 
-// ExamineSubscriptionFormdataBody defines parameters for ExamineSubscription.
-type ExamineSubscriptionFormdataBody struct {
+// ExamineSubscriptionJSONBody defines parameters for ExamineSubscription.
+type ExamineSubscriptionJSONBody struct {
 	// Url Site URL
-	Url string `form:"url" json:"url"`
+	Url string `json:"url"`
 }
 
-// LoginFormdataBody defines parameters for Login.
-type LoginFormdataBody struct {
-	Id       string `form:"id" json:"id"`
-	Password string `form:"password" json:"password"`
+// LoginJSONBody defines parameters for Login.
+type LoginJSONBody struct {
+	Id       string `json:"id"`
+	Password string `json:"password"`
 }
 
-// OpmlImportFormdataBody defines parameters for OpmlImport.
-type OpmlImportFormdataBody struct {
+// OpmlImportJSONBody defines parameters for OpmlImport.
+type OpmlImportJSONBody struct {
 	// Xml Opml xml document
-	Xml string `form:"xml" json:"xml"`
+	Xml string `json:"xml"`
 }
 
-// RegisterCategoryFormdataBody defines parameters for RegisterCategory.
-type RegisterCategoryFormdataBody struct {
-	Name string `form:"name" json:"name"`
+// RegisterCategoryJSONBody defines parameters for RegisterCategory.
+type RegisterCategoryJSONBody struct {
+	Name string `json:"name"`
 }
 
-// RegisterSubscriptionFormdataBody defines parameters for RegisterSubscription.
-type RegisterSubscriptionFormdataBody struct {
-	Category uint64 `form:"category" json:"category"`
+// RegisterSubscriptionJSONBody defines parameters for RegisterSubscription.
+type RegisterSubscriptionJSONBody struct {
+	Category uint64 `json:"category"`
 
 	// Rss RSS Feed URL
-	Rss string `form:"rss" json:"rss"`
+	Rss string `json:"rss"`
 
 	// Title Site Title
-	Title string `form:"title" json:"title"`
+	Title string `json:"title"`
 
 	// Url Site URL
-	Url string `form:"url" json:"url"`
+	Url string `json:"url"`
 }
 
 // SetAsReadJSONBody defines parameters for SetAsRead.
 type SetAsReadJSONBody = []AsRead
 
-// SetPinFormdataBody defines parameters for SetPin.
-type SetPinFormdataBody struct {
-	FeedId   uint64       `form:"feed_id" json:"feed_id"`
-	Readflag pin.ReadFlag `form:"readflag" json:"readflag"`
-	Serial   uint64       `form:"serial" json:"serial"`
+// SetPinJSONBody defines parameters for SetPin.
+type SetPinJSONBody struct {
+	FeedId   uint64       `json:"feed_id"`
+	Readflag pin.ReadFlag `json:"readflag"`
+	Serial   uint64       `json:"serial"`
 }
 
-// UnreadEntryFormdataBody defines parameters for UnreadEntry.
-type UnreadEntryFormdataBody struct {
-	Category uint64 `form:"category" json:"category"`
+// UnreadEntryJSONBody defines parameters for UnreadEntry.
+type UnreadEntryJSONBody struct {
+	Category uint64 `json:"category"`
 }
 
-// UpdatePasswordFormdataBody defines parameters for UpdatePassword.
-type UpdatePasswordFormdataBody struct {
-	Password    string `form:"password" json:"password"`
-	PasswordOld string `form:"password_old" json:"password_old"`
-	Passwordc   string `form:"passwordc" json:"passwordc"`
+// UpdatePasswordJSONBody defines parameters for UpdatePassword.
+type UpdatePasswordJSONBody struct {
+	Password    string `json:"password"`
+	PasswordOld string `json:"password_old"`
+	Passwordc   string `json:"passwordc"`
 }
 
-// ChangeSubscriptionFormdataRequestBody defines body for ChangeSubscription for application/x-www-form-urlencoded ContentType.
-type ChangeSubscriptionFormdataRequestBody ChangeSubscriptionFormdataBody
+// ChangeSubscriptionJSONRequestBody defines body for ChangeSubscription for application/json ContentType.
+type ChangeSubscriptionJSONRequestBody ChangeSubscriptionJSONBody
 
-// DeleteSubscriptionFormdataRequestBody defines body for DeleteSubscription for application/x-www-form-urlencoded ContentType.
-type DeleteSubscriptionFormdataRequestBody DeleteSubscriptionFormdataBody
+// DeleteSubscriptionJSONRequestBody defines body for DeleteSubscription for application/json ContentType.
+type DeleteSubscriptionJSONRequestBody DeleteSubscriptionJSONBody
 
-// ExamineSubscriptionFormdataRequestBody defines body for ExamineSubscription for application/x-www-form-urlencoded ContentType.
-type ExamineSubscriptionFormdataRequestBody ExamineSubscriptionFormdataBody
+// ExamineSubscriptionJSONRequestBody defines body for ExamineSubscription for application/json ContentType.
+type ExamineSubscriptionJSONRequestBody ExamineSubscriptionJSONBody
 
-// LoginFormdataRequestBody defines body for Login for application/x-www-form-urlencoded ContentType.
-type LoginFormdataRequestBody LoginFormdataBody
+// LoginJSONRequestBody defines body for Login for application/json ContentType.
+type LoginJSONRequestBody LoginJSONBody
 
-// OpmlImportFormdataRequestBody defines body for OpmlImport for application/x-www-form-urlencoded ContentType.
-type OpmlImportFormdataRequestBody OpmlImportFormdataBody
+// OpmlImportJSONRequestBody defines body for OpmlImport for application/json ContentType.
+type OpmlImportJSONRequestBody OpmlImportJSONBody
 
-// RegisterCategoryFormdataRequestBody defines body for RegisterCategory for application/x-www-form-urlencoded ContentType.
-type RegisterCategoryFormdataRequestBody RegisterCategoryFormdataBody
+// RegisterCategoryJSONRequestBody defines body for RegisterCategory for application/json ContentType.
+type RegisterCategoryJSONRequestBody RegisterCategoryJSONBody
 
-// RegisterSubscriptionFormdataRequestBody defines body for RegisterSubscription for application/x-www-form-urlencoded ContentType.
-type RegisterSubscriptionFormdataRequestBody RegisterSubscriptionFormdataBody
+// RegisterSubscriptionJSONRequestBody defines body for RegisterSubscription for application/json ContentType.
+type RegisterSubscriptionJSONRequestBody RegisterSubscriptionJSONBody
 
 // SetAsReadJSONRequestBody defines body for SetAsRead for application/json ContentType.
 type SetAsReadJSONRequestBody = SetAsReadJSONBody
 
-// SetPinFormdataRequestBody defines body for SetPin for application/x-www-form-urlencoded ContentType.
-type SetPinFormdataRequestBody SetPinFormdataBody
+// SetPinJSONRequestBody defines body for SetPin for application/json ContentType.
+type SetPinJSONRequestBody SetPinJSONBody
 
 // UpdateProfileJSONRequestBody defines body for UpdateProfile for application/json ContentType.
 type UpdateProfileJSONRequestBody = Profile
 
-// UnreadEntryFormdataRequestBody defines body for UnreadEntry for application/x-www-form-urlencoded ContentType.
-type UnreadEntryFormdataRequestBody UnreadEntryFormdataBody
+// UnreadEntryJSONRequestBody defines body for UnreadEntry for application/json ContentType.
+type UnreadEntryJSONRequestBody UnreadEntryJSONBody
 
-// UpdatePasswordFormdataRequestBody defines body for UpdatePassword for application/x-www-form-urlencoded ContentType.
-type UpdatePasswordFormdataRequestBody UpdatePasswordFormdataBody
+// UpdatePasswordJSONRequestBody defines body for UpdatePassword for application/json ContentType.
+type UpdatePasswordJSONRequestBody UpdatePasswordJSONBody

@@ -459,7 +459,7 @@ func (response CategoryAndUnreadEntryCount400Response) VisitCategoryAndUnreadEnt
 }
 
 type ChangeSubscriptionRequestObject struct {
-	Body *ChangeSubscriptionFormdataRequestBody
+	Body *ChangeSubscriptionJSONRequestBody
 }
 
 type ChangeSubscriptionResponseObject interface {
@@ -484,7 +484,7 @@ func (response ChangeSubscription400Response) VisitChangeSubscriptionResponse(w 
 }
 
 type DeleteSubscriptionRequestObject struct {
-	Body *DeleteSubscriptionFormdataRequestBody
+	Body *DeleteSubscriptionJSONRequestBody
 }
 
 type DeleteSubscriptionResponseObject interface {
@@ -509,7 +509,7 @@ func (response DeleteSubscription400Response) VisitDeleteSubscriptionResponse(w 
 }
 
 type ExamineSubscriptionRequestObject struct {
-	Body *ExamineSubscriptionFormdataRequestBody
+	Body *ExamineSubscriptionJSONRequestBody
 }
 
 type ExamineSubscriptionResponseObject interface {
@@ -526,7 +526,7 @@ func (response ExamineSubscription200JSONResponse) VisitExamineSubscriptionRespo
 }
 
 type LoginRequestObject struct {
-	Body *LoginFormdataRequestBody
+	Body *LoginJSONRequestBody
 }
 
 type LoginResponseObject interface {
@@ -602,7 +602,7 @@ func (response OpmlExport400Response) VisitOpmlExportResponse(w http.ResponseWri
 }
 
 type OpmlImportRequestObject struct {
-	Body *OpmlImportFormdataRequestBody
+	Body *OpmlImportJSONRequestBody
 }
 
 type OpmlImportResponseObject interface {
@@ -677,7 +677,7 @@ func (response Profile400Response) VisitProfileResponse(w http.ResponseWriter) e
 }
 
 type RegisterCategoryRequestObject struct {
-	Body *RegisterCategoryFormdataRequestBody
+	Body *RegisterCategoryJSONRequestBody
 }
 
 type RegisterCategoryResponseObject interface {
@@ -702,7 +702,7 @@ func (response RegisterCategory400Response) VisitRegisterCategoryResponse(w http
 }
 
 type RegisterSubscriptionRequestObject struct {
-	Body *RegisterSubscriptionFormdataRequestBody
+	Body *RegisterSubscriptionJSONRequestBody
 }
 
 type RegisterSubscriptionResponseObject interface {
@@ -776,7 +776,7 @@ func (response SetAsRead400Response) VisitSetAsReadResponse(w http.ResponseWrite
 }
 
 type SetPinRequestObject struct {
-	Body *SetPinFormdataRequestBody
+	Body *SetPinJSONRequestBody
 }
 
 type SetPinResponseObject interface {
@@ -852,7 +852,7 @@ func (response Subscriptions400Response) VisitSubscriptionsResponse(w http.Respo
 }
 
 type UnreadEntryRequestObject struct {
-	Body *UnreadEntryFormdataRequestBody
+	Body *UnreadEntryJSONRequestBody
 }
 
 type UnreadEntryResponseObject interface {
@@ -877,7 +877,7 @@ func (response UnreadEntry400Response) VisitUnreadEntryResponse(w http.ResponseW
 }
 
 type UpdatePasswordRequestObject struct {
-	Body *UpdatePasswordFormdataRequestBody
+	Body *UpdatePasswordJSONRequestBody
 }
 
 type UpdatePasswordResponseObject interface {
@@ -1091,15 +1091,11 @@ func (sh *strictHandler) CategoryAndUnreadEntryCount(ctx echo.Context) error {
 func (sh *strictHandler) ChangeSubscription(ctx echo.Context) error {
 	var request ChangeSubscriptionRequestObject
 
-	if form, err := ctx.FormParams(); err == nil {
-		var body ChangeSubscriptionFormdataRequestBody
-		if err := runtime.BindForm(&body, form, nil, nil); err != nil {
-			return err
-		}
-		request.Body = &body
-	} else {
+	var body ChangeSubscriptionJSONRequestBody
+	if err := ctx.Bind(&body); err != nil {
 		return err
 	}
+	request.Body = &body
 
 	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
 		return sh.ssi.ChangeSubscription(ctx.Request().Context(), request.(ChangeSubscriptionRequestObject))
@@ -1124,15 +1120,11 @@ func (sh *strictHandler) ChangeSubscription(ctx echo.Context) error {
 func (sh *strictHandler) DeleteSubscription(ctx echo.Context) error {
 	var request DeleteSubscriptionRequestObject
 
-	if form, err := ctx.FormParams(); err == nil {
-		var body DeleteSubscriptionFormdataRequestBody
-		if err := runtime.BindForm(&body, form, nil, nil); err != nil {
-			return err
-		}
-		request.Body = &body
-	} else {
+	var body DeleteSubscriptionJSONRequestBody
+	if err := ctx.Bind(&body); err != nil {
 		return err
 	}
+	request.Body = &body
 
 	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
 		return sh.ssi.DeleteSubscription(ctx.Request().Context(), request.(DeleteSubscriptionRequestObject))
@@ -1157,15 +1149,11 @@ func (sh *strictHandler) DeleteSubscription(ctx echo.Context) error {
 func (sh *strictHandler) ExamineSubscription(ctx echo.Context) error {
 	var request ExamineSubscriptionRequestObject
 
-	if form, err := ctx.FormParams(); err == nil {
-		var body ExamineSubscriptionFormdataRequestBody
-		if err := runtime.BindForm(&body, form, nil, nil); err != nil {
-			return err
-		}
-		request.Body = &body
-	} else {
+	var body ExamineSubscriptionJSONRequestBody
+	if err := ctx.Bind(&body); err != nil {
 		return err
 	}
+	request.Body = &body
 
 	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
 		return sh.ssi.ExamineSubscription(ctx.Request().Context(), request.(ExamineSubscriptionRequestObject))
@@ -1190,15 +1178,11 @@ func (sh *strictHandler) ExamineSubscription(ctx echo.Context) error {
 func (sh *strictHandler) Login(ctx echo.Context) error {
 	var request LoginRequestObject
 
-	if form, err := ctx.FormParams(); err == nil {
-		var body LoginFormdataRequestBody
-		if err := runtime.BindForm(&body, form, nil, nil); err != nil {
-			return err
-		}
-		request.Body = &body
-	} else {
+	var body LoginJSONRequestBody
+	if err := ctx.Bind(&body); err != nil {
 		return err
 	}
+	request.Body = &body
 
 	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
 		return sh.ssi.Login(ctx.Request().Context(), request.(LoginRequestObject))
@@ -1269,15 +1253,11 @@ func (sh *strictHandler) OpmlExport(ctx echo.Context) error {
 func (sh *strictHandler) OpmlImport(ctx echo.Context) error {
 	var request OpmlImportRequestObject
 
-	if form, err := ctx.FormParams(); err == nil {
-		var body OpmlImportFormdataRequestBody
-		if err := runtime.BindForm(&body, form, nil, nil); err != nil {
-			return err
-		}
-		request.Body = &body
-	} else {
+	var body OpmlImportJSONRequestBody
+	if err := ctx.Bind(&body); err != nil {
 		return err
 	}
+	request.Body = &body
 
 	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
 		return sh.ssi.OpmlImport(ctx.Request().Context(), request.(OpmlImportRequestObject))
@@ -1348,15 +1328,11 @@ func (sh *strictHandler) Profile(ctx echo.Context) error {
 func (sh *strictHandler) RegisterCategory(ctx echo.Context) error {
 	var request RegisterCategoryRequestObject
 
-	if form, err := ctx.FormParams(); err == nil {
-		var body RegisterCategoryFormdataRequestBody
-		if err := runtime.BindForm(&body, form, nil, nil); err != nil {
-			return err
-		}
-		request.Body = &body
-	} else {
+	var body RegisterCategoryJSONRequestBody
+	if err := ctx.Bind(&body); err != nil {
 		return err
 	}
+	request.Body = &body
 
 	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
 		return sh.ssi.RegisterCategory(ctx.Request().Context(), request.(RegisterCategoryRequestObject))
@@ -1381,15 +1357,11 @@ func (sh *strictHandler) RegisterCategory(ctx echo.Context) error {
 func (sh *strictHandler) RegisterSubscription(ctx echo.Context) error {
 	var request RegisterSubscriptionRequestObject
 
-	if form, err := ctx.FormParams(); err == nil {
-		var body RegisterSubscriptionFormdataRequestBody
-		if err := runtime.BindForm(&body, form, nil, nil); err != nil {
-			return err
-		}
-		request.Body = &body
-	} else {
+	var body RegisterSubscriptionJSONRequestBody
+	if err := ctx.Bind(&body); err != nil {
 		return err
 	}
+	request.Body = &body
 
 	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
 		return sh.ssi.RegisterSubscription(ctx.Request().Context(), request.(RegisterSubscriptionRequestObject))
@@ -1466,15 +1438,11 @@ func (sh *strictHandler) SetAsRead(ctx echo.Context) error {
 func (sh *strictHandler) SetPin(ctx echo.Context) error {
 	var request SetPinRequestObject
 
-	if form, err := ctx.FormParams(); err == nil {
-		var body SetPinFormdataRequestBody
-		if err := runtime.BindForm(&body, form, nil, nil); err != nil {
-			return err
-		}
-		request.Body = &body
-	} else {
+	var body SetPinJSONRequestBody
+	if err := ctx.Bind(&body); err != nil {
 		return err
 	}
+	request.Body = &body
 
 	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
 		return sh.ssi.SetPin(ctx.Request().Context(), request.(SetPinRequestObject))
@@ -1551,15 +1519,11 @@ func (sh *strictHandler) Subscriptions(ctx echo.Context) error {
 func (sh *strictHandler) UnreadEntry(ctx echo.Context) error {
 	var request UnreadEntryRequestObject
 
-	if form, err := ctx.FormParams(); err == nil {
-		var body UnreadEntryFormdataRequestBody
-		if err := runtime.BindForm(&body, form, nil, nil); err != nil {
-			return err
-		}
-		request.Body = &body
-	} else {
+	var body UnreadEntryJSONRequestBody
+	if err := ctx.Bind(&body); err != nil {
 		return err
 	}
+	request.Body = &body
 
 	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
 		return sh.ssi.UnreadEntry(ctx.Request().Context(), request.(UnreadEntryRequestObject))
@@ -1584,15 +1548,11 @@ func (sh *strictHandler) UnreadEntry(ctx echo.Context) error {
 func (sh *strictHandler) UpdatePassword(ctx echo.Context) error {
 	var request UpdatePasswordRequestObject
 
-	if form, err := ctx.FormParams(); err == nil {
-		var body UpdatePasswordFormdataRequestBody
-		if err := runtime.BindForm(&body, form, nil, nil); err != nil {
-			return err
-		}
-		request.Body = &body
-	} else {
+	var body UpdatePasswordJSONRequestBody
+	if err := ctx.Bind(&body); err != nil {
 		return err
 	}
+	request.Body = &body
 
 	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
 		return sh.ssi.UpdatePassword(ctx.Request().Context(), request.(UpdatePasswordRequestObject))
