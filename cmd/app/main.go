@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"time"
 
 	oapiMiddleware "github.com/deepmap/oapi-codegen/pkg/middleware"
@@ -46,6 +47,15 @@ func main() {
 			&oapiMiddleware.Options{
 				Options: openapi3filter.Options{
 					AuthenticationFunc: handler.NewAuthenticator(cfg.JwtSignedKeyBin),
+				},
+				ErrorHandler: func(c echo.Context, err *echo.HTTPError) error {
+					if message, ok := err.Message.(string); ok {
+						if strings.HasPrefix(message, "security requirements failed") {
+							c.Response().WriteHeader(401)
+							return nil
+						}
+					}
+					return err
 				},
 			}),
 

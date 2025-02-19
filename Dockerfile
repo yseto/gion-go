@@ -17,7 +17,7 @@ COPY config/        /usr/src/app/config/
 COPY db/            /usr/src/app/db/
 COPY internal/      /usr/src/app/internal/
 ENV CGO_ENABLED=0
-RUN go build -o /app/gion       ./app
+RUN go build -o /app/gion       ./cmd/app
 RUN go build -o /app/queueing   ./cmd/queueing/
 RUN go build -o /app/worker     ./cmd/worker/
 RUN go build -o /app/insertuser ./cmd/insertuser/
