@@ -21,7 +21,7 @@ type ServerInterface interface {
 	// (GET /)
 	Index(ctx echo.Context) error
 
-	// (GET /api/categories)
+	// (GET /api/category)
 	Categories(ctx echo.Context) error
 
 	// (POST /api/category)
@@ -395,7 +395,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	}
 
 	router.GET(baseURL+"/", wrapper.Index)
-	router.GET(baseURL+"/api/categories", wrapper.Categories)
+	router.GET(baseURL+"/api/category", wrapper.Categories)
 	router.POST(baseURL+"/api/category", wrapper.RegisterCategory)
 	router.GET(baseURL+"/api/category/:category_id/entry", wrapper.UnreadEntry)
 	router.DELETE(baseURL+"/api/category/:id", wrapper.DeleteCategory)
@@ -1019,7 +1019,7 @@ type StrictServerInterface interface {
 	// (GET /)
 	Index(ctx context.Context, request IndexRequestObject) (IndexResponseObject, error)
 
-	// (GET /api/categories)
+	// (GET /api/category)
 	Categories(ctx context.Context, request CategoriesRequestObject) (CategoriesResponseObject, error)
 
 	// (POST /api/category)

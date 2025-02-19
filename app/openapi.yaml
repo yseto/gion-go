@@ -206,7 +206,6 @@ paths:
           description: error
         "409":
           description: duplicate error
-  /api/categories:
     get:
       tags:
         - subscription
