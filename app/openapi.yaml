@@ -149,7 +149,7 @@ paths:
         "400":
           description: error
   /api/category_with_count:
-    post:
+    get:
       tags:
         - reader
       description: categories with unread entry count.
@@ -170,7 +170,7 @@ paths:
           description: error
       
   /api/unread_entry:
-    post:
+    get:
       tags:
         - reader
       description: unread entries
@@ -284,7 +284,7 @@ paths:
         "400":
           description: error
   /api/categories:
-    post:
+    get:
       tags:
         - subscription
       description: category list

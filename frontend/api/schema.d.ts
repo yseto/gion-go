@@ -114,10 +114,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
-        put?: never;
         /** @description categories with unread entry count. */
-        post: operations["CategoryAndUnreadEntryCount"];
+        get: operations["CategoryAndUnreadEntryCount"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -131,10 +131,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
-        put?: never;
         /** @description unread entries */
-        post: operations["UnreadEntry"];
+        get: operations["UnreadEntry"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -182,10 +182,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
-        put?: never;
         /** @description category list */
-        post: operations["Categories"];
+        get: operations["Categories"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;

@@ -189,7 +189,7 @@ export default defineComponent({
     };
 
     const fetchList = () => {
-      openapiFetchClient.POST("/api/categories").then(data => {
+      openapiFetchClient.GET("/api/categories").then(data => {
         if (data.data === undefined) {
           return
         }

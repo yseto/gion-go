@@ -117,7 +117,7 @@ export default defineComponent({
         return;
       }
 
-      openapiFetchClient.POST("/api/unread_entry", {
+      openapiFetchClient.GET("/api/unread_entry", {
         body: {
           category: categoryStore.list[categoryStore.selected].id,
         }
@@ -138,7 +138,7 @@ export default defineComponent({
     };
 
     const categoryUpdate = () => {
-      openapiFetchClient.POST("/api/category_with_count").then((data) => {
+      openapiFetchClient.GET("/api/category_with_count").then((data) => {
         if (data.data === undefined) {
           return
         }
@@ -263,7 +263,7 @@ export default defineComponent({
     });
 
     autoSeen.value = userStore.user.autoSeen;
-    openapiFetchClient.POST("/api/category_with_count").then((data) => {
+    openapiFetchClient.GET("/api/category_with_count").then((data) => {
       if (data.data === undefined) {
         return
       }

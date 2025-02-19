@@ -21,10 +21,10 @@ type ServerInterface interface {
 	// (GET /)
 	Index(ctx echo.Context) error
 
-	// (POST /api/categories)
+	// (GET /api/categories)
 	Categories(ctx echo.Context) error
 
-	// (POST /api/category_with_count)
+	// (GET /api/category_with_count)
 	CategoryAndUnreadEntryCount(ctx echo.Context) error
 
 	// (POST /api/change_subscription)
@@ -75,7 +75,7 @@ type ServerInterface interface {
 	// (POST /api/subscriptions)
 	Subscriptions(ctx echo.Context) error
 
-	// (POST /api/unread_entry)
+	// (GET /api/unread_entry)
 	UnreadEntry(ctx echo.Context) error
 
 	// (POST /api/update_password)
@@ -360,8 +360,8 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	}
 
 	router.GET(baseURL+"/", wrapper.Index)
-	router.POST(baseURL+"/api/categories", wrapper.Categories)
-	router.POST(baseURL+"/api/category_with_count", wrapper.CategoryAndUnreadEntryCount)
+	router.GET(baseURL+"/api/categories", wrapper.Categories)
+	router.GET(baseURL+"/api/category_with_count", wrapper.CategoryAndUnreadEntryCount)
 	router.POST(baseURL+"/api/change_subscription", wrapper.ChangeSubscription)
 	router.POST(baseURL+"/api/delete_subscription", wrapper.DeleteSubscription)
 	router.POST(baseURL+"/api/examine_subscription", wrapper.ExamineSubscription)
@@ -378,7 +378,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.POST(baseURL+"/api/set_asread", wrapper.SetAsRead)
 	router.POST(baseURL+"/api/set_pin", wrapper.SetPin)
 	router.POST(baseURL+"/api/subscriptions", wrapper.Subscriptions)
-	router.POST(baseURL+"/api/unread_entry", wrapper.UnreadEntry)
+	router.GET(baseURL+"/api/unread_entry", wrapper.UnreadEntry)
 	router.POST(baseURL+"/api/update_password", wrapper.UpdatePassword)
 	router.GET(baseURL+"/:filename", wrapper.ServeRootFile)
 
@@ -942,10 +942,10 @@ type StrictServerInterface interface {
 	// (GET /)
 	Index(ctx context.Context, request IndexRequestObject) (IndexResponseObject, error)
 
-	// (POST /api/categories)
+	// (GET /api/categories)
 	Categories(ctx context.Context, request CategoriesRequestObject) (CategoriesResponseObject, error)
 
-	// (POST /api/category_with_count)
+	// (GET /api/category_with_count)
 	CategoryAndUnreadEntryCount(ctx context.Context, request CategoryAndUnreadEntryCountRequestObject) (CategoryAndUnreadEntryCountResponseObject, error)
 
 	// (POST /api/change_subscription)
@@ -996,7 +996,7 @@ type StrictServerInterface interface {
 	// (POST /api/subscriptions)
 	Subscriptions(ctx context.Context, request SubscriptionsRequestObject) (SubscriptionsResponseObject, error)
 
-	// (POST /api/unread_entry)
+	// (GET /api/unread_entry)
 	UnreadEntry(ctx context.Context, request UnreadEntryRequestObject) (UnreadEntryResponseObject, error)
 
 	// (POST /api/update_password)
