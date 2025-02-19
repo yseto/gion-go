@@ -3,11 +3,14 @@ package main
 import (
 	"context"
 	"log"
+	"log/slog"
 	"net"
 	"net/http"
 	"os"
 	"os/signal"
 	"time"
+
+	"github.com/lestrrat-go/accesslog"
 
 	"github.com/yseto/gion-go/app/handler"
 	"github.com/yseto/gion-go/config"
@@ -26,6 +29,8 @@ func main() {
 	}
 	defer dbConn.Close()
 
+	al := accesslog.New().Logger(slog.New(slog.NewJSONHandler(os.Stdout, nil)))
+
 	svr := handler.New()
 	h := handler.Handler(handler.NewStrictHandler(svr, nil))
 
@@ -39,7 +44,7 @@ func main() {
 	h = mw2(h)
 
 	s := &http.Server{
-		Handler: h,
+		Handler: al.Wrap(h),
 		Addr:    net.JoinHostPort(cfg.HTTPHost, cfg.HTTPPort),
 	}
 

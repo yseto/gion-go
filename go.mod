@@ -12,6 +12,7 @@ require (
 	github.com/hibiken/asynq v0.23.0
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/kelseyhightower/envconfig v1.4.0
+	github.com/lestrrat-go/accesslog v0.0.0-20241012080550-992e15765bd5
 	github.com/lib/pq v1.10.9
 	github.com/mattn/go-sqlite3 v1.14.15
 	github.com/microcosm-cc/bluemonday v1.0.25
