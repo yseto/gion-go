@@ -312,23 +312,8 @@ func (*ApiServer) RegisterSubscription(ctx context.Context, request RegisterSubs
 }
 
 func (*ApiServer) DeleteSubscription(ctx context.Context, request DeleteSubscriptionRequestObject) (DeleteSubscriptionResponseObject, error) {
-	deleteType := request.Body.Subscription
-	id := request.Body.Id
-	if deleteType == "" {
-		return DeleteSubscription400Response{}, nil
-	}
-
-	var err error
 	db := DBUserFromContext(ctx)
-	switch deleteType {
-	case DeleteSubscriptionJSONBodySubscriptionCategory:
-		err = db.DeleteCategory(id)
-	case DeleteSubscriptionJSONBodySubscriptionEntry:
-		err = db.DeleteSubscription(id)
-	default:
-		err = fmt.Errorf("invalid type")
-	}
-	if err != nil {
+	if err := db.DeleteSubscription(request.Id); err != nil {
 		return DeleteSubscription400Response{}, nil
 	}
 	return DeleteSubscription200JSONResponse{Result: "OK"}, nil

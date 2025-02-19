@@ -33,9 +33,6 @@ type ServerInterface interface {
 	// (POST /api/change_subscription)
 	ChangeSubscription(ctx echo.Context) error
 
-	// (POST /api/delete_subscription)
-	DeleteSubscription(ctx echo.Context) error
-
 	// (POST /api/examine_subscription)
 	ExamineSubscription(ctx echo.Context) error
 
@@ -74,6 +71,9 @@ type ServerInterface interface {
 
 	// (POST /api/set_asread)
 	SetAsRead(ctx echo.Context) error
+
+	// (DELETE /api/subscription/{id})
+	DeleteSubscription(ctx echo.Context, id uint64) error
 
 	// (GET /api/subscriptions)
 	Subscriptions(ctx echo.Context) error
@@ -150,17 +150,6 @@ func (w *ServerInterfaceWrapper) ChangeSubscription(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshalled arguments
 	err = w.Handler.ChangeSubscription(ctx)
-	return err
-}
-
-// DeleteSubscription converts echo context to params.
-func (w *ServerInterfaceWrapper) DeleteSubscription(ctx echo.Context) error {
-	var err error
-
-	ctx.Set(BearerAuthScopes, []string{})
-
-	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.DeleteSubscription(ctx)
 	return err
 }
 
@@ -303,6 +292,24 @@ func (w *ServerInterfaceWrapper) SetAsRead(ctx echo.Context) error {
 	return err
 }
 
+// DeleteSubscription converts echo context to params.
+func (w *ServerInterfaceWrapper) DeleteSubscription(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "id" -------------
+	var id uint64
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "id", runtime.ParamLocationPath, ctx.Param("id"), &id)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshalled arguments
+	err = w.Handler.DeleteSubscription(ctx, id)
+	return err
+}
+
 // Subscriptions converts echo context to params.
 func (w *ServerInterfaceWrapper) Subscriptions(ctx echo.Context) error {
 	var err error
@@ -392,7 +399,6 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.DELETE(baseURL+"/api/category/:id", wrapper.DeleteCategory)
 	router.GET(baseURL+"/api/category_with_count", wrapper.CategoryAndUnreadEntryCount)
 	router.POST(baseURL+"/api/change_subscription", wrapper.ChangeSubscription)
-	router.POST(baseURL+"/api/delete_subscription", wrapper.DeleteSubscription)
 	router.POST(baseURL+"/api/examine_subscription", wrapper.ExamineSubscription)
 	router.POST(baseURL+"/api/login", wrapper.Login)
 	router.POST(baseURL+"/api/logout", wrapper.Logout)
@@ -406,6 +412,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.POST(baseURL+"/api/register_category", wrapper.RegisterCategory)
 	router.POST(baseURL+"/api/register_subscription", wrapper.RegisterSubscription)
 	router.POST(baseURL+"/api/set_asread", wrapper.SetAsRead)
+	router.DELETE(baseURL+"/api/subscription/:id", wrapper.DeleteSubscription)
 	router.GET(baseURL+"/api/subscriptions", wrapper.Subscriptions)
 	router.GET(baseURL+"/api/unread_entry/:category_id", wrapper.UnreadEntry)
 	router.POST(baseURL+"/api/update_password", wrapper.UpdatePassword)
@@ -533,31 +540,6 @@ type ChangeSubscription400Response struct {
 }
 
 func (response ChangeSubscription400Response) VisitChangeSubscriptionResponse(w http.ResponseWriter) error {
-	w.WriteHeader(400)
-	return nil
-}
-
-type DeleteSubscriptionRequestObject struct {
-	Body *DeleteSubscriptionJSONRequestBody
-}
-
-type DeleteSubscriptionResponseObject interface {
-	VisitDeleteSubscriptionResponse(w http.ResponseWriter) error
-}
-
-type DeleteSubscription200JSONResponse SimpleResult
-
-func (response DeleteSubscription200JSONResponse) VisitDeleteSubscriptionResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(200)
-
-	return json.NewEncoder(w).Encode(response)
-}
-
-type DeleteSubscription400Response struct {
-}
-
-func (response DeleteSubscription400Response) VisitDeleteSubscriptionResponse(w http.ResponseWriter) error {
 	w.WriteHeader(400)
 	return nil
 }
@@ -881,6 +863,31 @@ func (response SetAsRead400Response) VisitSetAsReadResponse(w http.ResponseWrite
 	return nil
 }
 
+type DeleteSubscriptionRequestObject struct {
+	Id uint64 `json:"id"`
+}
+
+type DeleteSubscriptionResponseObject interface {
+	VisitDeleteSubscriptionResponse(w http.ResponseWriter) error
+}
+
+type DeleteSubscription200JSONResponse SimpleResult
+
+func (response DeleteSubscription200JSONResponse) VisitDeleteSubscriptionResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteSubscription400Response struct {
+}
+
+func (response DeleteSubscription400Response) VisitDeleteSubscriptionResponse(w http.ResponseWriter) error {
+	w.WriteHeader(400)
+	return nil
+}
+
 type SubscriptionsRequestObject struct {
 }
 
@@ -1008,9 +1015,6 @@ type StrictServerInterface interface {
 	// (POST /api/change_subscription)
 	ChangeSubscription(ctx context.Context, request ChangeSubscriptionRequestObject) (ChangeSubscriptionResponseObject, error)
 
-	// (POST /api/delete_subscription)
-	DeleteSubscription(ctx context.Context, request DeleteSubscriptionRequestObject) (DeleteSubscriptionResponseObject, error)
-
 	// (POST /api/examine_subscription)
 	ExamineSubscription(ctx context.Context, request ExamineSubscriptionRequestObject) (ExamineSubscriptionResponseObject, error)
 
@@ -1049,6 +1053,9 @@ type StrictServerInterface interface {
 
 	// (POST /api/set_asread)
 	SetAsRead(ctx context.Context, request SetAsReadRequestObject) (SetAsReadResponseObject, error)
+
+	// (DELETE /api/subscription/{id})
+	DeleteSubscription(ctx context.Context, request DeleteSubscriptionRequestObject) (DeleteSubscriptionResponseObject, error)
 
 	// (GET /api/subscriptions)
 	Subscriptions(ctx context.Context, request SubscriptionsRequestObject) (SubscriptionsResponseObject, error)
@@ -1192,35 +1199,6 @@ func (sh *strictHandler) ChangeSubscription(ctx echo.Context) error {
 		return err
 	} else if validResponse, ok := response.(ChangeSubscriptionResponseObject); ok {
 		return validResponse.VisitChangeSubscriptionResponse(ctx.Response())
-	} else if response != nil {
-		return fmt.Errorf("Unexpected response type: %T", response)
-	}
-	return nil
-}
-
-// DeleteSubscription operation middleware
-func (sh *strictHandler) DeleteSubscription(ctx echo.Context) error {
-	var request DeleteSubscriptionRequestObject
-
-	var body DeleteSubscriptionJSONRequestBody
-	if err := ctx.Bind(&body); err != nil {
-		return err
-	}
-	request.Body = &body
-
-	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.DeleteSubscription(ctx.Request().Context(), request.(DeleteSubscriptionRequestObject))
-	}
-	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "DeleteSubscription")
-	}
-
-	response, err := handler(ctx, request)
-
-	if err != nil {
-		return err
-	} else if validResponse, ok := response.(DeleteSubscriptionResponseObject); ok {
-		return validResponse.VisitDeleteSubscriptionResponse(ctx.Response())
 	} else if response != nil {
 		return fmt.Errorf("Unexpected response type: %T", response)
 	}
@@ -1568,6 +1546,31 @@ func (sh *strictHandler) SetAsRead(ctx echo.Context) error {
 		return err
 	} else if validResponse, ok := response.(SetAsReadResponseObject); ok {
 		return validResponse.VisitSetAsReadResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("Unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// DeleteSubscription operation middleware
+func (sh *strictHandler) DeleteSubscription(ctx echo.Context, id uint64) error {
+	var request DeleteSubscriptionRequestObject
+
+	request.Id = id
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteSubscription(ctx.Request().Context(), request.(DeleteSubscriptionRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteSubscription")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(DeleteSubscriptionResponseObject); ok {
+		return validResponse.VisitDeleteSubscriptionResponse(ctx.Response())
 	} else if response != nil {
 		return fmt.Errorf("Unexpected response type: %T", response)
 	}

@@ -11,12 +11,6 @@ const (
 	BearerAuthScopes = "BearerAuth.Scopes"
 )
 
-// Defines values for DeleteSubscriptionJSONBodySubscription.
-const (
-	DeleteSubscriptionJSONBodySubscriptionCategory DeleteSubscriptionJSONBodySubscription = "category"
-	DeleteSubscriptionJSONBodySubscriptionEntry    DeleteSubscriptionJSONBodySubscription = "entry"
-)
-
 // AsRead 既読情報
 type AsRead struct {
 	FeedID uint64 `json:"feed_id"`
@@ -129,17 +123,6 @@ type ChangeSubscriptionJSONBody struct {
 	Id uint64 `json:"id"`
 }
 
-// DeleteSubscriptionJSONBody defines parameters for DeleteSubscription.
-type DeleteSubscriptionJSONBody struct {
-	Id uint64 `json:"id"`
-
-	// Subscription choose type
-	Subscription DeleteSubscriptionJSONBodySubscription `json:"subscription"`
-}
-
-// DeleteSubscriptionJSONBodySubscription defines parameters for DeleteSubscription.
-type DeleteSubscriptionJSONBodySubscription string
-
 // ExamineSubscriptionJSONBody defines parameters for ExamineSubscription.
 type ExamineSubscriptionJSONBody struct {
 	// Url Site URL
@@ -196,9 +179,6 @@ type UpdatePasswordJSONBody struct {
 
 // ChangeSubscriptionJSONRequestBody defines body for ChangeSubscription for application/json ContentType.
 type ChangeSubscriptionJSONRequestBody ChangeSubscriptionJSONBody
-
-// DeleteSubscriptionJSONRequestBody defines body for DeleteSubscription for application/json ContentType.
-type DeleteSubscriptionJSONRequestBody DeleteSubscriptionJSONBody
 
 // ExamineSubscriptionJSONRequestBody defines body for ExamineSubscription for application/json ContentType.
 type ExamineSubscriptionJSONRequestBody ExamineSubscriptionJSONBody

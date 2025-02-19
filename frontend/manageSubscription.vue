@@ -24,7 +24,7 @@
               <button class="btn btn-info btn-sm" @click="changeCategory(item.id, item.category_id)">
                 移動
               </button>
-              <button class="btn btn-danger btn-sm" @click="removeIt(item.id, deleteParam.entry, item.title)">
+              <button class="btn btn-danger btn-sm" @click="removeSubscription(item.id, item.title)">
                 削除
               </button>
             </td>
@@ -139,21 +139,20 @@ export default defineComponent({
       }
       openapiFetchClient.DELETE("/api/category/{id}", {
         params: {
-          path: {id}
+          path: { id }
         },
       }).then(() => {
         fetchList();
       });
     };
 
-    const removeIt = (id: number, type: deleteParam, name: string) => {
+    const removeSubscription = (id: number, name: string) => {
       if (!confirm(name + " を削除しますか")) {
         return;
       }
-      openapiFetchClient.POST("/api/delete_subscription", {
-        body: {
-          subscription: type,
-          id: id,
+      openapiFetchClient.DELETE("/api/subscription/{id}", {
+        params: {
+          path: { id }
         },
       }).then(() => {
         fetchList();
@@ -173,7 +172,7 @@ export default defineComponent({
 
       changeCategory,
       removeCategory,
-      removeIt,
+      removeSubscription,
       submit,
     };
   },

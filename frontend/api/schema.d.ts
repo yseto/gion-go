@@ -226,7 +226,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/delete_subscription": {
+    "/api/subscription/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -235,9 +235,9 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        post?: never;
         /** @description delete subscription */
-        post: operations["DeleteSubscription"];
-        delete?: never;
+        delete: operations["DeleteSubscription"];
         options?: never;
         head?: never;
         patch?: never;
@@ -888,22 +888,13 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                /** @description subscription id */
+                id: number;
+            };
             cookie?: never;
         };
-        requestBody?: {
-            content: {
-                "application/json": {
-                    /**
-                     * @description choose type
-                     * @enum {string}
-                     */
-                    subscription: "category" | "entry";
-                    /** Format: uint64 */
-                    id: number;
-                };
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description OK */
             200: {
