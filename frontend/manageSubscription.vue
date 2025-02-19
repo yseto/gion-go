@@ -122,9 +122,13 @@ export default defineComponent({
     };
 
     const submit = () => {
-      openapiFetchClient.POST("/api/change_subscription", {
+      openapiFetchClient.PUT("/api/subscription/{id}", {
+        params: {
+          path: {
+            id: fieldId.value,
+          }
+        },
         body: {
-          id: fieldId.value,
           category: fieldCategory.value,
         },
       }).then(() => {

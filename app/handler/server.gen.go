@@ -36,9 +36,6 @@ type ServerInterface interface {
 	// (GET /api/category_with_count)
 	CategoryAndUnreadEntryCount(ctx echo.Context) error
 
-	// (POST /api/change_subscription)
-	ChangeSubscription(ctx echo.Context) error
-
 	// (POST /api/examine_subscription)
 	ExamineSubscription(ctx echo.Context) error
 
@@ -80,6 +77,9 @@ type ServerInterface interface {
 
 	// (DELETE /api/subscription/{id})
 	DeleteSubscription(ctx echo.Context, id uint64) error
+
+	// (PUT /api/subscription/{id})
+	ChangeSubscription(ctx echo.Context, id uint64) error
 
 	// (POST /api/update_password)
 	UpdatePassword(ctx echo.Context) error
@@ -168,17 +168,6 @@ func (w *ServerInterfaceWrapper) CategoryAndUnreadEntryCount(ctx echo.Context) e
 
 	// Invoke the callback with all the unmarshalled arguments
 	err = w.Handler.CategoryAndUnreadEntryCount(ctx)
-	return err
-}
-
-// ChangeSubscription converts echo context to params.
-func (w *ServerInterfaceWrapper) ChangeSubscription(ctx echo.Context) error {
-	var err error
-
-	ctx.Set(BearerAuthScopes, []string{})
-
-	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.ChangeSubscription(ctx)
 	return err
 }
 
@@ -339,6 +328,24 @@ func (w *ServerInterfaceWrapper) DeleteSubscription(ctx echo.Context) error {
 	return err
 }
 
+// ChangeSubscription converts echo context to params.
+func (w *ServerInterfaceWrapper) ChangeSubscription(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "id" -------------
+	var id uint64
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "id", runtime.ParamLocationPath, ctx.Param("id"), &id)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshalled arguments
+	err = w.Handler.ChangeSubscription(ctx, id)
+	return err
+}
+
 // UpdatePassword converts echo context to params.
 func (w *ServerInterfaceWrapper) UpdatePassword(ctx echo.Context) error {
 	var err error
@@ -400,7 +407,6 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.GET(baseURL+"/api/category/:category_id/entry", wrapper.UnreadEntry)
 	router.DELETE(baseURL+"/api/category/:id", wrapper.DeleteCategory)
 	router.GET(baseURL+"/api/category_with_count", wrapper.CategoryAndUnreadEntryCount)
-	router.POST(baseURL+"/api/change_subscription", wrapper.ChangeSubscription)
 	router.POST(baseURL+"/api/examine_subscription", wrapper.ExamineSubscription)
 	router.POST(baseURL+"/api/login", wrapper.Login)
 	router.POST(baseURL+"/api/logout", wrapper.Logout)
@@ -415,6 +421,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.GET(baseURL+"/api/subscription", wrapper.Subscriptions)
 	router.POST(baseURL+"/api/subscription", wrapper.RegisterSubscription)
 	router.DELETE(baseURL+"/api/subscription/:id", wrapper.DeleteSubscription)
+	router.PUT(baseURL+"/api/subscription/:id", wrapper.ChangeSubscription)
 	router.POST(baseURL+"/api/update_password", wrapper.UpdatePassword)
 	router.GET(baseURL+"/:filename", wrapper.ServeRootFile)
 
@@ -573,31 +580,6 @@ type CategoryAndUnreadEntryCount400Response struct {
 }
 
 func (response CategoryAndUnreadEntryCount400Response) VisitCategoryAndUnreadEntryCountResponse(w http.ResponseWriter) error {
-	w.WriteHeader(400)
-	return nil
-}
-
-type ChangeSubscriptionRequestObject struct {
-	Body *ChangeSubscriptionJSONRequestBody
-}
-
-type ChangeSubscriptionResponseObject interface {
-	VisitChangeSubscriptionResponse(w http.ResponseWriter) error
-}
-
-type ChangeSubscription200JSONResponse SimpleResult
-
-func (response ChangeSubscription200JSONResponse) VisitChangeSubscriptionResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(200)
-
-	return json.NewEncoder(w).Encode(response)
-}
-
-type ChangeSubscription400Response struct {
-}
-
-func (response ChangeSubscription400Response) VisitChangeSubscriptionResponse(w http.ResponseWriter) error {
 	w.WriteHeader(400)
 	return nil
 }
@@ -953,6 +935,32 @@ func (response DeleteSubscription400Response) VisitDeleteSubscriptionResponse(w 
 	return nil
 }
 
+type ChangeSubscriptionRequestObject struct {
+	Id   uint64 `json:"id"`
+	Body *ChangeSubscriptionJSONRequestBody
+}
+
+type ChangeSubscriptionResponseObject interface {
+	VisitChangeSubscriptionResponse(w http.ResponseWriter) error
+}
+
+type ChangeSubscription200JSONResponse SimpleResult
+
+func (response ChangeSubscription200JSONResponse) VisitChangeSubscriptionResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ChangeSubscription400Response struct {
+}
+
+func (response ChangeSubscription400Response) VisitChangeSubscriptionResponse(w http.ResponseWriter) error {
+	w.WriteHeader(400)
+	return nil
+}
+
 type UpdatePasswordRequestObject struct {
 	Body *UpdatePasswordJSONRequestBody
 }
@@ -1034,9 +1042,6 @@ type StrictServerInterface interface {
 	// (GET /api/category_with_count)
 	CategoryAndUnreadEntryCount(ctx context.Context, request CategoryAndUnreadEntryCountRequestObject) (CategoryAndUnreadEntryCountResponseObject, error)
 
-	// (POST /api/change_subscription)
-	ChangeSubscription(ctx context.Context, request ChangeSubscriptionRequestObject) (ChangeSubscriptionResponseObject, error)
-
 	// (POST /api/examine_subscription)
 	ExamineSubscription(ctx context.Context, request ExamineSubscriptionRequestObject) (ExamineSubscriptionResponseObject, error)
 
@@ -1078,6 +1083,9 @@ type StrictServerInterface interface {
 
 	// (DELETE /api/subscription/{id})
 	DeleteSubscription(ctx context.Context, request DeleteSubscriptionRequestObject) (DeleteSubscriptionResponseObject, error)
+
+	// (PUT /api/subscription/{id})
+	ChangeSubscription(ctx context.Context, request ChangeSubscriptionRequestObject) (ChangeSubscriptionResponseObject, error)
 
 	// (POST /api/update_password)
 	UpdatePassword(ctx context.Context, request UpdatePasswordRequestObject) (UpdatePasswordResponseObject, error)
@@ -1240,35 +1248,6 @@ func (sh *strictHandler) CategoryAndUnreadEntryCount(ctx echo.Context) error {
 		return err
 	} else if validResponse, ok := response.(CategoryAndUnreadEntryCountResponseObject); ok {
 		return validResponse.VisitCategoryAndUnreadEntryCountResponse(ctx.Response())
-	} else if response != nil {
-		return fmt.Errorf("Unexpected response type: %T", response)
-	}
-	return nil
-}
-
-// ChangeSubscription operation middleware
-func (sh *strictHandler) ChangeSubscription(ctx echo.Context) error {
-	var request ChangeSubscriptionRequestObject
-
-	var body ChangeSubscriptionJSONRequestBody
-	if err := ctx.Bind(&body); err != nil {
-		return err
-	}
-	request.Body = &body
-
-	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.ChangeSubscription(ctx.Request().Context(), request.(ChangeSubscriptionRequestObject))
-	}
-	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "ChangeSubscription")
-	}
-
-	response, err := handler(ctx, request)
-
-	if err != nil {
-		return err
-	} else if validResponse, ok := response.(ChangeSubscriptionResponseObject); ok {
-		return validResponse.VisitChangeSubscriptionResponse(ctx.Response())
 	} else if response != nil {
 		return fmt.Errorf("Unexpected response type: %T", response)
 	}
@@ -1635,6 +1614,37 @@ func (sh *strictHandler) DeleteSubscription(ctx echo.Context, id uint64) error {
 		return err
 	} else if validResponse, ok := response.(DeleteSubscriptionResponseObject); ok {
 		return validResponse.VisitDeleteSubscriptionResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("Unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// ChangeSubscription operation middleware
+func (sh *strictHandler) ChangeSubscription(ctx echo.Context, id uint64) error {
+	var request ChangeSubscriptionRequestObject
+
+	request.Id = id
+
+	var body ChangeSubscriptionJSONRequestBody
+	if err := ctx.Bind(&body); err != nil {
+		return err
+	}
+	request.Body = &body
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.ChangeSubscription(ctx.Request().Context(), request.(ChangeSubscriptionRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ChangeSubscription")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(ChangeSubscriptionResponseObject); ok {
+		return validResponse.VisitChangeSubscriptionResponse(ctx.Response())
 	} else if response != nil {
 		return fmt.Errorf("Unexpected response type: %T", response)
 	}

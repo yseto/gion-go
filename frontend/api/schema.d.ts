@@ -203,7 +203,8 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        put?: never;
+        /** @description change subscription */
+        put: operations["ChangeSubscription"];
         post?: never;
         /** @description delete subscription */
         delete: operations["DeleteSubscription"];
@@ -224,23 +225,6 @@ export interface paths {
         post?: never;
         /** @description delete category */
         delete: operations["DeleteCategory"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/change_subscription": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** @description change subscription */
-        post: operations["ChangeSubscription"];
-        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -877,6 +861,43 @@ export interface operations {
             };
         };
     };
+    ChangeSubscription: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description subscription id */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /** Format: uint64 */
+                    category: number;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SimpleResult"];
+                };
+            };
+            /** @description error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     DeleteSubscription: {
         parameters: {
             query?: never;
@@ -918,45 +939,6 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SimpleResult"];
-                };
-            };
-            /** @description error */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    ChangeSubscription: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": {
-                    /** Format: uint64 */
-                    category: number;
-                    /**
-                     * Format: uint64
-                     * @description Feed ID
-                     */
-                    id: number;
-                };
-            };
-        };
         responses: {
             /** @description OK */
             200: {

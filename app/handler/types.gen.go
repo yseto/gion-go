@@ -120,14 +120,6 @@ type RegisterCategoryJSONBody struct {
 	Name string `json:"name"`
 }
 
-// ChangeSubscriptionJSONBody defines parameters for ChangeSubscription.
-type ChangeSubscriptionJSONBody struct {
-	Category uint64 `json:"category"`
-
-	// Id Feed ID
-	Id uint64 `json:"id"`
-}
-
 // ExamineSubscriptionJSONBody defines parameters for ExamineSubscription.
 type ExamineSubscriptionJSONBody struct {
 	// Url Site URL
@@ -170,6 +162,11 @@ type RegisterSubscriptionJSONBody struct {
 	Url string `json:"url"`
 }
 
+// ChangeSubscriptionJSONBody defines parameters for ChangeSubscription.
+type ChangeSubscriptionJSONBody struct {
+	Category uint64 `json:"category"`
+}
+
 // UpdatePasswordJSONBody defines parameters for UpdatePassword.
 type UpdatePasswordJSONBody struct {
 	Password    string `json:"password"`
@@ -179,9 +176,6 @@ type UpdatePasswordJSONBody struct {
 
 // RegisterCategoryJSONRequestBody defines body for RegisterCategory for application/json ContentType.
 type RegisterCategoryJSONRequestBody RegisterCategoryJSONBody
-
-// ChangeSubscriptionJSONRequestBody defines body for ChangeSubscription for application/json ContentType.
-type ChangeSubscriptionJSONRequestBody ChangeSubscriptionJSONBody
 
 // ExamineSubscriptionJSONRequestBody defines body for ExamineSubscription for application/json ContentType.
 type ExamineSubscriptionJSONRequestBody ExamineSubscriptionJSONBody
@@ -203,6 +197,9 @@ type UpdateProfileJSONRequestBody = Profile
 
 // RegisterSubscriptionJSONRequestBody defines body for RegisterSubscription for application/json ContentType.
 type RegisterSubscriptionJSONRequestBody RegisterSubscriptionJSONBody
+
+// ChangeSubscriptionJSONRequestBody defines body for ChangeSubscription for application/json ContentType.
+type ChangeSubscriptionJSONRequestBody ChangeSubscriptionJSONBody
 
 // UpdatePasswordJSONRequestBody defines body for UpdatePassword for application/json ContentType.
 type UpdatePasswordJSONRequestBody UpdatePasswordJSONBody
