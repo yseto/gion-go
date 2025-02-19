@@ -24,7 +24,15 @@ const fetchResponseInterceptor: Middleware = {
     if (response.status === 401) {
       if (store.isLogin()) {
         store.Logout();
-        location.reload();
+
+        // show session expired.
+        const element = document.getElementById("session-expired-error-modal")
+        if (element !== null) {
+          element.style.display = "block"
+        }
+        setTimeout(function () {
+          location.reload()
+        }, 800)
       }
     }
     return response

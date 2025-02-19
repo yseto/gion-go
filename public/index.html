@@ -74,10 +74,20 @@
 </head>
 
 <body>
+  <div class="modal" tabindex="-1" id="session-expired-error-modal">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-body">
+          <p>セッションが期限切れになりました。サインインに移動します</p>
+        </div>
+      </div>
+    </div>
+  </div>
   <div id="app">
     <gion-header></gion-header>
     <router-view></router-view>
   </div>
   <script src="/gion.js"></script>
 </body>
+
 </html>
