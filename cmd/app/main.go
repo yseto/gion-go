@@ -1,10 +1,5 @@
 package main
 
-//go:generate go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@v1.13.0
-//go:generate oapi-codegen -package handler -generate echo-server,strict-server -o handler/server.gen.go openapi.yaml
-//go:generate oapi-codegen -package handler -generate spec -o handler/spec.gen.go openapi.yaml
-//go:generate oapi-codegen -package handler -generate types -o handler/types.gen.go openapi.yaml
-
 import (
 	"context"
 	"log"
