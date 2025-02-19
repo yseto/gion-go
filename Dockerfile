@@ -5,7 +5,7 @@ RUN npm install
 COPY frontend/ /app/frontend/
 RUN npm run build
 
-FROM golang:1.23-bookworm AS build-go
+FROM golang:1.24-bookworm AS build-go
 
 WORKDIR /usr/src/app/
 COPY go.mod go.sum  /usr/src/app/
