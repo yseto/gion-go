@@ -204,6 +204,8 @@ paths:
                 $ref: "#/components/schemas/SimpleResult"
         "400":
           description: error
+        "409":
+          description: duplicate error
   /api/categories:
     get:
       tags:
@@ -264,6 +266,8 @@ paths:
                 $ref: "#/components/schemas/SimpleResult"
         "400":
           description: error
+        "409":
+          description: duplicate error
   /api/opml_import:
     post:
       tags:

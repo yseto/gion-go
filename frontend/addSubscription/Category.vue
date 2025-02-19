@@ -44,23 +44,25 @@ export default defineComponent({
     const inputCategoryName = ref("");
     const categorySuccess = ref(false);
 
-    const registerCategory = () => {
-      openapiFetchClient.POST("/api/category", {
+    const registerCategory = async () => {
+      const { data, response } = await openapiFetchClient.POST("/api/category", {
         body: {
           name: inputCategoryName.value,
         },
-      }).then((data) => {
-        if (data.data?.result === "ERROR_ALREADY_REGISTER") {
-          alert("すでに登録されています。");
-        } else {
-          context.emit("fetch-list");
-          inputCategoryName.value = "";
-          categorySuccess.value = true;
-          setTimeout(function () {
-            categorySuccess.value = false;
-          }, 750);
-        }
-      });
+      })
+      if (response.status == 409) {
+        alert("すでに登録されています。")
+        return
+      }
+      if (!response.ok) {
+        return
+      }
+      context.emit("fetch-list");
+      inputCategoryName.value = "";
+      categorySuccess.value = true;
+      setTimeout(function () {
+        categorySuccess.value = false;
+      }, 750);
     };
 
     return {

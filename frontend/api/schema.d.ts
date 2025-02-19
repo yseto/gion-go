@@ -722,6 +722,13 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description duplicate error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
         };
     };
     Categories: {
@@ -784,6 +791,13 @@ export interface operations {
             };
             /** @description error */
             400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description duplicate error */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };

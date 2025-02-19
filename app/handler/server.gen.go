@@ -495,6 +495,14 @@ func (response RegisterCategory400Response) VisitRegisterCategoryResponse(w http
 	return nil
 }
 
+type RegisterCategory409Response struct {
+}
+
+func (response RegisterCategory409Response) VisitRegisterCategoryResponse(w http.ResponseWriter) error {
+	w.WriteHeader(409)
+	return nil
+}
+
 type DeleteCategoryRequestObject struct {
 	Id uint64 `json:"id"`
 }
@@ -860,6 +868,14 @@ type RegisterSubscription400Response struct {
 
 func (response RegisterSubscription400Response) VisitRegisterSubscriptionResponse(w http.ResponseWriter) error {
 	w.WriteHeader(400)
+	return nil
+}
+
+type RegisterSubscription409Response struct {
+}
+
+func (response RegisterSubscription409Response) VisitRegisterSubscriptionResponse(w http.ResponseWriter) error {
+	w.WriteHeader(409)
 	return nil
 }
 

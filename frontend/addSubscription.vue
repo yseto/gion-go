@@ -161,7 +161,7 @@ export default defineComponent({
         return;
       }
       searchState.value = true;
-      openapiFetchClient.POST( "/api/examine_subscription",{
+      openapiFetchClient.POST("/api/examine_subscription", {
         body: {
           url: site.url,
         },
@@ -200,25 +200,24 @@ export default defineComponent({
       });
     };
 
-    const registerFeed = () => {
-      openapiFetchClient.POST( "/api/subscription",{
+    const registerFeed = async () => {
+      const { data, response } = await openapiFetchClient.POST("/api/subscription", {
         body: {
           ...site,
           category: category.value,
         },
-      }).then(data => {
-        if (data.data === null) {
-          alert("情報の取得に失敗しました。URLを確認してください");
-          return;
-        }
-        if (data.data?.result === "ERROR_ALREADY_REGISTER") {
-          alert("すでに登録されています。");
-          return;
-        }
-        success.value = true;
-        clear();
-      });
-    };
+      })
+      if (response.status == 409) {
+        alert("すでに登録されています。")
+        return
+      }
+      if (!response.ok) {
+        alert("情報の取得に失敗しました。URLを確認してください");
+        return
+      }
+      success.value = true;
+      clear();
+    }
 
     fetchList();
 

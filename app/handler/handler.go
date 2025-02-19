@@ -228,7 +228,7 @@ func (*ApiServer) RegisterCategory(ctx context.Context, request RegisterCategory
 	}
 	if cat != nil {
 		tx.Commit()
-		return RegisterCategory200JSONResponse{Result: "ERROR_ALREADY_REGISTER"}, nil
+		return RegisterCategory409Response{}, nil
 	}
 
 	if err = tx.InsertCategory(categoryName); err != nil {
@@ -290,7 +290,7 @@ func (*ApiServer) RegisterSubscription(ctx context.Context, request RegisterSubs
 	}
 	if sub != nil {
 		tx.Rollback()
-		return RegisterSubscription200JSONResponse{"ERROR_ALREADY_REGISTER"}, nil
+		return RegisterSubscription409Response{}, nil
 	}
 
 	cat, err := db.CategoryByID(category)
