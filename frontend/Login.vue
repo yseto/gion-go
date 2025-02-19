@@ -1,23 +1,10 @@
 <template>
   <div style="max-width: 330px; padding: 80px 15px 0; margin: 0 auto">
     <h3>Gion</h3>
-    <input
-      ref="focus"
-      v-model="creds.id"
-      type="text"
-      class="form-control"
-      placeholder="ID"
-      required
-      @keydown.enter="login"
-    />
-    <input
-      v-model="creds.password"
-      type="password"
-      class="form-control"
-      placeholder="Password"
-      required
-      @keydown.enter="login"
-    />
+    <input ref="focus" v-model="creds.id" type="text" class="form-control" placeholder="ID" required
+      @keydown.enter="login" />
+    <input v-model="creds.password" type="password" class="form-control" placeholder="Password" required
+      @keydown.enter="login" />
     <button class="btn btn-primary" style="margin-top: 20px" @click="login">
       Sign in
     </button>

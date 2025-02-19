@@ -9,21 +9,11 @@
         <span class="badge badge-info">{{ list.length }}</span>
       </div>
       <div class="list-group">
-        <a
-          v-for="(item, index) in list"
-          :key="index"
-          class="list-group-item"
-          :href="item.url"
-          >{{ item.title }}</a
-        >
+        <a v-for="(item, index) in list" :key="index" class="list-group-item" :href="item.url">{{ item.title }}</a>
       </div>
       <div class="card-footer text-center">
-        <a
-          class="btn btn-sm btn-outline-dark"
-          :class="{ disabled: list.length == 0 }"
-          @click.prevent="pinlistClean"
-          >Remove All Pin</a
-        >
+        <a class="btn btn-sm btn-outline-dark" :class="{ disabled: list.length == 0 }"
+          @click.prevent="pinlistClean">Remove All Pin</a>
       </div>
     </div>
   </div>

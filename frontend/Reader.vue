@@ -12,56 +12,35 @@
           <div v-if="contentStore.list.length === 0" class="tw card well">
             <h5 class="text-center">No unreading entries.</h5>
           </div>
-          <div
-            v-if="contentStore.list.length > 0 && autoSeen === false"
-            class="sticky-top bg-white pt-1 pb-1 text-right"
-          >
-            <a class="btn btn-sm btn-dark" @click.prevent="contentReadIt"
-              >Mark as read</a
-            >
+          <div v-if="contentStore.list.length > 0 && autoSeen === false"
+            class="sticky-top bg-white pt-1 pb-1 text-right">
+            <a class="btn btn-sm btn-dark" @click.prevent="contentReadIt">Mark as read</a>
           </div>
           <div v-for="(item, index) in contentStore.list" :key="index">
-            <div
-              class="tw card"
-              :class="{
-                'tw--active border-info': index == contentStore.selected,
-                'tw--pinned': item.readflag == 'Setpin',
-              }"
-            >
+            <div class="tw card" :class="{
+          'tw--active border-info': index == contentStore.selected,
+          'tw--pinned': item.readflag == 'Setpin',
+        }">
               <h5 class="viewpage">
-                <a
-                  :href="item.url"
-                  target="blank"
-                  rel="noreferrer"
-                  class="text-dark"
-                >
+                <a :href="item.url" target="blank" rel="noreferrer" class="text-dark">
                   <span v-if="item.title.length > 0">{{ item.title }}</span>
                   <span v-else>[nothing title...]</span>
                 </a>
               </h5>
               <p>{{ item.description }}</p>
               <div class="clearfix">
-                <span class="float-left"
-                  >{{ item.date }} - {{ item.site_title }}</span
-                >
+                <span class="float-left">{{ item.date }} - {{ item.site_title }}</span>
                 <span class="float-right d-inline d-md-inline">
                   <span v-if="item.readflag == 'Seen'"> &#x2714; </span>
-                  <span
-                    :class="{
-                      pinned: item.readflag == 'Setpin',
-                      unpinned: item.readflag != 'Setpin',
-                    }"
-                    @click="togglePin(index)"
-                    >&#x1f4cc;</span
-                  >
+                  <span :class="{
+          pinned: item.readflag == 'Setpin',
+          unpinned: item.readflag != 'Setpin',
+        }" @click="togglePin(index)">&#x1f4cc;</span>
                 </span>
               </div>
               <div class="d-md-none d-lg-none">
                 <br />
-                <button
-                  class="btn btn-info btn-sm btn-block"
-                  @click="togglePin(index)"
-                >
+                <button class="btn btn-info btn-sm btn-block" @click="togglePin(index)">
                   Pin!
                 </button>
               </div>

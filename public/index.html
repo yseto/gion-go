@@ -1,66 +1,83 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <title>Gion</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimal-ui, user-scalable=no">
-    <meta name="author" content="Gion">
-    <meta name="referrer" content="no-referrer">
-    <link rel="apple-touch-icon" href="/apple-touch-icon-precomposed.png" />
-    <style type="text/css">
-      body {
-        overflow-y: scroll;
-      }
-      .my-navigation {
-        margin-bottom:20px;
-      }
-      .tw {
-        margin: 0 0 5px !important;
-        padding: 5px 15px 5px;
-        box-sizing: border-box;
-      }
-      .tw .unpinned {
-        opacity: 0.2;
-        cursor: pointer;
-      }
-      .tw .pinned {
-        opacity: 1;
-        cursor: pointer;
-      }
-      .tw--active {
-        padding-left: 8px;
-        border-left-width: 8px !important;
-      }
-      .tw--pinned {
-        background-image: linear-gradient(-45deg, transparent 25%, #f8f8f8 25%, #f8f8f8 50%, transparent 50%, transparent 75%, #f8f8f8 75%, #f8f8f8 );
-        background-size: 15px 15px;
-      }
-      .categories__list .list-group-item, .pin__list .list-group-item {
-        padding: 4px 10px;
-        cursor: pointer;
-      }
-      .previewFeed .list-group-item {
-        overflow: hidden;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-      }
-      .navbar-nav li {
-        cursor: pointer;
-      }
-      .viewpage, .categories__list .list-group, .pin__list .list-group, .pin__list__page .list-group {
-        overflow-wrap: break-word;
-      }
-      #helpModal {
-        overflow-y: scroll;
-      }
-    </style>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-  </head>
-  <body>
-    <div id="app">
-      <gion-header></gion-header>
-      <router-view></router-view>
-    </div>
-    <script src="/gion.js"></script>
-  </body>
+
+<head>
+  <meta charset="utf-8">
+  <title>Gion</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimal-ui, user-scalable=no">
+  <meta name="author" content="Gion">
+  <meta name="referrer" content="no-referrer">
+  <link rel="apple-touch-icon" href="/apple-touch-icon-precomposed.png" />
+  <style type="text/css">
+    body {
+      overflow-y: scroll;
+    }
+
+    .my-navigation {
+      margin-bottom: 20px;
+    }
+
+    .tw {
+      margin: 0 0 5px !important;
+      padding: 5px 15px 5px;
+      box-sizing: border-box;
+    }
+
+    .tw .unpinned {
+      opacity: 0.2;
+      cursor: pointer;
+    }
+
+    .tw .pinned {
+      opacity: 1;
+      cursor: pointer;
+    }
+
+    .tw--active {
+      padding-left: 8px;
+      border-left-width: 8px !important;
+    }
+
+    .tw--pinned {
+      background-image: linear-gradient(-45deg, transparent 25%, #f8f8f8 25%, #f8f8f8 50%, transparent 50%, transparent 75%, #f8f8f8 75%, #f8f8f8);
+      background-size: 15px 15px;
+    }
+
+    .categories__list .list-group-item,
+    .pin__list .list-group-item {
+      padding: 4px 10px;
+      cursor: pointer;
+    }
+
+    .previewFeed .list-group-item {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .navbar-nav li {
+      cursor: pointer;
+    }
+
+    .viewpage,
+    .categories__list .list-group,
+    .pin__list .list-group,
+    .pin__list__page .list-group {
+      overflow-wrap: break-word;
+    }
+
+    #helpModal {
+      overflow-y: scroll;
+    }
+  </style>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+
+<body>
+  <div id="app">
+    <gion-header></gion-header>
+    <router-view></router-view>
+  </div>
+  <script src="/gion.js"></script>
+</body>
 </html>

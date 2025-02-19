@@ -6,14 +6,8 @@
       </div>
       <ul class="list-group">
         <li v-for="(item, index) in list" :key="index" class="list-group-item">
-          <a
-            class="btn btn-sm btn-info"
-            style="cursor: pointer"
-            :data-serial="item.serial"
-            :data-feed_id="item.feed_id"
-            :data-index="index"
-            @click="applyRead"
-          >
+          <a class="btn btn-sm btn-info" style="cursor: pointer" :data-serial="item.serial" :data-feed_id="item.feed_id"
+            :data-index="index" @click="applyRead">
             削除
           </a>
           <span>{{ item.update_at }}</span>

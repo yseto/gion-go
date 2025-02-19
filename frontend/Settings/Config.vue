@@ -1,30 +1,16 @@
 <template>
   <div role="form">
     <div class="row form-group">
-      <label class="col-form-label col-sm-4" for="entryCount"
-        >表示件数の上限</label
-      >
+      <label class="col-form-label col-sm-4" for="entryCount">表示件数の上限</label>
       <div class="col-sm-8">
-        <input
-          v-model="profile.entryCount"
-          type="number"
-          placeholder="0で無制限"
-          class="form-control"
-        />
+        <input v-model="profile.entryCount" type="number" placeholder="0で無制限" class="form-control" />
         <span class="form-text">一度に表示する件数の上限を設定できます。</span>
       </div>
     </div>
     <div class="row form-group">
-      <label class="col-form-label col-sm-4" for="substringLength"
-        >概要の文字数制限</label
-      >
+      <label class="col-form-label col-sm-4" for="substringLength">概要の文字数制限</label>
       <div class="col-sm-8">
-        <input
-          v-model="profile.substringLength"
-          type="number"
-          placeholder="0で無制限"
-          class="form-control"
-        />
+        <input v-model="profile.substringLength" type="number" placeholder="0で無制限" class="form-control" />
         <span class="form-text">概要の文字数の上限を設定できます。</span>
       </div>
     </div>
@@ -32,38 +18,21 @@
       <label class="col-form-label col-sm-4">その他の設定</label>
       <div class="col-sm-8">
         <div class="form-check">
-          <input
-            id="onLoginSkipPinList"
-            v-model="profile.onLoginSkipPinList"
-            type="checkbox"
-            class="form-check-input"
-          />
-          <label class="form-check-label" for="onLoginSkipPinList"
-            >ログインしたらすぐにエントリ一覧を表示する</label
-          >
+          <input id="onLoginSkipPinList" v-model="profile.onLoginSkipPinList" type="checkbox"
+            class="form-check-input" />
+          <label class="form-check-label" for="onLoginSkipPinList">ログインしたらすぐにエントリ一覧を表示する</label>
         </div>
 
         <div class="form-check">
-          <input
-            id="autoseen"
-            v-model="profile.autoseen"
-            type="checkbox"
-            class="form-check-input"
-          />
-          <label class="form-check-label" for="autoseen"
-            >エントリーを自動既読にする</label
-          >
+          <input id="autoseen" v-model="profile.autoseen" type="checkbox" class="form-check-input" />
+          <label class="form-check-label" for="autoseen">エントリーを自動既読にする</label>
         </div>
       </div>
     </div>
     <div class="row form-group">
       <div class="col-sm-4" />
       <div class="col-sm-8">
-        <button
-          class="btn"
-          :class="finished ? 'btn-outline-primary' : 'btn-primary'"
-          @click="apply"
-        >
+        <button class="btn" :class="finished ? 'btn-outline-primary' : 'btn-primary'" @click="apply">
           {{ finished ? "Saved!..." : "OK" }}
         </button>
       </div>
