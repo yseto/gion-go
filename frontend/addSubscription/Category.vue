@@ -4,28 +4,16 @@
       <h4>Categories</h4>
       <div class="form-horizontal">
         <div class="row form-group">
-          <label class="col-sm-3 col-form-label" for="inputCategoryName"
-            >Name</label
-          >
+          <label class="col-sm-3 col-form-label" for="inputCategoryName">Name</label>
           <div class="col-sm-6">
-            <input
-              v-model="inputCategoryName"
-              type="text"
-              class="form-control"
-              placeholder="Name"
-            />
+            <input v-model="inputCategoryName" type="text" class="form-control" placeholder="Name" />
           </div>
         </div>
         <div class="row form-group">
           <div class="col-sm-3" />
           <div class="col-sm-9">
-            <button
-              type="button"
-              class="btn"
-              :class="categorySuccess ? 'btn-outline-primary' : 'btn-primary'"
-              :disabled="!!!inputCategoryName"
-              @click.prevent="registerCategory"
-            >
+            <button type="button" class="btn" :class="categorySuccess ? 'btn-outline-primary' : 'btn-primary'"
+              :disabled="!!!inputCategoryName" @click.prevent="registerCategory">
               {{ categorySuccess ? "Saved!..." : "Register" }}
             </button>
           </div>

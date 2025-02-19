@@ -5,70 +5,34 @@
         <h4>Subscription</h4>
         <div class="form-horizontal">
           <div class="row form-group">
-            <label class="col-sm-3 col-form-label" for="inputURL"
-              >URL(Web Page)</label
-            >
+            <label class="col-sm-3 col-form-label" for="inputURL">URL(Web Page)</label>
             <div class="col-sm-6">
-              <input
-                v-model="site.url"
-                type="text"
-                placeholder="URL"
-                class="form-control"
-                @blur="feedDetail"
-              />
+              <input v-model="site.url" type="text" placeholder="URL" class="form-control" @blur="feedDetail" />
             </div>
             <div class="col-sm-3">
               <a class="btn btn-info" @click.prevent="feedDetail">Get Detail</a>
-              <div
-                v-if="searchState"
-                class="spinner-border spinner-border-sm"
-                role="status"
-              >
+              <div v-if="searchState" class="spinner-border spinner-border-sm" role="status">
                 <span class="sr-only">Loading...</span>
               </div>
             </div>
           </div>
           <div class="row form-group">
-            <label class="col-sm-3 col-form-label" for="inputTitle"
-              >Title</label
-            >
+            <label class="col-sm-3 col-form-label" for="inputTitle">Title</label>
             <div class="col-sm-6">
-              <input
-                v-model="site.title"
-                type="text"
-                placeholder="Title"
-                class="form-control"
-              />
+              <input v-model="site.title" type="text" placeholder="Title" class="form-control" />
             </div>
           </div>
           <div class="row form-group">
-            <label class="col-sm-3 col-form-label" for="inputRSS"
-              >URL(Subscription)</label
-            >
+            <label class="col-sm-3 col-form-label" for="inputRSS">URL(Subscription)</label>
             <div class="col-sm-6">
-              <input
-                v-model="site.rss"
-                type="text"
-                placeholder="RSS"
-                class="form-control"
-              />
+              <input v-model="site.rss" type="text" placeholder="RSS" class="form-control" />
             </div>
           </div>
           <div class="row form-group">
-            <label class="col-sm-3 col-form-label" for="selectCat"
-              >Categories</label
-            >
+            <label class="col-sm-3 col-form-label" for="selectCat">Categories</label>
             <div class="col-sm-6">
-              <select
-                v-model="category"
-                class="form-control"
-                placeholder="Choose Category"
-              >
-                <option
-                  v-for="item in categories"
-                  :key="item.id"
-                  :value="item.id"
-                >
+              <select v-model="category" class="form-control" placeholder="Choose Category">
+                <option v-for="item in categories" :key="item.id" :value="item.id">
                   {{ item.name }}
                 </option>
               </select>
@@ -77,13 +41,8 @@
           <div class="row form-group">
             <div class="col-sm-3" />
             <div class="col-sm-6">
-              <button
-                type="button"
-                class="btn"
-                :class="success ? 'btn-outline-primary' : 'btn-primary'"
-                :disabled="!canRegister"
-                @click.prevent="registerFeed"
-              >
+              <button type="button" class="btn" :class="success ? 'btn-outline-primary' : 'btn-primary'"
+                :disabled="!canRegister" @click.prevent="registerFeed">
                 {{ success ? "Saved!..." : "Register" }}
               </button>
             </div>
@@ -94,11 +53,7 @@
         <div v-if="previewFeed" class="card previewFeed">
           <div class="card-header">Preview</div>
           <ul class="list-group">
-            <li
-              v-for="item in previewFeed"
-              :key="item.title"
-              class="list-group-item"
-            >
+            <li v-for="item in previewFeed" :key="item.title" class="list-group-item">
               {{ item.title }}<br />{{ item.date }}
             </li>
           </ul>
