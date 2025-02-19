@@ -62,13 +62,7 @@ import { format, fromUnixTime } from "date-fns";
 import BackToTop from "./BackToTop.vue";
 import PinList from "./Reader/PinList.vue";
 import { openapiFetchClient } from "./UserAgent";
-import {
-  useCategoryStore,
-  Category,
-  Entry,
-  useContentStore,
-  ReadFlag,
-} from "./Reader/Store";
+import { useCategoryStore, useContentStore } from "./Reader/Store";
 import { useUserStore } from "./UserStore";
 import CategoryPager from "./Reader/CategoryPager.vue";
 import CategoryList from "./Reader/Category.vue";

@@ -66,13 +66,6 @@ import { defineComponent, ref } from "vue";
 import BackToTop from "./BackToTop.vue";
 import { openapiFetchClient } from "./UserAgent";
 
-const deleteParam = {
-  category: "category",
-  entry: "entry",
-} as const;
-
-type deleteParam = typeof deleteParam[keyof typeof deleteParam];
-
 type Site = {
   id: number;
   category_id: number;
@@ -171,8 +164,6 @@ export default defineComponent({
       fieldCategory,
       fieldId,
       categoryModal,
-
-      deleteParam,
 
       changeCategory,
       removeCategory,

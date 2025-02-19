@@ -8,7 +8,7 @@
     <button class="btn btn-primary" style="margin: 20px 0" @click="login">
       Sign in
     </button>
-    <div class="alert alert-warning" role="alert" v-if="failed">
+    <div v-if="failed" class="alert alert-warning" role="alert">
       failed sign in
     </div>
   </div>

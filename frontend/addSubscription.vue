@@ -82,12 +82,6 @@ type PreviewFeed = {
   date: string;
 };
 
-type ExamineSubscription = null | {
-  url: string;
-  title: string;
-  preview_feed: PreviewFeed[];
-};
-
 class Site {
   url = "";
   title = "";
@@ -156,7 +150,7 @@ export default defineComponent({
     };
 
     const registerFeed = async () => {
-      const { data, response } = await openapiFetchClient.POST("/api/subscription", {
+      const { response } = await openapiFetchClient.POST("/api/subscription", {
         body: {
           ...site,
           category: category.value,

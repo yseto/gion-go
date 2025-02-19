@@ -33,7 +33,7 @@ export default defineComponent({
     const categorySuccess = ref(false);
 
     const registerCategory = async () => {
-      const { data, response } = await openapiFetchClient.POST("/api/category", {
+      const { response } = await openapiFetchClient.POST("/api/category", {
         body: {
           name: inputCategoryName.value,
         },
