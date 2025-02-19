@@ -358,9 +358,6 @@ export interface components {
             url: string;
             date: string;
         };
-        SimpleResult: {
-            result: string;
-        };
         /** @description 既読情報 */
         AsRead: {
             /** Format: uint64 */
@@ -502,13 +499,11 @@ export interface operations {
         requestBody?: never;
         responses: {
             /** @description OK */
-            200: {
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": Record<string, never>;
-                };
+                content?: never;
             };
         };
     };
@@ -546,13 +541,11 @@ export interface operations {
         };
         responses: {
             /** @description OK */
-            200: {
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["SimpleResult"];
-                };
+                content?: never;
             };
             /** @description error */
             400: {
@@ -649,13 +642,11 @@ export interface operations {
         };
         responses: {
             /** @description OK */
-            200: {
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["SimpleResult"];
-                };
+                content?: never;
             };
             /** @description error */
             400: {
@@ -716,13 +707,11 @@ export interface operations {
         };
         responses: {
             /** @description OK */
-            200: {
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["SimpleResult"];
-                };
+                content?: never;
             };
             /** @description error */
             400: {
@@ -780,15 +769,11 @@ export interface operations {
         };
         responses: {
             /** @description OK */
-            200: {
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": {
-                        done: boolean;
-                    };
-                };
+                content?: never;
             };
         };
     };
@@ -839,13 +824,11 @@ export interface operations {
         };
         responses: {
             /** @description OK */
-            200: {
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["SimpleResult"];
-                };
+                content?: never;
             };
         };
     };
@@ -862,13 +845,11 @@ export interface operations {
         requestBody?: never;
         responses: {
             /** @description OK */
-            200: {
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["SimpleResult"];
-                };
+                content?: never;
             };
         };
     };
@@ -885,13 +866,11 @@ export interface operations {
         requestBody?: never;
         responses: {
             /** @description OK */
-            200: {
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["SimpleResult"];
-                };
+                content?: never;
             };
         };
     };
@@ -909,13 +888,11 @@ export interface operations {
         };
         responses: {
             /** @description OK */
-            200: {
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["SimpleResult"];
-                };
+                content?: never;
             };
             /** @description error */
             400: {
@@ -990,13 +967,11 @@ export interface operations {
         requestBody?: never;
         responses: {
             /** @description OK */
-            200: {
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["SimpleResult"];
-                };
+                content?: never;
             };
         };
     };
@@ -1018,12 +993,21 @@ export interface operations {
         };
         responses: {
             /** @description OK */
-            200: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description error */
+            400: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SimpleResult"];
+                    "application/json": {
+                        error: string;
+                    };
                 };
             };
         };

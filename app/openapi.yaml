@@ -47,15 +47,15 @@ paths:
         - account
       description: login
       operationId: Login
-      security: [] 
+      security: []
       requestBody:
         content:
           application/json:
             schema:
               type: object
               required:
-              - id
-              - password
+                - id
+                - password
               properties:
                 id:
                   type: string
@@ -81,14 +81,10 @@ paths:
         - account
       description: logout
       operationId: Logout
-      security: [] 
+      security: []
       responses:
-        "200":
+        "204":
           description: OK
-          content:
-            application/json:
-              schema:
-                type: object
   /api/profile:
     get:
       tags:
@@ -101,7 +97,7 @@ paths:
         "200":
           description: OK
           content:
-            application/json: 
+            application/json:
               schema:
                 $ref: "#/components/schemas/Profile"
     put:
@@ -117,12 +113,8 @@ paths:
             schema:
               $ref: "#/components/schemas/Profile"
       responses:
-        "200":
+        "204":
           description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SimpleResult"
         "400":
           description: error
 
@@ -167,7 +159,7 @@ paths:
         "200":
           description: OK
           content:
-            application/json: 
+            application/json:
               schema:
                 type: array
                 items:
@@ -186,17 +178,13 @@ paths:
             schema:
               type: object
               required:
-              - name
+                - name
               properties:
                 name:
                   type: string
       responses:
-        "200":
+        "201":
           description: OK
-          content:
-            application/json: 
-              schema:
-                $ref: "#/components/schemas/SimpleResult"
         "400":
           description: error
         "409":
@@ -212,7 +200,7 @@ paths:
         "200":
           description: OK
           content:
-            application/json: 
+            application/json:
               schema:
                 type: array
                 items:
@@ -231,10 +219,10 @@ paths:
             schema:
               type: object
               required:
-              - title
-              - rss
-              - url
-              - category
+                - title
+                - rss
+                - url
+                - category
               properties:
                 title:
                   type: string
@@ -249,12 +237,8 @@ paths:
                   type: integer
                   format: uint64
       responses:
-        "200":
+        "201":
           description: OK
-          content:
-            application/json: 
-              schema:
-                $ref: "#/components/schemas/SimpleResult"
         "400":
           description: error
         "409":
@@ -289,23 +273,14 @@ paths:
             schema:
               type: object
               required:
-              - xml
+                - xml
               properties:
                 xml:
                   type: string
                   description: Opml xml document
       responses:
-        "200":
+        "201":
           description: OK
-          content:
-            application/json: 
-              schema:
-                type: object
-                required:
-                - done
-                properties:
-                  done:
-                    type: boolean
     get:
       tags:
         - subscription
@@ -317,11 +292,11 @@ paths:
         "200":
           description: OK
           content:
-            application/json: 
+            application/json:
               schema:
                 type: object
                 required:
-                - xml
+                  - xml
                 properties:
                   xml:
                     type: string
@@ -340,7 +315,7 @@ paths:
             schema:
               type: object
               required:
-              - url
+                - url
               properties:
                 url:
                   type: string
@@ -349,7 +324,7 @@ paths:
         "200":
           description: OK
           content:
-            application/json: 
+            application/json:
               schema:
                 $ref: "#/components/schemas/ExamineSubscription"
   /api/subscription/{id}:
@@ -369,12 +344,8 @@ paths:
             type: integer
             format: uint64
       responses:
-        "200":
+        "204":
           description: OK
-          content:
-            application/json: 
-              schema:
-                $ref: "#/components/schemas/SimpleResult"
     put:
       tags:
         - subscription
@@ -396,18 +367,14 @@ paths:
             schema:
               type: object
               required:
-              - category
+                - category
               properties:
                 category:
                   type: integer
                   format: uint64
       responses:
-        "200":
+        "204":
           description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SimpleResult"
   /api/category/{id}:
     delete:
       tags:
@@ -425,12 +392,8 @@ paths:
             type: integer
             format: uint64
       responses:
-        "200":
+        "204":
           description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SimpleResult"
   /api/pin/asread:
     post:
       tags:
@@ -447,12 +410,8 @@ paths:
               items:
                 $ref: "#/components/schemas/AsRead"
       responses:
-        "200":
+        "201":
           description: OK
-          content:
-            application/json: 
-              schema:
-                $ref: "#/components/schemas/SimpleResult"
         "400":
           description: error
   /api/pin:
@@ -464,12 +423,8 @@ paths:
       security:
         - BearerAuth: []
       responses:
-        "200":
+        "204":
           description: OK
-          content:
-            application/json: 
-              schema:
-                $ref: "#/components/schemas/SimpleResult"
     post:
       tags:
         - reader
@@ -483,16 +438,16 @@ paths:
             schema:
               type: object
               required:
-              - readflag
-              - serial
-              - feed_id
+                - readflag
+                - serial
+                - feed_id
               properties:
                 readflag:
                   type: string
                   enum:
-                  - Unseen
-                  - Seen
-                  - Setpin
+                    - Unseen
+                    - Seen
+                    - Setpin
                   x-go-type: pin.ReadFlag
                   x-go-type-import:
                     name: pin
@@ -511,14 +466,14 @@ paths:
               schema:
                 type: object
                 required:
-                - readflag
+                  - readflag
                 properties:
                   readflag:
                     type: string
                     enum:
-                    - Unseen
-                    - Seen
-                    - Setpin
+                      - Unseen
+                      - Seen
+                      - Setpin
                     x-go-type: pin.ReadFlag
                     x-go-type-import:
                       name: pin
@@ -538,7 +493,6 @@ paths:
               schema:
                 type: array
                 items:
-                  type:
                   $ref: "#/components/schemas/PinnedItem"
 
   /api/update_password:
@@ -555,9 +509,9 @@ paths:
             schema:
               type: object
               required:
-              - password_old
-              - password
-              - passwordc
+                - password_old
+                - password
+                - passwordc
               properties:
                 password_old:
                   type: string
@@ -566,19 +520,26 @@ paths:
                 passwordc:
                   type: string
       responses:
-        "200":
+        "201":
           description: OK
+        "400":
+          description: error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SimpleResult"
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
 components:
   schemas:
     Authorization:
       description: ログイン情報
       required:
-      - autoseen
-      - token
+        - autoseen
+        - token
       properties:
         autoseen:
           type: boolean
@@ -587,10 +548,10 @@ components:
     Profile:
       description: 個人設定
       required:
-      - autoseen
-      - entryCount
-      - onLoginSkipPinList
-      - substringLength
+        - autoseen
+        - entryCount
+        - onLoginSkipPinList
+        - substringLength
       properties:
         autoseen:
           type: boolean
@@ -630,9 +591,9 @@ components:
     CategoryAndUnreadEntryCount:
       description: カテゴリごとに未読記事数
       required:
-      - name
-      - count
-      - id
+        - name
+        - count
+        - id
       properties:
         name:
           type: string
@@ -647,15 +608,15 @@ components:
     UnreadEntry:
       description: カテゴリに属した未読記事一覧
       required:
-      - serial
-      - feed_id
-      - title
-      - description
-      - date_epoch
-      - readflag
-      - url
-      - subscription_id
-      - site_title
+        - serial
+        - feed_id
+        - title
+        - description
+        - date_epoch
+        - readflag
+        - url
+        - subscription_id
+        - site_title
       properties:
         serial:
           type: integer
@@ -673,9 +634,9 @@ components:
         readflag:
           type: string
           enum:
-          - Unseen
-          - Seen
-          - Setpin
+            - Unseen
+            - Seen
+            - Setpin
           x-go-type: pin.ReadFlag
           x-go-type-import:
             name: pin
@@ -690,8 +651,8 @@ components:
     Category:
       description: カテゴリ一覧
       required:
-      - id
-      - name
+        - id
+        - name
       properties:
         id:
           type: integer
@@ -699,13 +660,13 @@ components:
           x-go-name: ID
         name:
           type: string
-    ExamineSubscription: 
+    ExamineSubscription:
       description: フィード探索
       required:
-      - success
-      - title
-      - url
-      - preview_feed
+        - success
+        - title
+        - url
+        - preview_feed
       properties:
         success:
           type: boolean
@@ -721,27 +682,21 @@ components:
     ExamineFeed:
       description: フィード探索におけるフィード詳細
       required:
-      - title
-      - url
-      - date
+        - title
+        - url
+        - date
       properties:
         title:
           type: string
-        url: 
+        url:
           type: string
-        date: 
-          type: string
-    SimpleResult:
-      required:
-      - result
-      properties:
-        result:
+        date:
           type: string
     AsRead:
       description: 既読情報
       required:
-      - feed_id
-      - serial
+        - feed_id
+        - serial
       properties:
         feed_id:
           type: integer
@@ -753,9 +708,9 @@ components:
     Subscription:
       description: カテゴリおよび購読一覧
       required:
-      - id
-      - name
-      - subscription
+        - id
+        - name
+        - subscription
       properties:
         id:
           description: カテゴリID
@@ -769,15 +724,15 @@ components:
         subscription:
           description: カテゴリに属するフィード一覧
           type: array
-          items: 
+          items:
             $ref: "#/components/schemas/CategorySubscription"
     CategorySubscription:
       required:
-      - id
-      - title
-      - category_id
-      - http_status
-      - siteurl
+        - id
+        - title
+        - category_id
+        - http_status
+        - siteurl
       properties:
         id:
           description: フィードID

@@ -182,7 +182,7 @@ func (*ApiServer) SetAsRead(ctx context.Context, request SetAsReadRequestObject)
 		return SetAsRead400Response{}, nil
 	}
 
-	// return SetAsRead200JSONResponse{Result: "OK"}, nil // FOR DEBUG
+	// return SetAsRead201Response{}, nil // FOR DEBUG
 
 	db := DBUserFromContext(ctx)
 	for _, i := range *request.Body {
@@ -190,7 +190,7 @@ func (*ApiServer) SetAsRead(ctx context.Context, request SetAsReadRequestObject)
 			return nil, err
 		}
 	}
-	return SetAsRead200JSONResponse{Result: "OK"}, nil
+	return SetAsRead201Response{}, nil
 }
 
 func (*ApiServer) SetPin(ctx context.Context, request SetPinRequestObject) (SetPinResponseObject, error) {
@@ -234,7 +234,7 @@ func (*ApiServer) RegisterCategory(ctx context.Context, request RegisterCategory
 		return nil, err
 	}
 
-	return RegisterCategory200JSONResponse{Result: "OK"}, tx.Commit()
+	return RegisterCategory201Response{}, tx.Commit()
 }
 
 func insertFeed(ctx context.Context, rssUrl, siteUrl, title string) (*db.Feed, error) {
@@ -303,7 +303,7 @@ func (*ApiServer) RegisterSubscription(ctx context.Context, request RegisterSubs
 		return nil, err
 	}
 
-	return RegisterSubscription200JSONResponse{"OK"}, tx.Commit()
+	return RegisterSubscription201Response{}, tx.Commit()
 }
 
 func (*ApiServer) DeleteSubscription(ctx context.Context, request DeleteSubscriptionRequestObject) (DeleteSubscriptionResponseObject, error) {
@@ -311,7 +311,7 @@ func (*ApiServer) DeleteSubscription(ctx context.Context, request DeleteSubscrip
 	if err := db.DeleteSubscription(request.Id); err != nil {
 		return nil, err
 	}
-	return DeleteSubscription200JSONResponse{Result: "OK"}, nil
+	return DeleteSubscription204Response{}, nil
 }
 
 func (*ApiServer) DeleteCategory(ctx context.Context, request DeleteCategoryRequestObject) (DeleteCategoryResponseObject, error) {
@@ -319,14 +319,14 @@ func (*ApiServer) DeleteCategory(ctx context.Context, request DeleteCategoryRequ
 	if err := db.DeleteCategory(request.Id); err != nil {
 		return nil, err
 	}
-	return DeleteCategory200JSONResponse{Result: "OK"}, nil
+	return DeleteCategory204Response{}, nil
 }
 
 func (*ApiServer) ChangeSubscription(ctx context.Context, request ChangeSubscriptionRequestObject) (ChangeSubscriptionResponseObject, error) {
 	if err := DBUserFromContext(ctx).UpdateSubscription(request.Id, request.Body.Category); err != nil {
 		return nil, err
 	}
-	return ChangeSubscription200JSONResponse{Result: "OK"}, nil
+	return ChangeSubscription204Response{}, nil
 }
 
 func (*ApiServer) UpdateProfile(ctx context.Context, request UpdateProfileRequestObject) (UpdateProfileResponseObject, error) {
@@ -344,14 +344,14 @@ func (*ApiServer) UpdateProfile(ctx context.Context, request UpdateProfileReques
 	if err != nil {
 		return UpdateProfile400Response{}, nil
 	}
-	return UpdateProfile200JSONResponse{Result: "OK"}, nil
+	return UpdateProfile204Response{}, nil
 }
 
 func (*ApiServer) RemoveAllPin(ctx context.Context, request RemoveAllPinRequestObject) (RemoveAllPinResponseObject, error) {
 	if err := DBUserFromContext(ctx).RemovePinnedItem(); err != nil {
 		return nil, err
 	}
-	return RemoveAllPin200JSONResponse{Result: "OK"}, nil
+	return RemoveAllPin204Response{}, nil
 }
 
 var (
@@ -580,7 +580,7 @@ func (*ApiServer) OpmlImport(ctx context.Context, request OpmlImportRequestObjec
 		return nil, err
 	}
 
-	return OpmlImport200JSONResponse{true}, nil
+	return OpmlImport201Response{}, nil
 }
 
 // https://echo.labstack.com/middleware/jwt/
@@ -623,7 +623,7 @@ func (a *ApiServer) Login(ctx context.Context, request LoginRequestObject) (Logi
 }
 
 func (*ApiServer) Logout(ctx context.Context, request LogoutRequestObject) (LogoutResponseObject, error) {
-	return Logout200JSONResponse{}, nil
+	return Logout204Response{}, nil
 }
 
 func (*ApiServer) Index(ctx context.Context, request IndexRequestObject) (IndexResponseObject, error) {
@@ -664,7 +664,7 @@ func (*ApiServer) UpdatePassword(ctx context.Context, request UpdatePasswordRequ
 	passwordCheck := request.Body.Passwordc
 
 	if password != passwordCheck || utf8.RuneCountInString(password) < 8 {
-		return UpdatePassword200JSONResponse{Result: "error"}, nil
+		return UpdatePassword400JSONResponse{"error"}, nil
 	}
 
 	db := DBUserFromContext(ctx)
@@ -674,7 +674,7 @@ func (*ApiServer) UpdatePassword(ctx context.Context, request UpdatePasswordRequ
 	}
 
 	if check := bcrypt.CompareHashAndPassword([]byte(user.Digest), []byte(passwordOld)); check != nil {
-		return UpdatePassword200JSONResponse{Result: "unmatch current password"}, nil
+		return UpdatePassword400JSONResponse{"unmatch current password"}, nil
 	}
 
 	newDigest, err := bcrypt.GenerateFromPassword([]byte(password), 8)
@@ -685,5 +685,5 @@ func (*ApiServer) UpdatePassword(ctx context.Context, request UpdatePasswordRequ
 	if err := db.UpdateUserDigest(string(newDigest)); err != nil {
 		return nil, err
 	}
-	return UpdatePassword200JSONResponse{Result: "update password"}, nil
+	return UpdatePassword201Response{}, nil
 }

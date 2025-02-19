@@ -40,14 +40,19 @@ export default defineComponent({
     const passwordOld = ref("");
     const passwordChecked = ref("");
 
-    const updatePassword = () => {
-      openapiFetchClient.POST("/api/update_password", {
+    const updatePassword = async () => {
+      const { error } = await openapiFetchClient.POST("/api/update_password", {
         body: {
           password_old: passwordOld.value,
           password: password.value,
           passwordc: passwordChecked.value,
         },
-      }).then((data) => alert(data.data?.result));
+      })
+      if (error?.error) {
+        alert(error.error)
+        return
+      }
+      alert("update password")
     };
 
     return {

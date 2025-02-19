@@ -102,11 +102,6 @@ type Profile struct {
 	SubstringLength    uint64 `json:"substringLength"`
 }
 
-// SimpleResult defines model for SimpleResult.
-type SimpleResult struct {
-	Result string `json:"result"`
-}
-
 // Subscription カテゴリおよび購読一覧
 type Subscription struct {
 	// CategoryID カテゴリID
@@ -991,13 +986,12 @@ type RegisterCategoryResponseObject interface {
 	VisitRegisterCategoryResponse(w http.ResponseWriter) error
 }
 
-type RegisterCategory200JSONResponse SimpleResult
+type RegisterCategory201Response struct {
+}
 
-func (response RegisterCategory200JSONResponse) VisitRegisterCategoryResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(200)
-
-	return json.NewEncoder(w).Encode(response)
+func (response RegisterCategory201Response) VisitRegisterCategoryResponse(w http.ResponseWriter) error {
+	w.WriteHeader(201)
+	return nil
 }
 
 type RegisterCategory400Response struct {
@@ -1041,13 +1035,12 @@ type DeleteCategoryResponseObject interface {
 	VisitDeleteCategoryResponse(w http.ResponseWriter) error
 }
 
-type DeleteCategory200JSONResponse SimpleResult
+type DeleteCategory204Response struct {
+}
 
-func (response DeleteCategory200JSONResponse) VisitDeleteCategoryResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(200)
-
-	return json.NewEncoder(w).Encode(response)
+func (response DeleteCategory204Response) VisitDeleteCategoryResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
 }
 
 type CategoryAndUnreadEntryCountRequestObject struct {
@@ -1131,13 +1124,12 @@ type LogoutResponseObject interface {
 	VisitLogoutResponse(w http.ResponseWriter) error
 }
 
-type Logout200JSONResponse map[string]interface{}
+type Logout204Response struct {
+}
 
-func (response Logout200JSONResponse) VisitLogoutResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(200)
-
-	return json.NewEncoder(w).Encode(response)
+func (response Logout204Response) VisitLogoutResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
 }
 
 type OpmlExportRequestObject struct {
@@ -1167,15 +1159,12 @@ type OpmlImportResponseObject interface {
 	VisitOpmlImportResponse(w http.ResponseWriter) error
 }
 
-type OpmlImport200JSONResponse struct {
-	Done bool `json:"done"`
+type OpmlImport201Response struct {
 }
 
-func (response OpmlImport200JSONResponse) VisitOpmlImportResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(200)
-
-	return json.NewEncoder(w).Encode(response)
+func (response OpmlImport201Response) VisitOpmlImportResponse(w http.ResponseWriter) error {
+	w.WriteHeader(201)
+	return nil
 }
 
 type RemoveAllPinRequestObject struct {
@@ -1185,13 +1174,12 @@ type RemoveAllPinResponseObject interface {
 	VisitRemoveAllPinResponse(w http.ResponseWriter) error
 }
 
-type RemoveAllPin200JSONResponse SimpleResult
+type RemoveAllPin204Response struct {
+}
 
-func (response RemoveAllPin200JSONResponse) VisitRemoveAllPinResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(200)
-
-	return json.NewEncoder(w).Encode(response)
+func (response RemoveAllPin204Response) VisitRemoveAllPinResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
 }
 
 type PinnedItemsRequestObject struct {
@@ -1237,13 +1225,12 @@ type SetAsReadResponseObject interface {
 	VisitSetAsReadResponse(w http.ResponseWriter) error
 }
 
-type SetAsRead200JSONResponse SimpleResult
+type SetAsRead201Response struct {
+}
 
-func (response SetAsRead200JSONResponse) VisitSetAsReadResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(200)
-
-	return json.NewEncoder(w).Encode(response)
+func (response SetAsRead201Response) VisitSetAsReadResponse(w http.ResponseWriter) error {
+	w.WriteHeader(201)
+	return nil
 }
 
 type SetAsRead400Response struct {
@@ -1278,13 +1265,12 @@ type UpdateProfileResponseObject interface {
 	VisitUpdateProfileResponse(w http.ResponseWriter) error
 }
 
-type UpdateProfile200JSONResponse SimpleResult
+type UpdateProfile204Response struct {
+}
 
-func (response UpdateProfile200JSONResponse) VisitUpdateProfileResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(200)
-
-	return json.NewEncoder(w).Encode(response)
+func (response UpdateProfile204Response) VisitUpdateProfileResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
 }
 
 type UpdateProfile400Response struct {
@@ -1319,13 +1305,12 @@ type RegisterSubscriptionResponseObject interface {
 	VisitRegisterSubscriptionResponse(w http.ResponseWriter) error
 }
 
-type RegisterSubscription200JSONResponse SimpleResult
+type RegisterSubscription201Response struct {
+}
 
-func (response RegisterSubscription200JSONResponse) VisitRegisterSubscriptionResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(200)
-
-	return json.NewEncoder(w).Encode(response)
+func (response RegisterSubscription201Response) VisitRegisterSubscriptionResponse(w http.ResponseWriter) error {
+	w.WriteHeader(201)
+	return nil
 }
 
 type RegisterSubscription400Response struct {
@@ -1352,13 +1337,12 @@ type DeleteSubscriptionResponseObject interface {
 	VisitDeleteSubscriptionResponse(w http.ResponseWriter) error
 }
 
-type DeleteSubscription200JSONResponse SimpleResult
+type DeleteSubscription204Response struct {
+}
 
-func (response DeleteSubscription200JSONResponse) VisitDeleteSubscriptionResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(200)
-
-	return json.NewEncoder(w).Encode(response)
+func (response DeleteSubscription204Response) VisitDeleteSubscriptionResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
 }
 
 type ChangeSubscriptionRequestObject struct {
@@ -1370,13 +1354,12 @@ type ChangeSubscriptionResponseObject interface {
 	VisitChangeSubscriptionResponse(w http.ResponseWriter) error
 }
 
-type ChangeSubscription200JSONResponse SimpleResult
+type ChangeSubscription204Response struct {
+}
 
-func (response ChangeSubscription200JSONResponse) VisitChangeSubscriptionResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(200)
-
-	return json.NewEncoder(w).Encode(response)
+func (response ChangeSubscription204Response) VisitChangeSubscriptionResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
 }
 
 type UpdatePasswordRequestObject struct {
@@ -1387,11 +1370,21 @@ type UpdatePasswordResponseObject interface {
 	VisitUpdatePasswordResponse(w http.ResponseWriter) error
 }
 
-type UpdatePassword200JSONResponse SimpleResult
+type UpdatePassword201Response struct {
+}
 
-func (response UpdatePassword200JSONResponse) VisitUpdatePasswordResponse(w http.ResponseWriter) error {
+func (response UpdatePassword201Response) VisitUpdatePasswordResponse(w http.ResponseWriter) error {
+	w.WriteHeader(201)
+	return nil
+}
+
+type UpdatePassword400JSONResponse struct {
+	Error string `json:"error"`
+}
+
+func (response UpdatePassword400JSONResponse) VisitUpdatePasswordResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(200)
+	w.WriteHeader(400)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -2168,44 +2161,43 @@ func (sh *strictHandler) ServeRootFile(w http.ResponseWriter, r *http.Request, f
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
-	"6GU0AAA=",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
