@@ -177,6 +177,50 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Category"
+  /api/category/{id}:
+    get:
+      tags:
+        - reader
+      description: unread entries
+      operationId: UnreadEntry
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: category id
+          required: true
+          schema:
+            type: integer
+            format: uint64
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UnreadEntry"
+    delete:
+      tags:
+        - subscription
+      description: delete category
+      operationId: DeleteCategory
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: category id
+          required: true
+          schema:
+            type: integer
+            format: uint64
+      responses:
+        "204":
+          description: OK
+
   /api/subscription:
     post:
       tags:
@@ -231,6 +275,54 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Subscription"
+  /api/subscription/{id}:
+    delete:
+      tags:
+        - subscription
+      description: delete subscription
+      operationId: DeleteSubscription
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: subscription id
+          required: true
+          schema:
+            type: integer
+            format: uint64
+      responses:
+        "204":
+          description: OK
+    put:
+      tags:
+        - subscription
+      description: change subscription
+      operationId: ChangeSubscription
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: subscription id
+          required: true
+          schema:
+            type: integer
+            format: uint64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - category
+              properties:
+                category:
+                  type: integer
+                  format: uint64
+      responses:
+        "204":
+          description: OK
   /api/opml:
     post:
       tags:
@@ -299,117 +391,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ExamineSubscription"
-  /api/subscription/{id}:
-    delete:
-      tags:
-        - subscription
-      description: delete subscription
-      operationId: DeleteSubscription
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          description: subscription id
-          required: true
-          schema:
-            type: integer
-            format: uint64
-      responses:
-        "204":
-          description: OK
-    put:
-      tags:
-        - subscription
-      description: change subscription
-      operationId: ChangeSubscription
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          description: subscription id
-          required: true
-          schema:
-            type: integer
-            format: uint64
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - category
-              properties:
-                category:
-                  type: integer
-                  format: uint64
-      responses:
-        "204":
-          description: OK
-  /api/category/{id}:
-    get:
-      tags:
-        - reader
-      description: unread entries
-      operationId: UnreadEntry
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          description: category id
-          required: true
-          schema:
-            type: integer
-            format: uint64
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/UnreadEntry"
-    delete:
-      tags:
-        - subscription
-      description: delete category
-      operationId: DeleteCategory
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          description: category id
-          required: true
-          schema:
-            type: integer
-            format: uint64
-      responses:
-        "204":
-          description: OK
-  /api/pin/asread:
-    post:
-      tags:
-        - reader
-      description: set readflag
-      operationId: SetAsRead
-      security:
-        - BearerAuth: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: array
-              items:
-                $ref: "#/components/schemas/AsRead"
-      responses:
-        "201":
-          description: OK
-        "400":
-          description: error
   /api/pin:
     delete:
       tags:
@@ -490,7 +471,26 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/PinnedItem"
-
+  /api/pin/asread:
+    post:
+      tags:
+        - reader
+      description: set readflag
+      operationId: SetAsRead
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/AsRead"
+      responses:
+        "201":
+          description: OK
+        "400":
+          description: error
   /api/update_password:
     post:
       tags:

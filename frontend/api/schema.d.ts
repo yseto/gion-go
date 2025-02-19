@@ -125,6 +125,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/category/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description unread entries */
+        get: operations["UnreadEntry"];
+        put?: never;
+        post?: never;
+        /** @description delete category */
+        delete: operations["DeleteCategory"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/subscription": {
         parameters: {
             query?: never;
@@ -138,6 +156,24 @@ export interface paths {
         /** @description register subscription */
         post: operations["RegisterSubscription"];
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/subscription/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** @description change subscription */
+        put: operations["ChangeSubscription"];
+        post?: never;
+        /** @description delete subscription */
+        delete: operations["DeleteSubscription"];
         options?: never;
         head?: never;
         patch?: never;
@@ -178,37 +214,20 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/subscription/{id}": {
+    "/api/pin": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
-        /** @description change subscription */
-        put: operations["ChangeSubscription"];
-        post?: never;
-        /** @description delete subscription */
-        delete: operations["DeleteSubscription"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/category/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** @description unread entries */
-        get: operations["UnreadEntry"];
+        /** @description return Pinned items */
+        get: operations["PinnedItems"];
         put?: never;
-        post?: never;
-        /** @description delete category */
-        delete: operations["DeleteCategory"];
+        /** @description set pin into entry */
+        post: operations["SetPin"];
+        /** @description remove all pins */
+        delete: operations["RemoveAllPin"];
         options?: never;
         head?: never;
         patch?: never;
@@ -226,25 +245,6 @@ export interface paths {
         /** @description set readflag */
         post: operations["SetAsRead"];
         delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/pin": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** @description return Pinned items */
-        get: operations["PinnedItems"];
-        put?: never;
-        /** @description set pin into entry */
-        post: operations["SetPin"];
-        /** @description remove all pins */
-        delete: operations["RemoveAllPin"];
         options?: never;
         head?: never;
         patch?: never;
@@ -618,6 +618,50 @@ export interface operations {
             };
         };
     };
+    UnreadEntry: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description category id */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnreadEntry"][];
+                };
+            };
+        };
+    };
+    DeleteCategory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description category id */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     Subscriptions: {
         parameters: {
             query?: never;
@@ -676,6 +720,55 @@ export interface operations {
             };
             /** @description duplicate error */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ChangeSubscription: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description subscription id */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /** Format: uint64 */
+                    category: number;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    DeleteSubscription: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description subscription id */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -758,128 +851,6 @@ export interface operations {
             };
         };
     };
-    ChangeSubscription: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description subscription id */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": {
-                    /** Format: uint64 */
-                    category: number;
-                };
-            };
-        };
-        responses: {
-            /** @description OK */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    DeleteSubscription: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description subscription id */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    UnreadEntry: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description category id */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UnreadEntry"][];
-                };
-            };
-        };
-    };
-    DeleteCategory: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description category id */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    SetAsRead: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["AsRead"][];
-            };
-        };
-        responses: {
-            /** @description OK */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description error */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
     PinnedItems: {
         parameters: {
             query?: never;
@@ -945,6 +916,35 @@ export interface operations {
         responses: {
             /** @description OK */
             204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    SetAsRead: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["AsRead"][];
+            };
+        };
+        responses: {
+            /** @description OK */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description error */
+            400: {
                 headers: {
                     [name: string]: unknown;
                 };
