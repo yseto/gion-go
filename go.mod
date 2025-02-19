@@ -1,6 +1,6 @@
 module github.com/yseto/gion-go
 
-go 1.23.0
+go 1.24.0
 
 require (
 	github.com/antchfx/htmlquery v1.2.5
@@ -18,7 +18,6 @@ require (
 	github.com/microcosm-cc/bluemonday v1.0.25
 	github.com/mmcdole/gofeed v1.1.3
 	github.com/oapi-codegen/nethttp-middleware v1.0.2
-	github.com/oapi-codegen/oapi-codegen/v2 v2.4.1
 	github.com/oapi-codegen/runtime v1.1.1
 	golang.org/x/crypto v0.23.0
 	golang.org/x/net v0.25.0
@@ -49,6 +48,7 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 // indirect
+	github.com/oapi-codegen/oapi-codegen/v2 v2.4.1 // indirect
 	github.com/perimeterx/marshmallow v1.1.5 // indirect
 	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/speakeasy-api/openapi-overlay v0.9.0 // indirect
@@ -63,3 +63,5 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+tool github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen
