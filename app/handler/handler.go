@@ -86,7 +86,7 @@ func (*ApiServer) Categories(ctx context.Context, request CategoriesRequestObjec
 func (*ApiServer) CategoryAndUnreadEntryCount(ctx context.Context, request CategoryAndUnreadEntryCountRequestObject) (CategoryAndUnreadEntryCountResponseObject, error) {
 	cat, err := DBUserFromContext(ctx).CategoryAndUnreadEntryCount()
 	if err != nil {
-		return CategoryAndUnreadEntryCount400Response{}, nil
+		return nil, err
 	}
 
 	items := []CategoryAndUnreadEntryCount{}
@@ -108,7 +108,7 @@ func (*ApiServer) UnreadEntry(ctx context.Context, request UnreadEntryRequestObj
 		return nil, err
 	}
 
-	cat, err := db.UnreadEntryByCategory(request.CategoryId)
+	cat, err := db.UnreadEntryByCategory(request.Id)
 	if err != nil {
 		return nil, err
 	}

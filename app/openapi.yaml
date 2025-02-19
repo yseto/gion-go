@@ -134,36 +134,8 @@ paths:
               schema:
                 type: array
                 items:
-                  type:
                   $ref: "#/components/schemas/CategoryAndUnreadEntryCount"
-        "400":
-          description: error
-      
-  /api/category/{category_id}/entry:
-    get:
-      tags:
-        - reader
-      description: unread entries
-      operationId: UnreadEntry
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: category_id
-          in: path
-          description: category id
-          required: true
-          schema:
-            type: integer
-            format: uint64
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/UnreadEntry"
+
   /api/category:
     post:
       tags:
@@ -376,6 +348,30 @@ paths:
         "204":
           description: OK
   /api/category/{id}:
+    get:
+      tags:
+        - reader
+      description: unread entries
+      operationId: UnreadEntry
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: category id
+          required: true
+          schema:
+            type: integer
+            format: uint64
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UnreadEntry"
     delete:
       tags:
         - subscription

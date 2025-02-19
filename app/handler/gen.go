@@ -228,11 +228,11 @@ type ServerInterface interface {
 	// (POST /api/category)
 	RegisterCategory(w http.ResponseWriter, r *http.Request)
 
-	// (GET /api/category/{category_id}/entry)
-	UnreadEntry(w http.ResponseWriter, r *http.Request, categoryId uint64)
-
 	// (DELETE /api/category/{id})
 	DeleteCategory(w http.ResponseWriter, r *http.Request, id uint64)
+
+	// (GET /api/category/{id})
+	UnreadEntry(w http.ResponseWriter, r *http.Request, id uint64)
 
 	// (GET /api/category_with_count)
 	CategoryAndUnreadEntryCount(w http.ResponseWriter, r *http.Request)
@@ -352,37 +352,6 @@ func (siw *ServerInterfaceWrapper) RegisterCategory(w http.ResponseWriter, r *ht
 	handler.ServeHTTP(w, r)
 }
 
-// UnreadEntry operation middleware
-func (siw *ServerInterfaceWrapper) UnreadEntry(w http.ResponseWriter, r *http.Request) {
-
-	var err error
-
-	// ------------- Path parameter "category_id" -------------
-	var categoryId uint64
-
-	err = runtime.BindStyledParameterWithOptions("simple", "category_id", r.PathValue("category_id"), &categoryId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "category_id", Err: err})
-		return
-	}
-
-	ctx := r.Context()
-
-	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
-
-	r = r.WithContext(ctx)
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.UnreadEntry(w, r, categoryId)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
 // DeleteCategory operation middleware
 func (siw *ServerInterfaceWrapper) DeleteCategory(w http.ResponseWriter, r *http.Request) {
 
@@ -405,6 +374,37 @@ func (siw *ServerInterfaceWrapper) DeleteCategory(w http.ResponseWriter, r *http
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.DeleteCategory(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UnreadEntry operation middleware
+func (siw *ServerInterfaceWrapper) UnreadEntry(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id uint64
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UnreadEntry(w, r, id)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -912,8 +912,8 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 	m.HandleFunc("GET "+options.BaseURL+"/", wrapper.Index)
 	m.HandleFunc("GET "+options.BaseURL+"/api/category", wrapper.Categories)
 	m.HandleFunc("POST "+options.BaseURL+"/api/category", wrapper.RegisterCategory)
-	m.HandleFunc("GET "+options.BaseURL+"/api/category/{category_id}/entry", wrapper.UnreadEntry)
 	m.HandleFunc("DELETE "+options.BaseURL+"/api/category/{id}", wrapper.DeleteCategory)
+	m.HandleFunc("GET "+options.BaseURL+"/api/category/{id}", wrapper.UnreadEntry)
 	m.HandleFunc("GET "+options.BaseURL+"/api/category_with_count", wrapper.CategoryAndUnreadEntryCount)
 	m.HandleFunc("POST "+options.BaseURL+"/api/examine_subscription", wrapper.ExamineSubscription)
 	m.HandleFunc("POST "+options.BaseURL+"/api/login", wrapper.Login)
@@ -1010,23 +1010,6 @@ func (response RegisterCategory409Response) VisitRegisterCategoryResponse(w http
 	return nil
 }
 
-type UnreadEntryRequestObject struct {
-	CategoryId uint64 `json:"category_id"`
-}
-
-type UnreadEntryResponseObject interface {
-	VisitUnreadEntryResponse(w http.ResponseWriter) error
-}
-
-type UnreadEntry200JSONResponse []UnreadEntry
-
-func (response UnreadEntry200JSONResponse) VisitUnreadEntryResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(200)
-
-	return json.NewEncoder(w).Encode(response)
-}
-
 type DeleteCategoryRequestObject struct {
 	Id uint64 `json:"id"`
 }
@@ -1043,6 +1026,23 @@ func (response DeleteCategory204Response) VisitDeleteCategoryResponse(w http.Res
 	return nil
 }
 
+type UnreadEntryRequestObject struct {
+	Id uint64 `json:"id"`
+}
+
+type UnreadEntryResponseObject interface {
+	VisitUnreadEntryResponse(w http.ResponseWriter) error
+}
+
+type UnreadEntry200JSONResponse []UnreadEntry
+
+func (response UnreadEntry200JSONResponse) VisitUnreadEntryResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type CategoryAndUnreadEntryCountRequestObject struct {
 }
 
@@ -1057,14 +1057,6 @@ func (response CategoryAndUnreadEntryCount200JSONResponse) VisitCategoryAndUnrea
 	w.WriteHeader(200)
 
 	return json.NewEncoder(w).Encode(response)
-}
-
-type CategoryAndUnreadEntryCount400Response struct {
-}
-
-func (response CategoryAndUnreadEntryCount400Response) VisitCategoryAndUnreadEntryCountResponse(w http.ResponseWriter) error {
-	w.WriteHeader(400)
-	return nil
 }
 
 type ExamineSubscriptionRequestObject struct {
@@ -1436,11 +1428,11 @@ type StrictServerInterface interface {
 	// (POST /api/category)
 	RegisterCategory(ctx context.Context, request RegisterCategoryRequestObject) (RegisterCategoryResponseObject, error)
 
-	// (GET /api/category/{category_id}/entry)
-	UnreadEntry(ctx context.Context, request UnreadEntryRequestObject) (UnreadEntryResponseObject, error)
-
 	// (DELETE /api/category/{id})
 	DeleteCategory(ctx context.Context, request DeleteCategoryRequestObject) (DeleteCategoryResponseObject, error)
+
+	// (GET /api/category/{id})
+	UnreadEntry(ctx context.Context, request UnreadEntryRequestObject) (UnreadEntryResponseObject, error)
 
 	// (GET /api/category_with_count)
 	CategoryAndUnreadEntryCount(ctx context.Context, request CategoryAndUnreadEntryCountRequestObject) (CategoryAndUnreadEntryCountResponseObject, error)
@@ -1605,32 +1597,6 @@ func (sh *strictHandler) RegisterCategory(w http.ResponseWriter, r *http.Request
 	}
 }
 
-// UnreadEntry operation middleware
-func (sh *strictHandler) UnreadEntry(w http.ResponseWriter, r *http.Request, categoryId uint64) {
-	var request UnreadEntryRequestObject
-
-	request.CategoryId = categoryId
-
-	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
-		return sh.ssi.UnreadEntry(ctx, request.(UnreadEntryRequestObject))
-	}
-	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "UnreadEntry")
-	}
-
-	response, err := handler(r.Context(), w, r, request)
-
-	if err != nil {
-		sh.options.ResponseErrorHandlerFunc(w, r, err)
-	} else if validResponse, ok := response.(UnreadEntryResponseObject); ok {
-		if err := validResponse.VisitUnreadEntryResponse(w); err != nil {
-			sh.options.ResponseErrorHandlerFunc(w, r, err)
-		}
-	} else if response != nil {
-		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
-	}
-}
-
 // DeleteCategory operation middleware
 func (sh *strictHandler) DeleteCategory(w http.ResponseWriter, r *http.Request, id uint64) {
 	var request DeleteCategoryRequestObject
@@ -1650,6 +1616,32 @@ func (sh *strictHandler) DeleteCategory(w http.ResponseWriter, r *http.Request, 
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(DeleteCategoryResponseObject); ok {
 		if err := validResponse.VisitDeleteCategoryResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UnreadEntry operation middleware
+func (sh *strictHandler) UnreadEntry(w http.ResponseWriter, r *http.Request, id uint64) {
+	var request UnreadEntryRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UnreadEntry(ctx, request.(UnreadEntryRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UnreadEntry")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UnreadEntryResponseObject); ok {
+		if err := validResponse.VisitUnreadEntryResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -2161,43 +2153,43 @@ func (sh *strictHandler) ServeRootFile(w http.ResponseWriter, r *http.Request, f
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/+xacW/cthX/KgK3PxWfuwYD5v/SJB68eWhgJ8iAwDDo0/Md2xOpUZRjzzggd4cMXYMO",
-	"G9Ci69BtnVdsmTN3LZwCa1ZgH0ax432LgaSkoyRKpzvfGevQfxKfSJHv/d57v/f4qEPUZn7AKFARopVD",
-	"FLa74GP1541wA7An//IgbHMSCMIoWkHnHx5dHJ+cjx6fffIFclHAWQBcEFAv7QJ420S9tcu4jwVaQRGh",
-	"4vvXkYvEQQBoBREqoAMcuWj/Woddo9iXT1cBvLVbqO+iEDjBvUZL9Psu4vCziHDw0MqDbPtska2+i25E",
-	"oss4+TnWChT1iUcn8fDzePhpPDqt0ApHgoUA6uVEgh3GeoCplFewt3NDoeCEdkqyZYukb0jZbmIBHcYP",
-	"LGINn8WjX8TD5/Ho+OU/H1385a8lsWbCWWOsf0wSWSGpppqy3qDePcoBe7ep4Ac3WURFvfjx4P148DQe",
-	"PDv/+Pji+OTi6W9fvnhy/sHnJYXa6VqTDe8m2ud3bSciOmu3kLtIZNQsNxFYyWIitBntGFIdFrVMZjWN",
-	"k76LukIE26HAIgotAfnxo1dfDuPhUTz8Rzz8Vzz86vyjYTz4LB79PR5+FY9+H49O5R/D03j0dTz65XiH",
-	"VDk7mPHog3j4Z/3OLHgaEU0ERLxXv8V/Hr/38t9/Ons8iodfqmh8597Guk1WQUSvqfPquW4O8zycY+mk",
-	"BW/vY59QkKLXS3v+q6NXz4/iwbN48G48+E08fGKOXvzt9NXzsn97WNgEr1bJRQls9aqmWsrJrt7FUKbo",
-	"jZOUKokdcNgj8HB7N0GFCPDVwHc57KIV9J3WOIm0kgzSMpHsZ1bEnOMD5RJRuw1hWMGo08GRdzvpNUWA",
-	"0t3cAlQ5zSRkdwil4K0J8G1IvS9TxMlRPBzEgw/jwR9VzH0qeW70yaVS4ZRZrxahQNp/G4tKnJKHAaFL",
-	"99Tku0SRWTZ4jfgB42qBBNOAyLQVYNFFK6hDRDfaWWozv3UQgmCtDmH0Woe1pHyc4l5LTu/P5rwJDK6R",
-	"yscaKQtxtku07nnznD168vLFi4unJ2ef/W7KDA65RNYEf0bXWYfQzbdJcIfQdRIK+8phtKPVXgfakejN",
-	"UNQYhYMhqFWG8oYSsgkEkMvU78bDd+LB6cXp1xfHJ7V1R/UqsySLNHXmk3D1Hme/fs/cJPPwUjyEUyj/",
-	"7OyLP8SDjwpknqHQiPesNUCJACsLrYLA0nxGsdVMAUlNZqlVYUYVVRCwdrep1+e2tnDPlJQn1drt4Y6c",
-	"DzTyJRL3aOLqm+l/QrLJljuRy+RpZVWutggmm46dZUWxXU3RpoWngOuSRYKFWVPqNe3qmn5h2Cgj6ILw",
-	"OW23NFbtiBNxsCkjQrvaG4A5cHkQk7921K/VVOUf3b8rV1GzJXuq0TECslhDfbkwobtM6amBQD/U8u4B",
-	"D3UwvLa0vLSs6DkAigOCVtDrS8tLrycWV6K05D8dsBxZCPVg3wlwR0IiA0UdGNc8eTSQQwqNMGA01Ep9",
-	"b3lZH1qoAJ05BOyLVlf4vfFR2maXYiShN38sn/Zd1MIBabWNM6FV0OyU09Ocn5c1ISAZ5BMFxkHQI231",
-	"buutUEf1WO6p+M7CcXY9xw6CVh7kXePBVl8GOu6EumgrEGHAQgsaHDokFMCdDLciIhvJjJvjCTIwIBRv",
-	"MO9gKkjyDDrFWXFMYGznLWiLxOAF+7xWVk9i5qLr2nT5IeCccT36g/KoF2lFwEnmzYx80TFbh8Zxqt+C",
-	"NDNZnTVS2cuRk7RL5m1jJjcZpRz7IICHSsIKt1esQ+QjxeNpuVA45I1NIHgErmHEBhXY1lWEjqn73KNH",
-	"Lg3caj3i9bWdeiAsZZZ+Xh1Ot9S4EUyXs9oijHXdHkdzi4Dth0R0t7N2VR1LEwgdOdsxAuHAUa8uVXG3",
-	"tcV2lWRu27+hh9Zz1SX8F3RDYbtY0NuzQsDZDjgPYceR5UkJaFtrZF5Zwdrp2iQCHGtDq5AtVCeqUbKY",
-	"zv4NejX5I8uc03dqxp48s1bbTQ8XzbWePJ2PgXTJXaqiAxyGDxn3GrYWs+lXba38fUZlGHqwi6OeBeLb",
-	"KhRd1FURpsS7f//+NbksUKFKhqr4deuq2oJvGK6A25oqc17AIlHrBnLc4gf68Sx8XysQC3TVbqVy2Jen",
-	"SMf0aGePYEe+5HisHflAy8K+Gfi92+rNy3J33n33fQu//PQn66Yk9f4rV7B57ZXU6/pIrrEjVLAcrFYQ",
-	"1/wMxHmEvxU/uY+znzfnbCA2ruovTaUBoXV1HAef7YGDez0nIDS0HIvk+I1e707CrfMtobIE7tqDioOI",
-	"OHV0x93R5UlRxHE7/moOs0b7f3EFeVVghCCkoXRQQHIiyuOxCeLOHBPht/06S7vd6HiVWmaLSPV5k3xj",
-	"MK5Cbf55pXQSCAht4ZAnX6dUB5NhyVIYJV+3zB5Jjfgk2cXCJXPq/VwGxfFFmr1xEwJ30kklYs6eL6zM",
-	"Tbe4tP+Miz0XBZFNU3XBWKmrviQ1NZ7NYxoq22+aiuflGeViuHjEtvpHrhq2dqLN8+TV5O8Jl25X3JCu",
-	"LWzTpvRCWhDmFUKjzB5aviva2Nx0VgE8Z9J3OJZOx93kZqnqqmrG5kh6YcXVtxz6QirT9f+hxW4+btqo",
-	"rXUz3awtOFltwzYX19/kpm0F27e7mHYmoHZTzflfRe3qGaIQhlOG3KK68cmHQWbfzs7IaYJPJ1Zk+PHw",
-	"fDCuaSiO24fbrFc/oT25H5lby+hMmovMhx1nRELT40Q99LQmJ4hLFjmHstiSQdmvLm+A74FjLQg35dAG",
-	"Y2JVj9YSQ7qTnRGM0WpeKIK2tdAPEaStLRHrkzAktONkZWo/A7fUYN4DfiC6cjbeYZFwEvDDsd6pOfpu",
-	"uXrCnoOz/kcyPzm9lKf7mOIOONhRn3Bm83OM0d/q/zcAAP//dzoA8ugwAAA=",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

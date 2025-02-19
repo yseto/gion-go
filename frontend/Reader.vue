@@ -117,9 +117,9 @@ export default defineComponent({
         return;
       }
 
-      openapiFetchClient.GET("/api/category/{category_id}/entry", {
+      openapiFetchClient.GET("/api/category/{id}", {
         params: {
-          path:{category_id: categoryStore.list[categoryStore.selected].id},
+          path: { id: categoryStore.list[categoryStore.selected].id },
         }
       }).then(data => {
         if (data.data === undefined) {
