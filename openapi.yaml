@@ -38,7 +38,7 @@ paths:
         "200":
           description: OK
           content:
-            text/html:
+            "*/*":
               schema:
                 type: string
         "404":

@@ -627,23 +627,35 @@ func (*ApiServer) Index(ctx context.Context, request IndexRequestObject) (IndexR
 }
 
 func (*ApiServer) ServeRootFile(ctx context.Context, request ServeRootFileRequestObject) (ServeRootFileResponseObject, error) {
-	var filename string
+	var filename, contentType string
 	switch request.Filename {
 	case "index.html":
 		filename = "public/index.html"
+		contentType = "text/html"
 	case "gion.js":
 		filename = "public/gion.js"
+		contentType = "text/javascript"
+	case "favicon.ico":
+		filename = "public/favicon.ico"
+		contentType = "image/x-icon"
+	case "apple-touch-icon-precomposed.png":
+		filename = "public/apple-touch-icon-precomposed.png"
+		contentType = "image/png"
 	default:
 		return ServeRootFile404Response{}, nil
 	}
 
 	b, err := os.ReadFile(filename)
+	if err != nil && os.IsNotExist(err) {
+		return ServeRootFile404Response{}, nil
+	}
 	if err != nil {
 		return nil, err
 	}
 
-	return ServeRootFile200TexthtmlResponse{
-		Body: bytes.NewReader(b),
+	return ServeRootFile200AsteriskResponse{
+		Body:        bytes.NewReader(b),
+		ContentType: contentType,
 	}, nil
 }
 
