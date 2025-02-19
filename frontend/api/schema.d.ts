@@ -124,7 +124,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/unread_entry": {
+    "/api/unread_entry/{category_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -707,17 +707,13 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                /** @description category id */
+                category_id: number;
+            };
             cookie?: never;
         };
-        requestBody?: {
-            content: {
-                "application/json": {
-                    /** Format: uint64 */
-                    category: number;
-                };
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description OK */
             200: {

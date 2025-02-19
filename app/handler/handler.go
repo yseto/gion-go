@@ -107,7 +107,7 @@ func (*ApiServer) UnreadEntry(ctx context.Context, request UnreadEntryRequestObj
 		return UnreadEntry400Response{}, nil
 	}
 
-	cat, err := db.UnreadEntryByCategory(request.Body.Category)
+	cat, err := db.UnreadEntryByCategory(request.CategoryId)
 	if err != nil {
 		return UnreadEntry400Response{}, nil
 	}

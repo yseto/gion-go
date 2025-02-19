@@ -75,8 +75,8 @@ type ServerInterface interface {
 	// (POST /api/subscriptions)
 	Subscriptions(ctx echo.Context) error
 
-	// (GET /api/unread_entry)
-	UnreadEntry(ctx echo.Context) error
+	// (GET /api/unread_entry/{category_id})
+	UnreadEntry(ctx echo.Context, categoryId uint64) error
 
 	// (POST /api/update_password)
 	UpdatePassword(ctx echo.Context) error
@@ -296,11 +296,18 @@ func (w *ServerInterfaceWrapper) Subscriptions(ctx echo.Context) error {
 // UnreadEntry converts echo context to params.
 func (w *ServerInterfaceWrapper) UnreadEntry(ctx echo.Context) error {
 	var err error
+	// ------------- Path parameter "category_id" -------------
+	var categoryId uint64
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "category_id", runtime.ParamLocationPath, ctx.Param("category_id"), &categoryId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter category_id: %s", err))
+	}
 
 	ctx.Set(BearerAuthScopes, []string{})
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.UnreadEntry(ctx)
+	err = w.Handler.UnreadEntry(ctx, categoryId)
 	return err
 }
 
@@ -378,7 +385,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.POST(baseURL+"/api/set_asread", wrapper.SetAsRead)
 	router.POST(baseURL+"/api/set_pin", wrapper.SetPin)
 	router.POST(baseURL+"/api/subscriptions", wrapper.Subscriptions)
-	router.GET(baseURL+"/api/unread_entry", wrapper.UnreadEntry)
+	router.GET(baseURL+"/api/unread_entry/:category_id", wrapper.UnreadEntry)
 	router.POST(baseURL+"/api/update_password", wrapper.UpdatePassword)
 	router.GET(baseURL+"/:filename", wrapper.ServeRootFile)
 
@@ -852,7 +859,7 @@ func (response Subscriptions400Response) VisitSubscriptionsResponse(w http.Respo
 }
 
 type UnreadEntryRequestObject struct {
-	Body *UnreadEntryJSONRequestBody
+	CategoryId uint64 `json:"category_id"`
 }
 
 type UnreadEntryResponseObject interface {
@@ -996,7 +1003,7 @@ type StrictServerInterface interface {
 	// (POST /api/subscriptions)
 	Subscriptions(ctx context.Context, request SubscriptionsRequestObject) (SubscriptionsResponseObject, error)
 
-	// (GET /api/unread_entry)
+	// (GET /api/unread_entry/{category_id})
 	UnreadEntry(ctx context.Context, request UnreadEntryRequestObject) (UnreadEntryResponseObject, error)
 
 	// (POST /api/update_password)
@@ -1516,14 +1523,10 @@ func (sh *strictHandler) Subscriptions(ctx echo.Context) error {
 }
 
 // UnreadEntry operation middleware
-func (sh *strictHandler) UnreadEntry(ctx echo.Context) error {
+func (sh *strictHandler) UnreadEntry(ctx echo.Context, categoryId uint64) error {
 	var request UnreadEntryRequestObject
 
-	var body UnreadEntryJSONRequestBody
-	if err := ctx.Bind(&body); err != nil {
-		return err
-	}
-	request.Body = &body
+	request.CategoryId = categoryId
 
 	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
 		return sh.ssi.UnreadEntry(ctx.Request().Context(), request.(UnreadEntryRequestObject))

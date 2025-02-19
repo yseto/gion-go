@@ -187,11 +187,6 @@ type SetPinJSONBody struct {
 	Serial   uint64       `json:"serial"`
 }
 
-// UnreadEntryJSONBody defines parameters for UnreadEntry.
-type UnreadEntryJSONBody struct {
-	Category uint64 `json:"category"`
-}
-
 // UpdatePasswordJSONBody defines parameters for UpdatePassword.
 type UpdatePasswordJSONBody struct {
 	Password    string `json:"password"`
@@ -228,9 +223,6 @@ type SetAsReadJSONRequestBody = SetAsReadJSONBody
 
 // SetPinJSONRequestBody defines body for SetPin for application/json ContentType.
 type SetPinJSONRequestBody SetPinJSONBody
-
-// UnreadEntryJSONRequestBody defines body for UnreadEntry for application/json ContentType.
-type UnreadEntryJSONRequestBody UnreadEntryJSONBody
 
 // UpdatePasswordJSONRequestBody defines body for UpdatePassword for application/json ContentType.
 type UpdatePasswordJSONRequestBody UpdatePasswordJSONBody

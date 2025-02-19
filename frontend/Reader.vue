@@ -117,9 +117,9 @@ export default defineComponent({
         return;
       }
 
-      openapiFetchClient.GET("/api/unread_entry", {
-        body: {
-          category: categoryStore.list[categoryStore.selected].id,
+      openapiFetchClient.GET("/api/unread_entry/{category_id}", {
+        params: {
+          path:{category_id: categoryStore.list[categoryStore.selected].id},
         }
       }).then(data => {
         if (data.data === undefined) {
