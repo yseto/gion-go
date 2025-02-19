@@ -59,7 +59,7 @@ export default defineComponent({
     const finished = ref(false);
 
     const apply = () => {
-      openapiFetchClient.POST("/api/set_profile", {
+      openapiFetchClient.PUT("/api/profile", {
         body: {
           autoseen: !!profile.autoseen,
           onLoginSkipPinList: !!profile.onLoginSkipPinList,
@@ -75,7 +75,7 @@ export default defineComponent({
       });
     };
 
-    openapiFetchClient.POST("/api/profile").then((data) => {
+    openapiFetchClient.GET("/api/profile").then((data) => {
       if (data.data === undefined) {
         return
       }

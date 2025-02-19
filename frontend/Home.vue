@@ -9,7 +9,7 @@ import { openapiFetchClient } from "./UserAgent";
 export default defineComponent({
   setup: () => {
     const router = useRouter();
-    openapiFetchClient.POST("/api/profile").then(data => {
+    openapiFetchClient.GET("/api/profile").then(data => {
       const next = data.data?.onLoginSkipPinList === true ? "/entry" : "/pin";
       router.push(next);
     });

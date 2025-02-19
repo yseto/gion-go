@@ -51,8 +51,11 @@ type ServerInterface interface {
 	// (POST /api/pinned_items)
 	PinnedItems(ctx echo.Context) error
 
-	// (POST /api/profile)
+	// (GET /api/profile)
 	Profile(ctx echo.Context) error
+
+	// (PUT /api/profile)
+	UpdateProfile(ctx echo.Context) error
 
 	// (POST /api/register_category)
 	RegisterCategory(ctx echo.Context) error
@@ -68,9 +71,6 @@ type ServerInterface interface {
 
 	// (POST /api/set_pin)
 	SetPin(ctx echo.Context) error
-
-	// (POST /api/set_profile)
-	UpdateProfile(ctx echo.Context) error
 
 	// (POST /api/subscriptions)
 	Subscriptions(ctx echo.Context) error
@@ -216,6 +216,17 @@ func (w *ServerInterfaceWrapper) Profile(ctx echo.Context) error {
 	return err
 }
 
+// UpdateProfile converts echo context to params.
+func (w *ServerInterfaceWrapper) UpdateProfile(ctx echo.Context) error {
+	var err error
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshalled arguments
+	err = w.Handler.UpdateProfile(ctx)
+	return err
+}
+
 // RegisterCategory converts echo context to params.
 func (w *ServerInterfaceWrapper) RegisterCategory(ctx echo.Context) error {
 	var err error
@@ -268,17 +279,6 @@ func (w *ServerInterfaceWrapper) SetPin(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshalled arguments
 	err = w.Handler.SetPin(ctx)
-	return err
-}
-
-// UpdateProfile converts echo context to params.
-func (w *ServerInterfaceWrapper) UpdateProfile(ctx echo.Context) error {
-	var err error
-
-	ctx.Set(BearerAuthScopes, []string{})
-
-	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.UpdateProfile(ctx)
 	return err
 }
 
@@ -370,13 +370,13 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.POST(baseURL+"/api/opml_export", wrapper.OpmlExport)
 	router.POST(baseURL+"/api/opml_import", wrapper.OpmlImport)
 	router.POST(baseURL+"/api/pinned_items", wrapper.PinnedItems)
-	router.POST(baseURL+"/api/profile", wrapper.Profile)
+	router.GET(baseURL+"/api/profile", wrapper.Profile)
+	router.PUT(baseURL+"/api/profile", wrapper.UpdateProfile)
 	router.POST(baseURL+"/api/register_category", wrapper.RegisterCategory)
 	router.POST(baseURL+"/api/register_subscription", wrapper.RegisterSubscription)
 	router.POST(baseURL+"/api/remove_all_pin", wrapper.RemoveAllPin)
 	router.POST(baseURL+"/api/set_asread", wrapper.SetAsRead)
 	router.POST(baseURL+"/api/set_pin", wrapper.SetPin)
-	router.POST(baseURL+"/api/set_profile", wrapper.UpdateProfile)
 	router.POST(baseURL+"/api/subscriptions", wrapper.Subscriptions)
 	router.POST(baseURL+"/api/unread_entry", wrapper.UnreadEntry)
 	router.POST(baseURL+"/api/update_password", wrapper.UpdatePassword)
@@ -676,6 +676,31 @@ func (response Profile400Response) VisitProfileResponse(w http.ResponseWriter) e
 	return nil
 }
 
+type UpdateProfileRequestObject struct {
+	Body *UpdateProfileJSONRequestBody
+}
+
+type UpdateProfileResponseObject interface {
+	VisitUpdateProfileResponse(w http.ResponseWriter) error
+}
+
+type UpdateProfile200JSONResponse SimpleResult
+
+func (response UpdateProfile200JSONResponse) VisitUpdateProfileResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateProfile400Response struct {
+}
+
+func (response UpdateProfile400Response) VisitUpdateProfileResponse(w http.ResponseWriter) error {
+	w.WriteHeader(400)
+	return nil
+}
+
 type RegisterCategoryRequestObject struct {
 	Body *RegisterCategoryJSONRequestBody
 }
@@ -798,31 +823,6 @@ type SetPin400Response struct {
 }
 
 func (response SetPin400Response) VisitSetPinResponse(w http.ResponseWriter) error {
-	w.WriteHeader(400)
-	return nil
-}
-
-type UpdateProfileRequestObject struct {
-	Body *UpdateProfileJSONRequestBody
-}
-
-type UpdateProfileResponseObject interface {
-	VisitUpdateProfileResponse(w http.ResponseWriter) error
-}
-
-type UpdateProfile200JSONResponse SimpleResult
-
-func (response UpdateProfile200JSONResponse) VisitUpdateProfileResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(200)
-
-	return json.NewEncoder(w).Encode(response)
-}
-
-type UpdateProfile400Response struct {
-}
-
-func (response UpdateProfile400Response) VisitUpdateProfileResponse(w http.ResponseWriter) error {
 	w.WriteHeader(400)
 	return nil
 }
@@ -972,8 +972,11 @@ type StrictServerInterface interface {
 	// (POST /api/pinned_items)
 	PinnedItems(ctx context.Context, request PinnedItemsRequestObject) (PinnedItemsResponseObject, error)
 
-	// (POST /api/profile)
+	// (GET /api/profile)
 	Profile(ctx context.Context, request ProfileRequestObject) (ProfileResponseObject, error)
+
+	// (PUT /api/profile)
+	UpdateProfile(ctx context.Context, request UpdateProfileRequestObject) (UpdateProfileResponseObject, error)
 
 	// (POST /api/register_category)
 	RegisterCategory(ctx context.Context, request RegisterCategoryRequestObject) (RegisterCategoryResponseObject, error)
@@ -989,9 +992,6 @@ type StrictServerInterface interface {
 
 	// (POST /api/set_pin)
 	SetPin(ctx context.Context, request SetPinRequestObject) (SetPinResponseObject, error)
-
-	// (POST /api/set_profile)
-	UpdateProfile(ctx context.Context, request UpdateProfileRequestObject) (UpdateProfileResponseObject, error)
 
 	// (POST /api/subscriptions)
 	Subscriptions(ctx context.Context, request SubscriptionsRequestObject) (SubscriptionsResponseObject, error)
@@ -1324,6 +1324,35 @@ func (sh *strictHandler) Profile(ctx echo.Context) error {
 	return nil
 }
 
+// UpdateProfile operation middleware
+func (sh *strictHandler) UpdateProfile(ctx echo.Context) error {
+	var request UpdateProfileRequestObject
+
+	var body UpdateProfileJSONRequestBody
+	if err := ctx.Bind(&body); err != nil {
+		return err
+	}
+	request.Body = &body
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateProfile(ctx.Request().Context(), request.(UpdateProfileRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateProfile")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(UpdateProfileResponseObject); ok {
+		return validResponse.VisitUpdateProfileResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("Unexpected response type: %T", response)
+	}
+	return nil
+}
+
 // RegisterCategory operation middleware
 func (sh *strictHandler) RegisterCategory(ctx echo.Context) error {
 	var request RegisterCategoryRequestObject
@@ -1457,35 +1486,6 @@ func (sh *strictHandler) SetPin(ctx echo.Context) error {
 		return err
 	} else if validResponse, ok := response.(SetPinResponseObject); ok {
 		return validResponse.VisitSetPinResponse(ctx.Response())
-	} else if response != nil {
-		return fmt.Errorf("Unexpected response type: %T", response)
-	}
-	return nil
-}
-
-// UpdateProfile operation middleware
-func (sh *strictHandler) UpdateProfile(ctx echo.Context) error {
-	var request UpdateProfileRequestObject
-
-	var body UpdateProfileJSONRequestBody
-	if err := ctx.Bind(&body); err != nil {
-		return err
-	}
-	request.Body = &body
-
-	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.UpdateProfile(ctx.Request().Context(), request.(UpdateProfileRequestObject))
-	}
-	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "UpdateProfile")
-	}
-
-	response, err := handler(ctx, request)
-
-	if err != nil {
-		return err
-	} else if validResponse, ok := response.(UpdateProfileResponseObject); ok {
-		return validResponse.VisitUpdateProfileResponse(ctx.Response())
 	} else if response != nil {
 		return fmt.Errorf("Unexpected response type: %T", response)
 	}

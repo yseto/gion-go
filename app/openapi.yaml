@@ -90,7 +90,7 @@ paths:
               schema:
                 type: object
   /api/profile:
-    post:
+    get:
       tags:
         - account
       description: user profile
@@ -106,6 +106,28 @@ paths:
                 $ref: "#/components/schemas/Profile"
         "400":
           description: error
+    put:
+      tags:
+        - account
+      description: update profile
+      operationId: UpdateProfile
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Profile"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SimpleResult"
+        "400":
+          description: error
+
   /api/pinned_items:
     post:
       tags:
@@ -471,28 +493,7 @@ paths:
                 $ref: "#/components/schemas/SimpleResult"
         "400":
           description: error
-  /api/set_profile:
-    post:
-      tags:
-        - account
-      description: update profile
-      operationId: UpdateProfile
-      security:
-        - BearerAuth: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/Profile"
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json: 
-              schema:
-                $ref: "#/components/schemas/SimpleResult"
-        "400":
-          description: error
+
   /api/set_asread:
     post:
       tags:

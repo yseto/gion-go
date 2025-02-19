@@ -214,6 +214,9 @@ type LoginJSONRequestBody LoginJSONBody
 // OpmlImportJSONRequestBody defines body for OpmlImport for application/json ContentType.
 type OpmlImportJSONRequestBody OpmlImportJSONBody
 
+// UpdateProfileJSONRequestBody defines body for UpdateProfile for application/json ContentType.
+type UpdateProfileJSONRequestBody = Profile
+
 // RegisterCategoryJSONRequestBody defines body for RegisterCategory for application/json ContentType.
 type RegisterCategoryJSONRequestBody RegisterCategoryJSONBody
 
@@ -225,9 +228,6 @@ type SetAsReadJSONRequestBody = SetAsReadJSONBody
 
 // SetPinJSONRequestBody defines body for SetPin for application/json ContentType.
 type SetPinJSONRequestBody SetPinJSONBody
-
-// UpdateProfileJSONRequestBody defines body for UpdateProfile for application/json ContentType.
-type UpdateProfileJSONRequestBody = Profile
 
 // UnreadEntryJSONRequestBody defines body for UnreadEntry for application/json ContentType.
 type UnreadEntryJSONRequestBody UnreadEntryJSONBody

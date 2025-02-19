@@ -79,10 +79,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
-        put?: never;
         /** @description user profile */
-        post: operations["Profile"];
+        get: operations["Profile"];
+        /** @description update profile */
+        put: operations["UpdateProfile"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -287,23 +288,6 @@ export interface paths {
         put?: never;
         /** @description change subscription */
         post: operations["ChangeSubscription"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/set_profile": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** @description update profile */
-        post: operations["UpdateProfile"];
         delete?: never;
         options?: never;
         head?: never;
@@ -623,6 +607,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Profile"];
+                };
+            };
+            /** @description error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    UpdateProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["Profile"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SimpleResult"];
                 };
             };
             /** @description error */
@@ -1013,37 +1028,6 @@ export interface operations {
                      */
                     id: number;
                 };
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SimpleResult"];
-                };
-            };
-            /** @description error */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    UpdateProfile: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["Profile"];
             };
         };
         responses: {
