@@ -129,7 +129,7 @@ paths:
           description: error
 
   /api/pinned_items:
-    post:
+    get:
       tags:
         - reader
       description: return Pinned items

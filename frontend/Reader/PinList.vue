@@ -31,7 +31,7 @@ export default defineComponent({
     const togglePinList = () => {
       visibleState.value = visibleState.value ? false : true;
       if (visibleState.value) {
-        openapiFetchClient.POST("/api/pinned_items").then(data => {
+        openapiFetchClient.GET("/api/pinned_items").then(data => {
           if (data.data === undefined) {
             return
           }

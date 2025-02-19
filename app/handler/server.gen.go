@@ -48,7 +48,7 @@ type ServerInterface interface {
 	// (POST /api/opml_import)
 	OpmlImport(ctx echo.Context) error
 
-	// (POST /api/pinned_items)
+	// (GET /api/pinned_items)
 	PinnedItems(ctx echo.Context) error
 
 	// (GET /api/profile)
@@ -369,7 +369,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.POST(baseURL+"/api/logout", wrapper.Logout)
 	router.POST(baseURL+"/api/opml_export", wrapper.OpmlExport)
 	router.POST(baseURL+"/api/opml_import", wrapper.OpmlImport)
-	router.POST(baseURL+"/api/pinned_items", wrapper.PinnedItems)
+	router.GET(baseURL+"/api/pinned_items", wrapper.PinnedItems)
 	router.GET(baseURL+"/api/profile", wrapper.Profile)
 	router.PUT(baseURL+"/api/profile", wrapper.UpdateProfile)
 	router.POST(baseURL+"/api/register_category", wrapper.RegisterCategory)
@@ -969,7 +969,7 @@ type StrictServerInterface interface {
 	// (POST /api/opml_import)
 	OpmlImport(ctx context.Context, request OpmlImportRequestObject) (OpmlImportResponseObject, error)
 
-	// (POST /api/pinned_items)
+	// (GET /api/pinned_items)
 	PinnedItems(ctx context.Context, request PinnedItemsRequestObject) (PinnedItemsResponseObject, error)
 
 	// (GET /api/profile)

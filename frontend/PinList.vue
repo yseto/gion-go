@@ -61,7 +61,7 @@ export default defineComponent({
       });
     };
 
-    openapiFetchClient.POST("/api/pinned_items").then((data) => {
+    openapiFetchClient.GET("/api/pinned_items").then((data) => {
       if (data.data === undefined) {
         return
       }
