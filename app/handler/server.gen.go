@@ -72,7 +72,7 @@ type ServerInterface interface {
 	// (POST /api/set_pin)
 	SetPin(ctx echo.Context) error
 
-	// (POST /api/subscriptions)
+	// (GET /api/subscriptions)
 	Subscriptions(ctx echo.Context) error
 
 	// (GET /api/unread_entry/{category_id})
@@ -384,7 +384,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.POST(baseURL+"/api/remove_all_pin", wrapper.RemoveAllPin)
 	router.POST(baseURL+"/api/set_asread", wrapper.SetAsRead)
 	router.POST(baseURL+"/api/set_pin", wrapper.SetPin)
-	router.POST(baseURL+"/api/subscriptions", wrapper.Subscriptions)
+	router.GET(baseURL+"/api/subscriptions", wrapper.Subscriptions)
 	router.GET(baseURL+"/api/unread_entry/:category_id", wrapper.UnreadEntry)
 	router.POST(baseURL+"/api/update_password", wrapper.UpdatePassword)
 	router.GET(baseURL+"/:filename", wrapper.ServeRootFile)
@@ -1000,7 +1000,7 @@ type StrictServerInterface interface {
 	// (POST /api/set_pin)
 	SetPin(ctx context.Context, request SetPinRequestObject) (SetPinResponseObject, error)
 
-	// (POST /api/subscriptions)
+	// (GET /api/subscriptions)
 	Subscriptions(ctx context.Context, request SubscriptionsRequestObject) (SubscriptionsResponseObject, error)
 
 	// (GET /api/unread_entry/{category_id})

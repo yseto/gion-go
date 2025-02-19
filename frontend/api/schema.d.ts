@@ -318,10 +318,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
-        put?: never;
         /** @description subscription list */
-        post: operations["Subscriptions"];
+        get: operations["Subscriptions"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;

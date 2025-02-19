@@ -516,7 +516,7 @@ paths:
         "400":
           description: error
   /api/subscriptions:
-    post:
+    get:
       tags:
         - subscription
       description: subscription list
