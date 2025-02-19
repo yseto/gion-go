@@ -321,9 +321,9 @@ func (*ApiServer) DeleteSubscription(ctx context.Context, request DeleteSubscrip
 	var err error
 	db := DBUserFromContext(ctx)
 	switch deleteType {
-	case DeleteSubscriptionFormdataBodySubscriptionCategory:
+	case DeleteSubscriptionJSONBodySubscriptionCategory:
 		err = db.DeleteCategory(id)
-	case DeleteSubscriptionFormdataBodySubscriptionEntry:
+	case DeleteSubscriptionJSONBodySubscriptionEntry:
 		err = db.DeleteSubscription(id)
 	default:
 		err = fmt.Errorf("invalid type")
