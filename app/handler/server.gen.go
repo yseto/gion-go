@@ -48,10 +48,10 @@ type ServerInterface interface {
 	// (POST /api/logout)
 	Logout(ctx echo.Context) error
 
-	// (POST /api/opml_export)
+	// (GET /api/opml)
 	OpmlExport(ctx echo.Context) error
 
-	// (POST /api/opml_import)
+	// (POST /api/opml)
 	OpmlImport(ctx echo.Context) error
 
 	// (DELETE /api/pin)
@@ -404,8 +404,8 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.POST(baseURL+"/api/examine_subscription", wrapper.ExamineSubscription)
 	router.POST(baseURL+"/api/login", wrapper.Login)
 	router.POST(baseURL+"/api/logout", wrapper.Logout)
-	router.POST(baseURL+"/api/opml_export", wrapper.OpmlExport)
-	router.POST(baseURL+"/api/opml_import", wrapper.OpmlImport)
+	router.GET(baseURL+"/api/opml", wrapper.OpmlExport)
+	router.POST(baseURL+"/api/opml", wrapper.OpmlImport)
 	router.DELETE(baseURL+"/api/pin", wrapper.RemoveAllPin)
 	router.GET(baseURL+"/api/pin", wrapper.PinnedItems)
 	router.POST(baseURL+"/api/pin", wrapper.SetPin)
@@ -1046,10 +1046,10 @@ type StrictServerInterface interface {
 	// (POST /api/logout)
 	Logout(ctx context.Context, request LogoutRequestObject) (LogoutResponseObject, error)
 
-	// (POST /api/opml_export)
+	// (GET /api/opml)
 	OpmlExport(ctx context.Context, request OpmlExportRequestObject) (OpmlExportResponseObject, error)
 
-	// (POST /api/opml_import)
+	// (POST /api/opml)
 	OpmlImport(ctx context.Context, request OpmlImportRequestObject) (OpmlImportResponseObject, error)
 
 	// (DELETE /api/pin)

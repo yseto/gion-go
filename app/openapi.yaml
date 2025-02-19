@@ -285,7 +285,7 @@ paths:
                   $ref: "#/components/schemas/Subscription"
         "400":
           description: error
-  /api/opml_import:
+  /api/opml:
     post:
       tags:
         - subscription
@@ -318,8 +318,7 @@ paths:
                     type: boolean
         "400":
           description: error
-  /api/opml_export:
-    post:
+    get:
       tags:
         - subscription
       description: export subscription via opml document

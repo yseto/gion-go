@@ -45,7 +45,7 @@ export default defineComponent({
           if (reader.result === null) {
             return
           }
-          openapiFetchClient.POST("/api/opml_import", {
+          openapiFetchClient.POST("/api/opml", {
             body: {
               xml: reader.result.toString(),
             },
@@ -58,7 +58,7 @@ export default defineComponent({
       }
     };
     const opmlExport = () => {
-      openapiFetchClient.POST("/api/opml_export").then((data) => {
+      openapiFetchClient.GET("/api/opml").then((data) => {
         if (data.data === undefined) {
           return
         }

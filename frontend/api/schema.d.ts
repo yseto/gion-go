@@ -160,34 +160,18 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/opml_import": {
+    "/api/opml": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** @description export subscription via opml document */
+        get: operations["OpmlExport"];
         put?: never;
         /** @description import opml into subscription */
         post: operations["OpmlImport"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/opml_export": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** @description export subscription via opml document */
-        post: operations["OpmlExport"];
         delete?: never;
         options?: never;
         head?: never;
@@ -800,6 +784,36 @@ export interface operations {
             };
         };
     };
+    OpmlExport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description XML document */
+                        xml: string;
+                    };
+                };
+            };
+            /** @description error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     OpmlImport: {
         parameters: {
             query?: never;
@@ -824,36 +838,6 @@ export interface operations {
                 content: {
                     "application/json": {
                         done: boolean;
-                    };
-                };
-            };
-            /** @description error */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    OpmlExport: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description XML document */
-                        xml: string;
                     };
                 };
             };
