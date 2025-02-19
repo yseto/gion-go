@@ -530,13 +530,6 @@ export interface operations {
                     "application/json": components["schemas"]["Profile"];
                 };
             };
-            /** @description error */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
         };
     };
     UpdateProfile: {
@@ -618,13 +611,6 @@ export interface operations {
                     "application/json": components["schemas"]["UnreadEntry"][];
                 };
             };
-            /** @description error */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
         };
     };
     Categories: {
@@ -644,13 +630,6 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["Category"][];
                 };
-            };
-            /** @description error */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
         };
     };
@@ -711,13 +690,6 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["Subscription"][];
                 };
-            };
-            /** @description error */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
         };
     };
@@ -789,13 +761,6 @@ export interface operations {
                     };
                 };
             };
-            /** @description error */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
         };
     };
     OpmlImport: {
@@ -824,13 +789,6 @@ export interface operations {
                         done: boolean;
                     };
                 };
-            };
-            /** @description error */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
         };
     };
@@ -889,13 +847,6 @@ export interface operations {
                     "application/json": components["schemas"]["SimpleResult"];
                 };
             };
-            /** @description error */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
         };
     };
     DeleteSubscription: {
@@ -919,13 +870,6 @@ export interface operations {
                     "application/json": components["schemas"]["SimpleResult"];
                 };
             };
-            /** @description error */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
         };
     };
     DeleteCategory: {
@@ -948,13 +892,6 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["SimpleResult"];
                 };
-            };
-            /** @description error */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
         };
     };
@@ -1007,13 +944,6 @@ export interface operations {
                     "application/json": components["schemas"]["PinnedItem"][];
                 };
             };
-            /** @description error */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
         };
     };
     SetPin: {
@@ -1048,13 +978,6 @@ export interface operations {
                     };
                 };
             };
-            /** @description error */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
         };
     };
     RemoveAllPin: {
@@ -1074,13 +997,6 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["SimpleResult"];
                 };
-            };
-            /** @description error */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
         };
     };
@@ -1109,13 +1025,6 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["SimpleResult"];
                 };
-            };
-            /** @description error */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
         };
     };

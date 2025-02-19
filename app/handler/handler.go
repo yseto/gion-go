@@ -36,7 +36,7 @@ var _ StrictServerInterface = (*ApiServer)(nil)
 func (*ApiServer) PinnedItems(ctx context.Context, request PinnedItemsRequestObject) (PinnedItemsResponseObject, error) {
 	pins, err := DBUserFromContext(ctx).PinnedItems()
 	if err != nil {
-		return PinnedItems400Response{}, nil
+		return nil, err
 	}
 
 	items := []PinnedItem{}
@@ -56,7 +56,7 @@ func (*ApiServer) PinnedItems(ctx context.Context, request PinnedItemsRequestObj
 func (*ApiServer) Profile(ctx context.Context, request ProfileRequestObject) (ProfileResponseObject, error) {
 	pin, err := DBUserFromContext(ctx).Profile()
 	if err != nil {
-		return Profile400Response{}, nil
+		return nil, err
 	}
 	return Profile200JSONResponse(Profile{
 		Autoseen:           pin.AutoSeen,
@@ -69,7 +69,7 @@ func (*ApiServer) Profile(ctx context.Context, request ProfileRequestObject) (Pr
 func (*ApiServer) Categories(ctx context.Context, request CategoriesRequestObject) (CategoriesResponseObject, error) {
 	cats, err := DBUserFromContext(ctx).Category()
 	if err != nil {
-		return Categories400Response{}, nil
+		return nil, err
 	}
 
 	items := []Category{}
@@ -105,12 +105,12 @@ func (*ApiServer) UnreadEntry(ctx context.Context, request UnreadEntryRequestObj
 	db := DBUserFromContext(ctx)
 	u, err := db.Profile()
 	if err != nil {
-		return UnreadEntry400Response{}, nil
+		return nil, err
 	}
 
 	cat, err := db.UnreadEntryByCategory(request.CategoryId)
 	if err != nil {
-		return UnreadEntry400Response{}, nil
+		return nil, err
 	}
 
 	if u.EntryCount > 0 && len(cat) > int(u.EntryCount) {
@@ -145,11 +145,11 @@ func (*ApiServer) Subscriptions(ctx context.Context, request SubscriptionsReques
 	dbClient := DBUserFromContext(ctx)
 	subs, err := dbClient.Subscriptions()
 	if err != nil {
-		return Subscriptions400Response{}, nil
+		return nil, err
 	}
 	cat, err := dbClient.Category()
 	if err != nil {
-		return Subscriptions400Response{}, nil
+		return nil, err
 	}
 
 	var resp []Subscription
@@ -186,9 +186,8 @@ func (*ApiServer) SetAsRead(ctx context.Context, request SetAsReadRequestObject)
 
 	db := DBUserFromContext(ctx)
 	for _, i := range *request.Body {
-		err := db.UpdateEntrySeen(i.FeedID, i.Serial)
-		if err != nil {
-			return SetAsRead400Response{}, nil
+		if err := db.UpdateEntrySeen(i.FeedID, i.Serial); err != nil {
+			return nil, err
 		}
 	}
 	return SetAsRead200JSONResponse{Result: "OK"}, nil
@@ -205,13 +204,12 @@ func (*ApiServer) SetPin(ctx context.Context, request SetPinRequestObject) (SetP
 	fmt.Printf("PIN feed_id:%d\tserial:%d\treadflag:%s\n", request.Body.FeedId, request.Body.Serial, readflag)
 
 	tx := DBUserFromContext(ctx).MustBegin()
-	if tx.UpdateEntry(request.Body.FeedId, request.Body.Serial, readflag) != nil {
+	if err := tx.UpdateEntry(request.Body.FeedId, request.Body.Serial, readflag); err != nil {
 		tx.Rollback()
-		return SetPin400Response{}, nil
+		return nil, err
 	}
-	tx.Commit()
 
-	return SetPin200JSONResponse{readflag}, nil
+	return SetPin200JSONResponse{readflag}, tx.Commit()
 }
 
 func (*ApiServer) RegisterCategory(ctx context.Context, request RegisterCategoryRequestObject) (RegisterCategoryResponseObject, error) {
@@ -225,20 +223,18 @@ func (*ApiServer) RegisterCategory(ctx context.Context, request RegisterCategory
 	cat, err := tx.CategoryByName(categoryName)
 	if err != nil && err != sql.ErrNoRows {
 		tx.Rollback()
-		return RegisterCategory400Response{}, nil
+		return nil, err
 	}
 	if cat != nil {
-		tx.Commit()
-		return RegisterCategory409Response{}, nil
+		return RegisterCategory409Response{}, tx.Commit()
 	}
 
 	if err = tx.InsertCategory(categoryName); err != nil {
 		tx.Rollback()
-		return RegisterCategory400Response{}, nil
+		return nil, err
 	}
-	tx.Commit()
 
-	return RegisterCategory200JSONResponse{Result: "OK"}, nil
+	return RegisterCategory200JSONResponse{Result: "OK"}, tx.Commit()
 }
 
 func insertFeed(ctx context.Context, rssUrl, siteUrl, title string) (*db.Feed, error) {
@@ -249,8 +245,7 @@ func insertFeed(ctx context.Context, rssUrl, siteUrl, title string) (*db.Feed, e
 		return nil, err
 	}
 	if feed != nil {
-		tx.Commit()
-		return feed, nil
+		return feed, tx.Commit()
 	}
 
 	err = tx.InsertFeed(rssUrl, siteUrl, title)
@@ -264,8 +259,8 @@ func insertFeed(ctx context.Context, rssUrl, siteUrl, title string) (*db.Feed, e
 		tx.Rollback()
 		return nil, err
 	}
-	tx.Commit()
-	return feed, nil
+
+	return feed, tx.Commit()
 }
 
 func (*ApiServer) RegisterSubscription(ctx context.Context, request RegisterSubscriptionRequestObject) (RegisterSubscriptionResponseObject, error) {
@@ -279,7 +274,7 @@ func (*ApiServer) RegisterSubscription(ctx context.Context, request RegisterSubs
 
 	feed, err := insertFeed(ctx, rssUrl.String(), siteUrl.String(), title)
 	if err != nil {
-		return RegisterSubscription400Response{}, nil
+		return nil, err
 	}
 
 	db := DBUserFromContext(ctx)
@@ -287,7 +282,7 @@ func (*ApiServer) RegisterSubscription(ctx context.Context, request RegisterSubs
 	sub, err := tx.SubscriptionByFeedID(feed.ID)
 	if err != nil && err != sql.ErrNoRows {
 		tx.Rollback()
-		return RegisterSubscription400Response{}, nil
+		return nil, err
 	}
 	if sub != nil {
 		tx.Rollback()
@@ -297,25 +292,24 @@ func (*ApiServer) RegisterSubscription(ctx context.Context, request RegisterSubs
 	cat, err := db.CategoryByID(category)
 	if err != nil {
 		tx.Rollback()
-		return RegisterSubscription400Response{}, nil
+		return nil, err
 	}
 	if cat == nil {
 		tx.Rollback()
-		return RegisterSubscription400Response{}, nil
+		return nil, err
 	}
-	if tx.InsertSubscription(feed.ID, cat.ID) != nil {
+	if err := tx.InsertSubscription(feed.ID, cat.ID); err != nil {
 		tx.Rollback()
-		return RegisterSubscription400Response{}, nil
+		return nil, err
 	}
-	tx.Commit()
 
-	return RegisterSubscription200JSONResponse{"OK"}, nil
+	return RegisterSubscription200JSONResponse{"OK"}, tx.Commit()
 }
 
 func (*ApiServer) DeleteSubscription(ctx context.Context, request DeleteSubscriptionRequestObject) (DeleteSubscriptionResponseObject, error) {
 	db := DBUserFromContext(ctx)
 	if err := db.DeleteSubscription(request.Id); err != nil {
-		return DeleteSubscription400Response{}, nil
+		return nil, err
 	}
 	return DeleteSubscription200JSONResponse{Result: "OK"}, nil
 }
@@ -323,14 +317,14 @@ func (*ApiServer) DeleteSubscription(ctx context.Context, request DeleteSubscrip
 func (*ApiServer) DeleteCategory(ctx context.Context, request DeleteCategoryRequestObject) (DeleteCategoryResponseObject, error) {
 	db := DBUserFromContext(ctx)
 	if err := db.DeleteCategory(request.Id); err != nil {
-		return DeleteCategory400Response{}, nil
+		return nil, err
 	}
 	return DeleteCategory200JSONResponse{Result: "OK"}, nil
 }
 
 func (*ApiServer) ChangeSubscription(ctx context.Context, request ChangeSubscriptionRequestObject) (ChangeSubscriptionResponseObject, error) {
-	if DBUserFromContext(ctx).UpdateSubscription(request.Id, request.Body.Category) != nil {
-		return ChangeSubscription400Response{}, nil
+	if err := DBUserFromContext(ctx).UpdateSubscription(request.Id, request.Body.Category); err != nil {
+		return nil, err
 	}
 	return ChangeSubscription200JSONResponse{Result: "OK"}, nil
 }
@@ -354,8 +348,8 @@ func (*ApiServer) UpdateProfile(ctx context.Context, request UpdateProfileReques
 }
 
 func (*ApiServer) RemoveAllPin(ctx context.Context, request RemoveAllPinRequestObject) (RemoveAllPinResponseObject, error) {
-	if DBUserFromContext(ctx).RemovePinnedItem() != nil {
-		return RemoveAllPin400Response{}, nil
+	if err := DBUserFromContext(ctx).RemovePinnedItem(); err != nil {
+		return nil, err
 	}
 	return RemoveAllPin200JSONResponse{Result: "OK"}, nil
 }
@@ -470,14 +464,14 @@ func (*ApiServer) OpmlExport(ctx context.Context, request OpmlExportRequestObjec
 	db := DBUserFromContext(ctx)
 	cats, err := db.Category()
 	if err != nil {
-		return OpmlExport400Response{}, nil
+		return nil, err
 	}
 
 	o := opml.Body{}
 	for i := range cats {
 		feeds, err := db.FeedsByCategoryID(cats[i].ID)
 		if err != nil {
-			return OpmlExport400Response{}, nil
+			return nil, err
 		}
 
 		b := opml.Outline{Text: cats[i].Name, Title: cats[i].Name}
@@ -494,7 +488,7 @@ func (*ApiServer) OpmlExport(ctx context.Context, request OpmlExportRequestObjec
 
 	xml, err := opml.OPML{Version: "1.0", Head: opml.Head{Title: "export data"}, Body: o}.XML()
 	if err != nil {
-		return OpmlExport400Response{}, nil
+		return nil, err
 	}
 
 	return OpmlExport200JSONResponse{Xml: xml}, nil
@@ -509,8 +503,7 @@ func categoryByName(ctx context.Context, categoryName string) (*db.Category, err
 		return nil, err
 	}
 	if cat != nil {
-		tx.Commit()
-		return cat, nil
+		return cat, tx.Commit()
 	}
 
 	err = tx.InsertCategory(categoryName)
@@ -524,8 +517,7 @@ func categoryByName(ctx context.Context, categoryName string) (*db.Category, err
 		tx.Rollback()
 		return nil, err
 	}
-	tx.Commit()
-	return cat, nil
+	return cat, tx.Commit()
 }
 
 func saveOutline(ctx context.Context, categoryName string, o opml.Outline) error {
@@ -553,8 +545,7 @@ func saveOutline(ctx context.Context, categoryName string, o opml.Outline) error
 	}
 	if sub != nil {
 		fmt.Printf("already registered : %s\n", o.Title)
-		tx.Commit()
-		return nil
+		return tx.Commit()
 	}
 
 	if err = tx.InsertSubscription(feed.ID, category.ID); err != nil {
@@ -562,9 +553,7 @@ func saveOutline(ctx context.Context, categoryName string, o opml.Outline) error
 		return err
 	}
 	fmt.Printf("registered : %s\n", o.Title)
-	tx.Commit()
-
-	return nil
+	return tx.Commit()
 }
 
 func walkOutlines(ctx context.Context, categoryName string, o []opml.Outline) error {
@@ -584,11 +573,11 @@ func walkOutlines(ctx context.Context, categoryName string, o []opml.Outline) er
 func (*ApiServer) OpmlImport(ctx context.Context, request OpmlImportRequestObject) (OpmlImportResponseObject, error) {
 	o, err := opml.NewOPML([]byte(request.Body.Xml))
 	if err != nil {
-		return OpmlImport400Response{}, nil
+		return nil, err
 	}
 
-	if err = walkOutlines(ctx, "Default Category", o.Outlines()); err != nil {
-		return OpmlImport400Response{}, nil
+	if err := walkOutlines(ctx, "Default Category", o.Outlines()); err != nil {
+		return nil, err
 	}
 
 	return OpmlImport200JSONResponse{true}, nil
@@ -681,7 +670,7 @@ func (*ApiServer) UpdatePassword(ctx context.Context, request UpdatePasswordRequ
 	db := DBUserFromContext(ctx)
 	user, err := db.User()
 	if err != nil {
-		return UpdatePassword400Response{}, nil
+		return nil, err
 	}
 
 	if check := bcrypt.CompareHashAndPassword([]byte(user.Digest), []byte(passwordOld)); check != nil {
@@ -690,11 +679,11 @@ func (*ApiServer) UpdatePassword(ctx context.Context, request UpdatePasswordRequ
 
 	newDigest, err := bcrypt.GenerateFromPassword([]byte(password), 8)
 	if err != nil {
-		return UpdatePassword400Response{}, nil
+		return nil, err
 	}
 
-	if db.UpdateUserDigest(string(newDigest)) != nil {
-		return UpdatePassword400Response{}, nil
+	if err := db.UpdateUserDigest(string(newDigest)); err != nil {
+		return nil, err
 	}
 	return UpdatePassword200JSONResponse{Result: "update password"}, nil
 }

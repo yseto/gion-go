@@ -104,8 +104,6 @@ paths:
             application/json: 
               schema:
                 $ref: "#/components/schemas/Profile"
-        "400":
-          description: error
     put:
       tags:
         - account
@@ -173,10 +171,7 @@ paths:
               schema:
                 type: array
                 items:
-                  type:
                   $ref: "#/components/schemas/UnreadEntry"
-        "400":
-          description: error
   /api/category:
     post:
       tags:
@@ -221,10 +216,7 @@ paths:
               schema:
                 type: array
                 items:
-                  type:
                   $ref: "#/components/schemas/Category"
-        "400":
-          description: error
   /api/subscription:
     post:
       tags:
@@ -283,8 +275,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Subscription"
-        "400":
-          description: error
   /api/opml:
     post:
       tags:
@@ -316,8 +306,6 @@ paths:
                 properties:
                   done:
                     type: boolean
-        "400":
-          description: error
     get:
       tags:
         - subscription
@@ -338,8 +326,6 @@ paths:
                   xml:
                     type: string
                     description: XML document
-        "400":
-          description: error
   /api/examine_subscription:
     post:
       tags:
@@ -389,8 +375,6 @@ paths:
             application/json: 
               schema:
                 $ref: "#/components/schemas/SimpleResult"
-        "400":
-          description: error
     put:
       tags:
         - subscription
@@ -424,8 +408,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SimpleResult"
-        "400":
-          description: error
   /api/category/{id}:
     delete:
       tags:
@@ -449,8 +431,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SimpleResult"
-        "400":
-          description: error
   /api/pin/asread:
     post:
       tags:
@@ -490,8 +470,6 @@ paths:
             application/json: 
               schema:
                 $ref: "#/components/schemas/SimpleResult"
-        "400":
-          description: error
     post:
       tags:
         - reader
@@ -545,8 +523,6 @@ paths:
                     x-go-type-import:
                       name: pin
                       path: github.com/yseto/gion-go/internal/pin
-        "400":
-          description: error
     get:
       tags:
         - reader
@@ -564,8 +540,6 @@ paths:
                 items:
                   type:
                   $ref: "#/components/schemas/PinnedItem"
-        "400":
-          description: error
 
   /api/update_password:
     post:
@@ -595,11 +569,9 @@ paths:
         "200":
           description: OK
           content:
-            application/json: 
+            application/json:
               schema:
                 $ref: "#/components/schemas/SimpleResult"
-        "400":
-          description: error
 components:
   schemas:
     Authorization:
