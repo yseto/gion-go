@@ -45,7 +45,7 @@ export default defineComponent({
     const categorySuccess = ref(false);
 
     const registerCategory = () => {
-      openapiFetchClient.POST("/api/register_category", {
+      openapiFetchClient.POST("/api/category", {
         body: {
           name: inputCategoryName.value,
         },

@@ -115,6 +115,11 @@ type UnreadEntry struct {
 	Url            string       `json:"url"`
 }
 
+// RegisterCategoryJSONBody defines parameters for RegisterCategory.
+type RegisterCategoryJSONBody struct {
+	Name string `json:"name"`
+}
+
 // ChangeSubscriptionJSONBody defines parameters for ChangeSubscription.
 type ChangeSubscriptionJSONBody struct {
 	Category uint64 `json:"category"`
@@ -148,10 +153,8 @@ type SetPinJSONBody struct {
 	Serial   uint64       `json:"serial"`
 }
 
-// RegisterCategoryJSONBody defines parameters for RegisterCategory.
-type RegisterCategoryJSONBody struct {
-	Name string `json:"name"`
-}
+// SetAsReadJSONBody defines parameters for SetAsRead.
+type SetAsReadJSONBody = []AsRead
 
 // RegisterSubscriptionJSONBody defines parameters for RegisterSubscription.
 type RegisterSubscriptionJSONBody struct {
@@ -167,15 +170,15 @@ type RegisterSubscriptionJSONBody struct {
 	Url string `json:"url"`
 }
 
-// SetAsReadJSONBody defines parameters for SetAsRead.
-type SetAsReadJSONBody = []AsRead
-
 // UpdatePasswordJSONBody defines parameters for UpdatePassword.
 type UpdatePasswordJSONBody struct {
 	Password    string `json:"password"`
 	PasswordOld string `json:"password_old"`
 	Passwordc   string `json:"passwordc"`
 }
+
+// RegisterCategoryJSONRequestBody defines body for RegisterCategory for application/json ContentType.
+type RegisterCategoryJSONRequestBody RegisterCategoryJSONBody
 
 // ChangeSubscriptionJSONRequestBody defines body for ChangeSubscription for application/json ContentType.
 type ChangeSubscriptionJSONRequestBody ChangeSubscriptionJSONBody
@@ -195,14 +198,11 @@ type SetPinJSONRequestBody SetPinJSONBody
 // UpdateProfileJSONRequestBody defines body for UpdateProfile for application/json ContentType.
 type UpdateProfileJSONRequestBody = Profile
 
-// RegisterCategoryJSONRequestBody defines body for RegisterCategory for application/json ContentType.
-type RegisterCategoryJSONRequestBody RegisterCategoryJSONBody
+// SetAsReadJSONRequestBody defines body for SetAsRead for application/json ContentType.
+type SetAsReadJSONRequestBody = SetAsReadJSONBody
 
 // RegisterSubscriptionJSONRequestBody defines body for RegisterSubscription for application/json ContentType.
 type RegisterSubscriptionJSONRequestBody RegisterSubscriptionJSONBody
-
-// SetAsReadJSONRequestBody defines body for SetAsRead for application/json ContentType.
-type SetAsReadJSONRequestBody = SetAsReadJSONBody
 
 // UpdatePasswordJSONRequestBody defines body for UpdatePassword for application/json ContentType.
 type UpdatePasswordJSONRequestBody UpdatePasswordJSONBody

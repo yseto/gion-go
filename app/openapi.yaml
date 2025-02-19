@@ -177,7 +177,7 @@ paths:
                   $ref: "#/components/schemas/UnreadEntry"
         "400":
           description: error
-  /api/register_category:
+  /api/category:
     post:
       tags:
         - subscription
@@ -224,7 +224,7 @@ paths:
                   $ref: "#/components/schemas/Category"
         "400":
           description: error
-  /api/register_subscription:
+  /api/subscription:
     post:
       tags:
         - subscription

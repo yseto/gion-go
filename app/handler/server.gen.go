@@ -24,6 +24,9 @@ type ServerInterface interface {
 	// (GET /api/categories)
 	Categories(ctx echo.Context) error
 
+	// (POST /api/category)
+	RegisterCategory(ctx echo.Context) error
+
 	// (DELETE /api/category/{id})
 	DeleteCategory(ctx echo.Context, id uint64) error
 
@@ -63,14 +66,11 @@ type ServerInterface interface {
 	// (PUT /api/profile)
 	UpdateProfile(ctx echo.Context) error
 
-	// (POST /api/register_category)
-	RegisterCategory(ctx echo.Context) error
-
-	// (POST /api/register_subscription)
-	RegisterSubscription(ctx echo.Context) error
-
 	// (POST /api/set_asread)
 	SetAsRead(ctx echo.Context) error
+
+	// (POST /api/subscription)
+	RegisterSubscription(ctx echo.Context) error
 
 	// (DELETE /api/subscription/{id})
 	DeleteSubscription(ctx echo.Context, id uint64) error
@@ -110,6 +110,17 @@ func (w *ServerInterfaceWrapper) Categories(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshalled arguments
 	err = w.Handler.Categories(ctx)
+	return err
+}
+
+// RegisterCategory converts echo context to params.
+func (w *ServerInterfaceWrapper) RegisterCategory(ctx echo.Context) error {
+	var err error
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshalled arguments
+	err = w.Handler.RegisterCategory(ctx)
 	return err
 }
 
@@ -259,14 +270,14 @@ func (w *ServerInterfaceWrapper) UpdateProfile(ctx echo.Context) error {
 	return err
 }
 
-// RegisterCategory converts echo context to params.
-func (w *ServerInterfaceWrapper) RegisterCategory(ctx echo.Context) error {
+// SetAsRead converts echo context to params.
+func (w *ServerInterfaceWrapper) SetAsRead(ctx echo.Context) error {
 	var err error
 
 	ctx.Set(BearerAuthScopes, []string{})
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.RegisterCategory(ctx)
+	err = w.Handler.SetAsRead(ctx)
 	return err
 }
 
@@ -278,17 +289,6 @@ func (w *ServerInterfaceWrapper) RegisterSubscription(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshalled arguments
 	err = w.Handler.RegisterSubscription(ctx)
-	return err
-}
-
-// SetAsRead converts echo context to params.
-func (w *ServerInterfaceWrapper) SetAsRead(ctx echo.Context) error {
-	var err error
-
-	ctx.Set(BearerAuthScopes, []string{})
-
-	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.SetAsRead(ctx)
 	return err
 }
 
@@ -396,6 +396,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 
 	router.GET(baseURL+"/", wrapper.Index)
 	router.GET(baseURL+"/api/categories", wrapper.Categories)
+	router.POST(baseURL+"/api/category", wrapper.RegisterCategory)
 	router.DELETE(baseURL+"/api/category/:id", wrapper.DeleteCategory)
 	router.GET(baseURL+"/api/category_with_count", wrapper.CategoryAndUnreadEntryCount)
 	router.POST(baseURL+"/api/change_subscription", wrapper.ChangeSubscription)
@@ -409,9 +410,8 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.POST(baseURL+"/api/pin", wrapper.SetPin)
 	router.GET(baseURL+"/api/profile", wrapper.Profile)
 	router.PUT(baseURL+"/api/profile", wrapper.UpdateProfile)
-	router.POST(baseURL+"/api/register_category", wrapper.RegisterCategory)
-	router.POST(baseURL+"/api/register_subscription", wrapper.RegisterSubscription)
 	router.POST(baseURL+"/api/set_asread", wrapper.SetAsRead)
+	router.POST(baseURL+"/api/subscription", wrapper.RegisterSubscription)
 	router.DELETE(baseURL+"/api/subscription/:id", wrapper.DeleteSubscription)
 	router.GET(baseURL+"/api/subscriptions", wrapper.Subscriptions)
 	router.GET(baseURL+"/api/unread_entry/:category_id", wrapper.UnreadEntry)
@@ -466,6 +466,31 @@ type Categories400Response struct {
 }
 
 func (response Categories400Response) VisitCategoriesResponse(w http.ResponseWriter) error {
+	w.WriteHeader(400)
+	return nil
+}
+
+type RegisterCategoryRequestObject struct {
+	Body *RegisterCategoryJSONRequestBody
+}
+
+type RegisterCategoryResponseObject interface {
+	VisitRegisterCategoryResponse(w http.ResponseWriter) error
+}
+
+type RegisterCategory200JSONResponse SimpleResult
+
+func (response RegisterCategory200JSONResponse) VisitRegisterCategoryResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type RegisterCategory400Response struct {
+}
+
+func (response RegisterCategory400Response) VisitRegisterCategoryResponse(w http.ResponseWriter) error {
 	w.WriteHeader(400)
 	return nil
 }
@@ -788,27 +813,27 @@ func (response UpdateProfile400Response) VisitUpdateProfileResponse(w http.Respo
 	return nil
 }
 
-type RegisterCategoryRequestObject struct {
-	Body *RegisterCategoryJSONRequestBody
+type SetAsReadRequestObject struct {
+	Body *SetAsReadJSONRequestBody
 }
 
-type RegisterCategoryResponseObject interface {
-	VisitRegisterCategoryResponse(w http.ResponseWriter) error
+type SetAsReadResponseObject interface {
+	VisitSetAsReadResponse(w http.ResponseWriter) error
 }
 
-type RegisterCategory200JSONResponse SimpleResult
+type SetAsRead200JSONResponse SimpleResult
 
-func (response RegisterCategory200JSONResponse) VisitRegisterCategoryResponse(w http.ResponseWriter) error {
+func (response SetAsRead200JSONResponse) VisitSetAsReadResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
 
 	return json.NewEncoder(w).Encode(response)
 }
 
-type RegisterCategory400Response struct {
+type SetAsRead400Response struct {
 }
 
-func (response RegisterCategory400Response) VisitRegisterCategoryResponse(w http.ResponseWriter) error {
+func (response SetAsRead400Response) VisitSetAsReadResponse(w http.ResponseWriter) error {
 	w.WriteHeader(400)
 	return nil
 }
@@ -834,31 +859,6 @@ type RegisterSubscription400Response struct {
 }
 
 func (response RegisterSubscription400Response) VisitRegisterSubscriptionResponse(w http.ResponseWriter) error {
-	w.WriteHeader(400)
-	return nil
-}
-
-type SetAsReadRequestObject struct {
-	Body *SetAsReadJSONRequestBody
-}
-
-type SetAsReadResponseObject interface {
-	VisitSetAsReadResponse(w http.ResponseWriter) error
-}
-
-type SetAsRead200JSONResponse SimpleResult
-
-func (response SetAsRead200JSONResponse) VisitSetAsReadResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(200)
-
-	return json.NewEncoder(w).Encode(response)
-}
-
-type SetAsRead400Response struct {
-}
-
-func (response SetAsRead400Response) VisitSetAsReadResponse(w http.ResponseWriter) error {
 	w.WriteHeader(400)
 	return nil
 }
@@ -1006,6 +1006,9 @@ type StrictServerInterface interface {
 	// (GET /api/categories)
 	Categories(ctx context.Context, request CategoriesRequestObject) (CategoriesResponseObject, error)
 
+	// (POST /api/category)
+	RegisterCategory(ctx context.Context, request RegisterCategoryRequestObject) (RegisterCategoryResponseObject, error)
+
 	// (DELETE /api/category/{id})
 	DeleteCategory(ctx context.Context, request DeleteCategoryRequestObject) (DeleteCategoryResponseObject, error)
 
@@ -1045,14 +1048,11 @@ type StrictServerInterface interface {
 	// (PUT /api/profile)
 	UpdateProfile(ctx context.Context, request UpdateProfileRequestObject) (UpdateProfileResponseObject, error)
 
-	// (POST /api/register_category)
-	RegisterCategory(ctx context.Context, request RegisterCategoryRequestObject) (RegisterCategoryResponseObject, error)
-
-	// (POST /api/register_subscription)
-	RegisterSubscription(ctx context.Context, request RegisterSubscriptionRequestObject) (RegisterSubscriptionResponseObject, error)
-
 	// (POST /api/set_asread)
 	SetAsRead(ctx context.Context, request SetAsReadRequestObject) (SetAsReadResponseObject, error)
+
+	// (POST /api/subscription)
+	RegisterSubscription(ctx context.Context, request RegisterSubscriptionRequestObject) (RegisterSubscriptionResponseObject, error)
 
 	// (DELETE /api/subscription/{id})
 	DeleteSubscription(ctx context.Context, request DeleteSubscriptionRequestObject) (DeleteSubscriptionResponseObject, error)
@@ -1122,6 +1122,35 @@ func (sh *strictHandler) Categories(ctx echo.Context) error {
 		return err
 	} else if validResponse, ok := response.(CategoriesResponseObject); ok {
 		return validResponse.VisitCategoriesResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("Unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// RegisterCategory operation middleware
+func (sh *strictHandler) RegisterCategory(ctx echo.Context) error {
+	var request RegisterCategoryRequestObject
+
+	var body RegisterCategoryJSONRequestBody
+	if err := ctx.Bind(&body); err != nil {
+		return err
+	}
+	request.Body = &body
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.RegisterCategory(ctx.Request().Context(), request.(RegisterCategoryRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "RegisterCategory")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(RegisterCategoryResponseObject); ok {
+		return validResponse.VisitRegisterCategoryResponse(ctx.Response())
 	} else if response != nil {
 		return fmt.Errorf("Unexpected response type: %T", response)
 	}
@@ -1465,29 +1494,29 @@ func (sh *strictHandler) UpdateProfile(ctx echo.Context) error {
 	return nil
 }
 
-// RegisterCategory operation middleware
-func (sh *strictHandler) RegisterCategory(ctx echo.Context) error {
-	var request RegisterCategoryRequestObject
+// SetAsRead operation middleware
+func (sh *strictHandler) SetAsRead(ctx echo.Context) error {
+	var request SetAsReadRequestObject
 
-	var body RegisterCategoryJSONRequestBody
+	var body SetAsReadJSONRequestBody
 	if err := ctx.Bind(&body); err != nil {
 		return err
 	}
 	request.Body = &body
 
 	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.RegisterCategory(ctx.Request().Context(), request.(RegisterCategoryRequestObject))
+		return sh.ssi.SetAsRead(ctx.Request().Context(), request.(SetAsReadRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "RegisterCategory")
+		handler = middleware(handler, "SetAsRead")
 	}
 
 	response, err := handler(ctx, request)
 
 	if err != nil {
 		return err
-	} else if validResponse, ok := response.(RegisterCategoryResponseObject); ok {
-		return validResponse.VisitRegisterCategoryResponse(ctx.Response())
+	} else if validResponse, ok := response.(SetAsReadResponseObject); ok {
+		return validResponse.VisitSetAsReadResponse(ctx.Response())
 	} else if response != nil {
 		return fmt.Errorf("Unexpected response type: %T", response)
 	}
@@ -1517,35 +1546,6 @@ func (sh *strictHandler) RegisterSubscription(ctx echo.Context) error {
 		return err
 	} else if validResponse, ok := response.(RegisterSubscriptionResponseObject); ok {
 		return validResponse.VisitRegisterSubscriptionResponse(ctx.Response())
-	} else if response != nil {
-		return fmt.Errorf("Unexpected response type: %T", response)
-	}
-	return nil
-}
-
-// SetAsRead operation middleware
-func (sh *strictHandler) SetAsRead(ctx echo.Context) error {
-	var request SetAsReadRequestObject
-
-	var body SetAsReadJSONRequestBody
-	if err := ctx.Bind(&body); err != nil {
-		return err
-	}
-	request.Body = &body
-
-	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.SetAsRead(ctx.Request().Context(), request.(SetAsReadRequestObject))
-	}
-	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "SetAsRead")
-	}
-
-	response, err := handler(ctx, request)
-
-	if err != nil {
-		return err
-	} else if validResponse, ok := response.(SetAsReadResponseObject); ok {
-		return validResponse.VisitSetAsReadResponse(ctx.Response())
 	} else if response != nil {
 		return fmt.Errorf("Unexpected response type: %T", response)
 	}

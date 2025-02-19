@@ -201,7 +201,7 @@ export default defineComponent({
     };
 
     const registerFeed = () => {
-      openapiFetchClient.POST( "/api/register_subscription",{
+      openapiFetchClient.POST( "/api/subscription",{
         body: {
           ...site,
           category: category.value,

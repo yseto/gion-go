@@ -124,7 +124,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/register_category": {
+    "/api/category": {
         parameters: {
             query?: never;
             header?: never;
@@ -158,7 +158,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/register_subscription": {
+    "/api/subscription": {
         parameters: {
             query?: never;
             header?: never;
