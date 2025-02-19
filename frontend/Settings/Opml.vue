@@ -30,7 +30,7 @@
 <script lang="ts">
 import fileDownload from "js-file-download";
 import { defineComponent, ref } from "vue";
-import { Agent } from "../UserAgent";
+import { openapiFetchClient } from "../UserAgent";
 export default defineComponent({
   setup: () => {
     const fileElement = ref<HTMLInputElement | null>(null);
@@ -42,10 +42,12 @@ export default defineComponent({
       reader.addEventListener(
         "load",
         function () {
-          Agent({
-            url: "/api/opml_import",
-            data: {
-              xml: reader.result,
+          if (reader.result === null) {
+            return
+          }
+          openapiFetchClient.POST("/api/opml_import", {
+            body: {
+              xml: reader.result.toString(),
             },
           }).then(() => alert("sending done."));
         },
@@ -56,8 +58,11 @@ export default defineComponent({
       }
     };
     const opmlExport = () => {
-      Agent<{ xml: string }>({ url: "/api/opml_export" }).then((data) => {
-        fileDownload(data.xml, "opml.xml");
+      openapiFetchClient.POST("/api/opml_export").then((data) => {
+        if (data.data === undefined) {
+          return
+        }
+        fileDownload(data.data?.xml, "opml.xml");
       });
     };
     return {

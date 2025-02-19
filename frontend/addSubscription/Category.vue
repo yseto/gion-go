@@ -37,7 +37,7 @@
 
 <script lang="ts">
 import { defineComponent, ref } from "vue";
-import { Agent } from "../UserAgent";
+import { openapiFetchClient } from "../UserAgent";
 export default defineComponent({
   emits: ["fetch-list"],
   setup: (_, context) => {
@@ -45,13 +45,12 @@ export default defineComponent({
     const categorySuccess = ref(false);
 
     const registerCategory = () => {
-      Agent<{ result: string }>({
-        url: "/api/register_category",
-        data: {
+      openapiFetchClient.POST("/api/register_category", {
+        body: {
           name: inputCategoryName.value,
         },
       }).then((data) => {
-        if (data.result === "ERROR_ALREADY_REGISTER") {
+        if (data.data?.result === "ERROR_ALREADY_REGISTER") {
           alert("すでに登録されています。");
         } else {
           context.emit("fetch-list");

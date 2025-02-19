@@ -31,7 +31,7 @@
 
 <script lang="ts">
 import { defineComponent, onMounted, onUnmounted, ref } from "vue";
-import { Agent } from "../UserAgent";
+import { openapiFetchClient } from "../UserAgent";
 import { PinList } from "../types";
 export default defineComponent({
   setup: () => {
@@ -41,8 +41,11 @@ export default defineComponent({
     const togglePinList = () => {
       visibleState.value = visibleState.value ? false : true;
       if (visibleState.value) {
-        Agent<PinList[]>({ url: "/api/pinned_items" }).then((data) => {
-          list.value = data;
+        openapiFetchClient.POST("/api/pinned_items").then(data => {
+          if (data.data === undefined) {
+            return
+          }
+          list.value = data.data;
         });
       }
     };
@@ -52,7 +55,7 @@ export default defineComponent({
         return;
       }
       visibleState.value = false;
-      Agent({ url: "/api/remove_all_pin" }).then(() => {
+      openapiFetchClient.POST("/api/remove_all_pin").then(() => {
         list.value = [];
       });
     };

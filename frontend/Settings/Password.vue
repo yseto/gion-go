@@ -58,7 +58,7 @@
 
 <script lang="ts">
 import { defineComponent, ref } from "vue";
-import { Agent } from "../UserAgent";
+import { openapiFetchClient } from "../UserAgent";
 export default defineComponent({
   setup: () => {
     const password = ref("");
@@ -66,14 +66,13 @@ export default defineComponent({
     const passwordChecked = ref("");
 
     const updatePassword = () => {
-      Agent<{ result: string }>({
-        url: "/api/update_password",
-        data: {
+      openapiFetchClient.POST("/api/update_password", {
+        body: {
           password_old: passwordOld.value,
           password: password.value,
           passwordc: passwordChecked.value,
         },
-      }).then((data) => alert(data.result));
+      }).then((data) => alert(data.data?.result));
     };
 
     return {

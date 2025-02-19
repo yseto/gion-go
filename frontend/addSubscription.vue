@@ -114,7 +114,7 @@
 <script lang="ts">
 import { defineComponent, ref, reactive } from "vue";
 import BackToTop from "./BackToTop.vue";
-import { Agent } from "./UserAgent";
+import { openapiFetchClient } from "./UserAgent";
 import CategoryRegister from "./addSubscription/Category.vue";
 
 type Categories = {
@@ -161,19 +161,18 @@ export default defineComponent({
         return;
       }
       searchState.value = true;
-      Agent<ExamineSubscription>({
-        url: "/api/examine_subscription",
-        data: {
+      openapiFetchClient.POST( "/api/examine_subscription",{
+        body: {
           url: site.url,
         },
       }).then((data) => {
-        if (data === null) {
+        if (data.data === undefined) {
           alert("Failure: Get information.\n please check url... :(");
           return;
         }
-        site.rss = data.url;
-        site.title = data.title;
-        previewFeed.value = data.preview_feed;
+        site.rss = data.data.url;
+        site.title = data.data.title;
+        previewFeed.value = data.data.preview_feed;
         setTimeout(function () {
           searchState.value = false;
         }, 500);
@@ -190,27 +189,29 @@ export default defineComponent({
     };
 
     const fetchList = () => {
-      Agent<Categories[]>({ url: "/api/categories" }).then((data) => {
-        categories.value = data;
-        if (data.length > 0) {
-          category.value = data[0].id;
+      openapiFetchClient.POST("/api/categories").then(data => {
+        if (data.data === undefined) {
+          return
+        }
+        categories.value = data.data;
+        if (data.data.length > 0) {
+          category.value = data.data[0].id;
         }
       });
     };
 
     const registerFeed = () => {
-      Agent<{ result: string }>({
-        url: "/api/register_subscription",
-        data: {
+      openapiFetchClient.POST( "/api/register_subscription",{
+        body: {
           ...site,
           category: category.value,
         },
-      }).then((data) => {
-        if (data === null) {
+      }).then(data => {
+        if (data.data === null) {
           alert("情報の取得に失敗しました。URLを確認してください");
           return;
         }
-        if (data.result === "ERROR_ALREADY_REGISTER") {
+        if (data.data?.result === "ERROR_ALREADY_REGISTER") {
           alert("すでに登録されています。");
           return;
         }

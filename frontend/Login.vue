@@ -26,7 +26,7 @@
 <script lang="ts">
 import { defineComponent, reactive, ref, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { Agent } from "./UserAgent";
+import { openapiFetchClient } from "./UserAgent";
 import { useUserStore } from "./UserStore";
 class Credentials {
   id = "";
@@ -45,16 +45,18 @@ export default defineComponent({
       }
     });
     const login = () => {
-      Agent<{ autoseen: boolean; token: string }>({
-        url: "/api/login",
-        data: {
+      openapiFetchClient.POST("/api/login", {
+        body: {
           id: creds.id,
           password: creds.password,
         },
       }).then((payload) => {
+        if (payload.data === undefined) {
+          return
+        }
         store.Login({
-          autoSeen: payload.autoseen,
-          token: payload.token,
+          autoSeen: payload.data.autoseen,
+          token: payload.data.token,
         });
 
         if (route.query.redirect) {

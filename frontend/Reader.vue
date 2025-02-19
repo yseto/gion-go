@@ -82,7 +82,7 @@ import { defineComponent, onMounted, onUnmounted, onUpdated, ref } from "vue";
 import { format, fromUnixTime } from "date-fns";
 import BackToTop from "./BackToTop.vue";
 import PinList from "./Reader/PinList.vue";
-import { Agent } from "./UserAgent";
+import { openapiFetchClient } from "./UserAgent";
 import {
   useCategoryStore,
   Category,
@@ -138,28 +138,32 @@ export default defineComponent({
         return;
       }
 
-      Agent<Entry[]>({
-        url: "/api/unread_entry",
-        data: {
+      openapiFetchClient.POST("/api/unread_entry", {
+        body: {
           category: categoryStore.list[categoryStore.selected].id,
-        },
-      })
-        .then((data) => {
-          const list = data.map((x) => {
-            return { ...x, date: epochToDateTime(x.date_epoch) };
-          });
-          contentStore.setContents({ list: list, index: 0 });
-          categoryUpdate();
-        })
-        .then(() => {
-          if (autoSeen.value) {
-            readIt(500);
-          }
+        }
+      }).then(data => {
+        if (data.data === undefined) {
+          return
+        }
+        const list = data.data.map((x) => {
+          return { ...x, date: epochToDateTime(x.date_epoch) };
         });
+        contentStore.setContents({ list: list, index: 0 });
+        categoryUpdate();
+      }).then(() => {
+        if (autoSeen.value) {
+          readIt(500);
+        }
+      });
     };
 
     const categoryUpdate = () => {
-      Agent<Category[]>({ url: "/api/category_with_count" }).then((list) => {
+      openapiFetchClient.POST("/api/category_with_count").then((data) => {
+        if (data.data === undefined) {
+          return
+        }
+        const list = data.data
         let updated = false;
         list.forEach(function (_, index) {
           // 現在選択している category_id が一致するものがある時
@@ -199,10 +203,9 @@ export default defineComponent({
       }
       readItTimeoutID.value = window.setTimeout(function () {
         readItTimeoutID.value = 0;
-        Agent({
-          url: "/api/set_asread",
-          jsonRequest: true,
-          data: params,
+
+        openapiFetchClient.POST("/api/set_asread", {
+          body: params,
         }).then(() => {
           params.map((e) =>
             contentStore.setSeen({
@@ -228,11 +231,14 @@ export default defineComponent({
       if (typeof index !== "undefined") {
         contentStore.setIndex(index);
       }
-      await Agent<{ readflag: ReadFlag }>({
-        url: "/api/set_pin",
-        data: contentStore.currentEntrySerialData(),
-      }).then((data) => {
-        contentStore.setReadflag(data.readflag);
+
+      openapiFetchClient.POST("/api/set_pin", {
+        body: contentStore.currentEntrySerialData(),
+      }).then(data => {
+        if (data.data === undefined) {
+          return
+        }
+        contentStore.setReadflag(data.data.readflag);
       });
     };
 
@@ -278,8 +284,11 @@ export default defineComponent({
     });
 
     autoSeen.value = userStore.user.autoSeen;
-    Agent<Category[]>({ url: "/api/category_with_count" }).then((list) => {
-      categoryStore.setCategories({ list: list, index: 0 });
+    openapiFetchClient.POST("/api/category_with_count").then((data) => {
+      if (data.data === undefined) {
+        return
+      }
+      categoryStore.setCategories({ list: data.data, index: 0 });
       contentUpdate();
     });
 

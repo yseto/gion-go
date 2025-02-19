@@ -28,7 +28,7 @@
 <script lang="ts">
 import { defineComponent, ref } from "vue";
 import { format, parse } from "date-fns";
-import { Agent } from "./UserAgent";
+import { openapiFetchClient } from "./UserAgent";
 import BackToTop from "./BackToTop.vue";
 import { PinList } from "./types";
 const localtime = (mysqlDT: string) => {
@@ -45,13 +45,20 @@ export default defineComponent({
     const list = ref<PinList[]>([]);
     const applyRead = (event: Event) => {
       const target = event.target as HTMLElement;
-      Agent({
-        url: "/api/set_pin",
-        data: {
+      const serial = target.getAttribute("data-serial")
+      if (serial === null) {
+        return
+      }
+      const feed_id = target.getAttribute("data-feed_id")
+      if (feed_id === null) {
+        return
+      }
+      openapiFetchClient.POST("/api/set_pin", {
+        body: {
           readflag: "Setpin",
-          serial: target.getAttribute("data-serial"),
-          feed_id: target.getAttribute("data-feed_id"),
-        },
+          serial: parseInt(serial, 10),
+          feed_id: parseInt(feed_id, 10),
+        }
       }).then(() => {
         const idx = target.getAttribute("data-index");
         if (idx) {
@@ -60,8 +67,11 @@ export default defineComponent({
       });
     };
 
-    Agent<PinList[]>({ url: "/api/pinned_items" }).then((data) => {
-      list.value = data.map((x) => {
+    openapiFetchClient.POST("/api/pinned_items").then((data) => {
+      if (data.data === undefined) {
+        return
+      }
+      list.value = data.data.map((x) => {
         return { ...x, update_at: localtime(x.update_at) };
       });
     });

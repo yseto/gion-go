@@ -93,7 +93,14 @@
 <script lang="ts">
 import { defineComponent, ref } from "vue";
 import BackToTop from "./BackToTop.vue";
-import { Agent } from "./UserAgent";
+import { openapiFetchClient } from "./UserAgent";
+
+const deleteParam = {
+  category: "category",
+  entry: "entry",
+} as const;
+
+type deleteParam = typeof deleteParam[keyof typeof deleteParam];
 
 type Site = {
   id: number;
@@ -132,18 +139,20 @@ export default defineComponent({
     };
 
     const fetchList = () => {
-      Agent<Subscription[]>({ url: "/api/subscriptions" }).then((data) => {
-        subscription.value = data;
-        categories.value = data.map((x) => {
+      openapiFetchClient.POST("/api/subscriptions").then((data) => {
+        if (data.data === undefined) {
+          return
+        }
+        subscription.value = data.data;
+        categories.value = data.data.map((x) => {
           return { id: x.id, name: x.name };
         });
       });
     };
 
     const submit = () => {
-      Agent({
-        url: "/api/change_subscription",
-        data: {
+      openapiFetchClient.POST("/api/change_subscription", {
+        body: {
           id: fieldId.value,
           category: fieldCategory.value,
         },
@@ -153,13 +162,12 @@ export default defineComponent({
       });
     };
 
-    const removeIt = (id: number, type: string, name: string) => {
+    const removeIt = (id: number, type: deleteParam, name: string) => {
       if (!confirm(name + " を削除しますか")) {
         return;
       }
-      Agent({
-        url: "/api/delete_subscription",
-        data: {
+      openapiFetchClient.POST("/api/delete_subscription", {
+        body: {
           subscription: type,
           id: id,
         },
@@ -176,6 +184,8 @@ export default defineComponent({
       fieldCategory,
       fieldId,
       categoryModal,
+
+      deleteParam,
 
       changeCategory,
       removeIt,

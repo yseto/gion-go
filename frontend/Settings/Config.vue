@@ -73,9 +73,8 @@
 
 <script lang="ts">
 import { defineComponent, reactive, ref } from "vue";
-import { Agent } from "../UserAgent";
+import { openapiFetchClient } from "../UserAgent";
 import { useUserStore } from "../UserStore";
-import { Profile } from "../types";
 
 class CProfile {
   autoseen = false;
@@ -91,10 +90,8 @@ export default defineComponent({
     const finished = ref(false);
 
     const apply = () => {
-      Agent({
-        url: "/api/set_profile",
-        jsonRequest: true,
-        data: {
+      openapiFetchClient.POST("/api/set_profile", {
+        body: {
           autoseen: !!profile.autoseen,
           onLoginSkipPinList: !!profile.onLoginSkipPinList,
           entryCount: profile.entryCount,
@@ -109,11 +106,14 @@ export default defineComponent({
       });
     };
 
-    Agent<Profile>({ url: "/api/profile" }).then((data) => {
-      profile.autoseen = !!data.autoseen;
-      profile.onLoginSkipPinList = !!data.onLoginSkipPinList;
-      profile.entryCount = data.entryCount;
-      profile.substringLength = data.substringLength;
+    openapiFetchClient.POST("/api/profile").then((data) => {
+      if (data.data === undefined) {
+        return
+      }
+      profile.autoseen = !!data.data.autoseen;
+      profile.onLoginSkipPinList = !!data.data.onLoginSkipPinList;
+      profile.entryCount = data.data.entryCount;
+      profile.substringLength = data.data.substringLength;
     });
 
     return {
