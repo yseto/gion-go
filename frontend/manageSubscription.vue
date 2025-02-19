@@ -110,7 +110,7 @@ export default defineComponent({
     };
 
     const fetchList = () => {
-      openapiFetchClient.GET("/api/subscriptions").then((data) => {
+      openapiFetchClient.GET("/api/subscription").then((data) => {
         if (data.data === undefined) {
           return
         }

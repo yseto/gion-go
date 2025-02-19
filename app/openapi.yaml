@@ -267,6 +267,24 @@ paths:
           description: error
         "409":
           description: duplicate error
+    get:
+      tags:
+        - subscription
+      description: subscription list
+      operationId: Subscriptions
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Subscription"
+        "400":
+          description: error
   /api/opml_import:
     post:
       tags:
@@ -456,25 +474,6 @@ paths:
             application/json: 
               schema:
                 $ref: "#/components/schemas/SimpleResult"
-        "400":
-          description: error
-  /api/subscriptions:
-    get:
-      tags:
-        - subscription
-      description: subscription list
-      operationId: Subscriptions
-      security:
-        - BearerAuth: []
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json: 
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Subscription"
         "400":
           description: error
   /api/pin:
