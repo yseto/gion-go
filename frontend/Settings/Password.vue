@@ -33,7 +33,7 @@
 
 <script lang="ts">
 import { defineComponent, ref } from "vue"
-import { openapiFetchClient } from "../UserAgent"
+import { openapiFetchClient } from "../api"
 export default defineComponent({
   setup: () => {
     const password = ref("")

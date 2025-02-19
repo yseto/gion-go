@@ -42,7 +42,7 @@
 
 <script lang="ts">
 import { defineComponent, onMounted, reactive, ref } from "vue"
-import { openapiFetchClient } from "../UserAgent"
+import { openapiFetchClient } from "../api"
 import { useUserStore } from "../UserStore"
 
 class CProfile {

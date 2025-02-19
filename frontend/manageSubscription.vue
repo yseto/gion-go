@@ -64,7 +64,7 @@
 <script lang="ts">
 import { defineComponent, onMounted, ref } from "vue"
 import BackToTop from "./BackToTop.vue"
-import { openapiFetchClient } from "./UserAgent"
+import { openapiFetchClient } from "./api"
 
 type Site = {
   id: number

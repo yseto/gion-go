@@ -69,7 +69,7 @@
 <script lang="ts">
 import { defineComponent, ref, reactive, onMounted } from "vue"
 import BackToTop from "./BackToTop.vue"
-import { openapiFetchClient } from "./UserAgent"
+import { openapiFetchClient } from "./api"
 import CategoryRegister from "./addSubscription/Category.vue"
 
 type Categories = {

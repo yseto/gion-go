@@ -22,7 +22,7 @@
 <script lang="ts">
 import { defineComponent, onMounted, ref } from "vue"
 import { format, parse } from "date-fns"
-import { openapiFetchClient } from "./UserAgent"
+import { openapiFetchClient } from "./api"
 import BackToTop from "./BackToTop.vue"
 import { PinList } from "./types"
 const localtime = (mysqlDT: string) => {

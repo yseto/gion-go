@@ -30,7 +30,7 @@
 <script lang="ts">
 import fileDownload from "js-file-download"
 import { defineComponent, ref } from "vue"
-import { openapiFetchClient } from "../UserAgent"
+import { openapiFetchClient } from "../api"
 export default defineComponent({
   setup: () => {
     const fileElement = ref<HTMLInputElement | null>(null)

@@ -4,7 +4,7 @@
 <script lang="ts">
 import { defineComponent, onMounted } from "vue"
 import { useRouter } from "vue-router"
-import { openapiFetchClient } from "./UserAgent"
+import { openapiFetchClient } from "./api"
 import { useUserStore } from "./UserStore"
 
 export default defineComponent({

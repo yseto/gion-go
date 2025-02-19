@@ -21,7 +21,7 @@
 
 <script lang="ts">
 import { defineComponent, onMounted, onUnmounted, ref } from "vue"
-import { openapiFetchClient } from "../UserAgent"
+import { openapiFetchClient } from "../api"
 import { PinList } from "../types"
 export default defineComponent({
   setup: () => {

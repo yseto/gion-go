@@ -16,7 +16,7 @@
 <script lang="ts">
 import { defineComponent, reactive, ref, onMounted } from "vue"
 import { useRoute, useRouter } from "vue-router"
-import { openapiFetchClient } from "./UserAgent"
+import { openapiFetchClient } from "./api"
 import { useUserStore } from "./UserStore"
 class Credentials {
   id = ""

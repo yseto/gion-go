@@ -1,6 +1,6 @@
 import createClient, { type Middleware } from "openapi-fetch"
-import { useUserStore } from "./UserStore"
-import type { paths } from "./api/schema"
+import { useUserStore } from "../UserStore"
+import type { paths } from "./schema"
 
 const fetchRequestInterceptor: Middleware = {
   async onRequest({ request }) {
