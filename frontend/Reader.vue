@@ -183,7 +183,7 @@ export default defineComponent({
       readItTimeoutID.value = window.setTimeout(function () {
         readItTimeoutID.value = 0;
 
-        openapiFetchClient.POST("/api/set_asread", {
+        openapiFetchClient.POST("/api/pin/asread", {
           body: params,
         }).then(() => {
           params.map((e) =>

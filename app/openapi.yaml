@@ -451,7 +451,7 @@ paths:
         "400":
           description: error
 
-  /api/set_asread:
+  /api/pin/asread:
     post:
       tags:
         - reader

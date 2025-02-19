@@ -195,11 +195,11 @@ type OpmlImportJSONRequestBody OpmlImportJSONBody
 // SetPinJSONRequestBody defines body for SetPin for application/json ContentType.
 type SetPinJSONRequestBody SetPinJSONBody
 
-// UpdateProfileJSONRequestBody defines body for UpdateProfile for application/json ContentType.
-type UpdateProfileJSONRequestBody = Profile
-
 // SetAsReadJSONRequestBody defines body for SetAsRead for application/json ContentType.
 type SetAsReadJSONRequestBody = SetAsReadJSONBody
+
+// UpdateProfileJSONRequestBody defines body for UpdateProfile for application/json ContentType.
+type UpdateProfileJSONRequestBody = Profile
 
 // RegisterSubscriptionJSONRequestBody defines body for RegisterSubscription for application/json ContentType.
 type RegisterSubscriptionJSONRequestBody RegisterSubscriptionJSONBody

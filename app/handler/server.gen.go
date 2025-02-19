@@ -63,14 +63,14 @@ type ServerInterface interface {
 	// (POST /api/pin)
 	SetPin(ctx echo.Context) error
 
+	// (POST /api/pin/asread)
+	SetAsRead(ctx echo.Context) error
+
 	// (GET /api/profile)
 	Profile(ctx echo.Context) error
 
 	// (PUT /api/profile)
 	UpdateProfile(ctx echo.Context) error
-
-	// (POST /api/set_asread)
-	SetAsRead(ctx echo.Context) error
 
 	// (GET /api/subscription)
 	Subscriptions(ctx echo.Context) error
@@ -266,6 +266,17 @@ func (w *ServerInterfaceWrapper) SetPin(ctx echo.Context) error {
 	return err
 }
 
+// SetAsRead converts echo context to params.
+func (w *ServerInterfaceWrapper) SetAsRead(ctx echo.Context) error {
+	var err error
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshalled arguments
+	err = w.Handler.SetAsRead(ctx)
+	return err
+}
+
 // Profile converts echo context to params.
 func (w *ServerInterfaceWrapper) Profile(ctx echo.Context) error {
 	var err error
@@ -285,17 +296,6 @@ func (w *ServerInterfaceWrapper) UpdateProfile(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshalled arguments
 	err = w.Handler.UpdateProfile(ctx)
-	return err
-}
-
-// SetAsRead converts echo context to params.
-func (w *ServerInterfaceWrapper) SetAsRead(ctx echo.Context) error {
-	var err error
-
-	ctx.Set(BearerAuthScopes, []string{})
-
-	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.SetAsRead(ctx)
 	return err
 }
 
@@ -409,9 +409,9 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.DELETE(baseURL+"/api/pin", wrapper.RemoveAllPin)
 	router.GET(baseURL+"/api/pin", wrapper.PinnedItems)
 	router.POST(baseURL+"/api/pin", wrapper.SetPin)
+	router.POST(baseURL+"/api/pin/asread", wrapper.SetAsRead)
 	router.GET(baseURL+"/api/profile", wrapper.Profile)
 	router.PUT(baseURL+"/api/profile", wrapper.UpdateProfile)
-	router.POST(baseURL+"/api/set_asread", wrapper.SetAsRead)
 	router.GET(baseURL+"/api/subscription", wrapper.Subscriptions)
 	router.POST(baseURL+"/api/subscription", wrapper.RegisterSubscription)
 	router.DELETE(baseURL+"/api/subscription/:id", wrapper.DeleteSubscription)
@@ -797,6 +797,31 @@ func (response SetPin400Response) VisitSetPinResponse(w http.ResponseWriter) err
 	return nil
 }
 
+type SetAsReadRequestObject struct {
+	Body *SetAsReadJSONRequestBody
+}
+
+type SetAsReadResponseObject interface {
+	VisitSetAsReadResponse(w http.ResponseWriter) error
+}
+
+type SetAsRead200JSONResponse SimpleResult
+
+func (response SetAsRead200JSONResponse) VisitSetAsReadResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type SetAsRead400Response struct {
+}
+
+func (response SetAsRead400Response) VisitSetAsReadResponse(w http.ResponseWriter) error {
+	w.WriteHeader(400)
+	return nil
+}
+
 type ProfileRequestObject struct {
 }
 
@@ -842,31 +867,6 @@ type UpdateProfile400Response struct {
 }
 
 func (response UpdateProfile400Response) VisitUpdateProfileResponse(w http.ResponseWriter) error {
-	w.WriteHeader(400)
-	return nil
-}
-
-type SetAsReadRequestObject struct {
-	Body *SetAsReadJSONRequestBody
-}
-
-type SetAsReadResponseObject interface {
-	VisitSetAsReadResponse(w http.ResponseWriter) error
-}
-
-type SetAsRead200JSONResponse SimpleResult
-
-func (response SetAsRead200JSONResponse) VisitSetAsReadResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(200)
-
-	return json.NewEncoder(w).Encode(response)
-}
-
-type SetAsRead400Response struct {
-}
-
-func (response SetAsRead400Response) VisitSetAsReadResponse(w http.ResponseWriter) error {
 	w.WriteHeader(400)
 	return nil
 }
@@ -1061,14 +1061,14 @@ type StrictServerInterface interface {
 	// (POST /api/pin)
 	SetPin(ctx context.Context, request SetPinRequestObject) (SetPinResponseObject, error)
 
+	// (POST /api/pin/asread)
+	SetAsRead(ctx context.Context, request SetAsReadRequestObject) (SetAsReadResponseObject, error)
+
 	// (GET /api/profile)
 	Profile(ctx context.Context, request ProfileRequestObject) (ProfileResponseObject, error)
 
 	// (PUT /api/profile)
 	UpdateProfile(ctx context.Context, request UpdateProfileRequestObject) (UpdateProfileResponseObject, error)
-
-	// (POST /api/set_asread)
-	SetAsRead(ctx context.Context, request SetAsReadRequestObject) (SetAsReadResponseObject, error)
 
 	// (GET /api/subscription)
 	Subscriptions(ctx context.Context, request SubscriptionsRequestObject) (SubscriptionsResponseObject, error)
@@ -1483,6 +1483,35 @@ func (sh *strictHandler) SetPin(ctx echo.Context) error {
 	return nil
 }
 
+// SetAsRead operation middleware
+func (sh *strictHandler) SetAsRead(ctx echo.Context) error {
+	var request SetAsReadRequestObject
+
+	var body SetAsReadJSONRequestBody
+	if err := ctx.Bind(&body); err != nil {
+		return err
+	}
+	request.Body = &body
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.SetAsRead(ctx.Request().Context(), request.(SetAsReadRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "SetAsRead")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(SetAsReadResponseObject); ok {
+		return validResponse.VisitSetAsReadResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("Unexpected response type: %T", response)
+	}
+	return nil
+}
+
 // Profile operation middleware
 func (sh *strictHandler) Profile(ctx echo.Context) error {
 	var request ProfileRequestObject
@@ -1529,35 +1558,6 @@ func (sh *strictHandler) UpdateProfile(ctx echo.Context) error {
 		return err
 	} else if validResponse, ok := response.(UpdateProfileResponseObject); ok {
 		return validResponse.VisitUpdateProfileResponse(ctx.Response())
-	} else if response != nil {
-		return fmt.Errorf("Unexpected response type: %T", response)
-	}
-	return nil
-}
-
-// SetAsRead operation middleware
-func (sh *strictHandler) SetAsRead(ctx echo.Context) error {
-	var request SetAsReadRequestObject
-
-	var body SetAsReadJSONRequestBody
-	if err := ctx.Bind(&body); err != nil {
-		return err
-	}
-	request.Body = &body
-
-	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.SetAsRead(ctx.Request().Context(), request.(SetAsReadRequestObject))
-	}
-	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "SetAsRead")
-	}
-
-	response, err := handler(ctx, request)
-
-	if err != nil {
-		return err
-	} else if validResponse, ok := response.(SetAsReadResponseObject); ok {
-		return validResponse.VisitSetAsReadResponse(ctx.Response())
 	} else if response != nil {
 		return fmt.Errorf("Unexpected response type: %T", response)
 	}

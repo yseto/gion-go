@@ -246,7 +246,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/set_asread": {
+    "/api/pin/asread": {
         parameters: {
             query?: never;
             header?: never;
