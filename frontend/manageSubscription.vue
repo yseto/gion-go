@@ -8,7 +8,7 @@
               <span>{{ category.name }}</span>
             </th>
             <td class="col-3 text-right">
-              <button class="btn btn-danger btn-sm" @click="removeIt(category.id, deleteParam.category, category.name)">
+              <button class="btn btn-danger btn-sm" @click="removeCategory(category.id, category.name)">
                 削除
               </button>
             </td>
@@ -133,6 +133,19 @@ export default defineComponent({
       });
     };
 
+    const removeCategory = (id: number, name: string) => {
+      if (!confirm("カテゴリ:" + name + " を削除しますか?\n内包されている購読もすべて削除されます")) {
+        return;
+      }
+      openapiFetchClient.DELETE("/api/category/{id}", {
+        params: {
+          path: {id}
+        },
+      }).then(() => {
+        fetchList();
+      });
+    };
+
     const removeIt = (id: number, type: deleteParam, name: string) => {
       if (!confirm(name + " を削除しますか")) {
         return;
@@ -159,6 +172,7 @@ export default defineComponent({
       deleteParam,
 
       changeCategory,
+      removeCategory,
       removeIt,
       submit,
     };

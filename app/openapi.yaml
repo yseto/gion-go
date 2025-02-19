@@ -381,6 +381,32 @@ paths:
                 $ref: "#/components/schemas/SimpleResult"
         "400":
           description: error
+  /api/category/{id}:
+    delete:
+      tags:
+        - subscription
+      description: delete category
+      operationId: DeleteCategory
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: category id
+          required: true
+          schema:
+            type: integer
+            format: uint64
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SimpleResult"
+        "400":
+          description: error
+
   /api/change_subscription:
     post:
       tags:

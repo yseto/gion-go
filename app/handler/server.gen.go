@@ -24,6 +24,9 @@ type ServerInterface interface {
 	// (GET /api/categories)
 	Categories(ctx echo.Context) error
 
+	// (DELETE /api/category/{id})
+	DeleteCategory(ctx echo.Context, id uint64) error
+
 	// (GET /api/category_with_count)
 	CategoryAndUnreadEntryCount(ctx echo.Context) error
 
@@ -107,6 +110,24 @@ func (w *ServerInterfaceWrapper) Categories(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshalled arguments
 	err = w.Handler.Categories(ctx)
+	return err
+}
+
+// DeleteCategory converts echo context to params.
+func (w *ServerInterfaceWrapper) DeleteCategory(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "id" -------------
+	var id uint64
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "id", runtime.ParamLocationPath, ctx.Param("id"), &id)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshalled arguments
+	err = w.Handler.DeleteCategory(ctx, id)
 	return err
 }
 
@@ -368,6 +389,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 
 	router.GET(baseURL+"/", wrapper.Index)
 	router.GET(baseURL+"/api/categories", wrapper.Categories)
+	router.DELETE(baseURL+"/api/category/:id", wrapper.DeleteCategory)
 	router.GET(baseURL+"/api/category_with_count", wrapper.CategoryAndUnreadEntryCount)
 	router.POST(baseURL+"/api/change_subscription", wrapper.ChangeSubscription)
 	router.POST(baseURL+"/api/delete_subscription", wrapper.DeleteSubscription)
@@ -437,6 +459,31 @@ type Categories400Response struct {
 }
 
 func (response Categories400Response) VisitCategoriesResponse(w http.ResponseWriter) error {
+	w.WriteHeader(400)
+	return nil
+}
+
+type DeleteCategoryRequestObject struct {
+	Id uint64 `json:"id"`
+}
+
+type DeleteCategoryResponseObject interface {
+	VisitDeleteCategoryResponse(w http.ResponseWriter) error
+}
+
+type DeleteCategory200JSONResponse SimpleResult
+
+func (response DeleteCategory200JSONResponse) VisitDeleteCategoryResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteCategory400Response struct {
+}
+
+func (response DeleteCategory400Response) VisitDeleteCategoryResponse(w http.ResponseWriter) error {
 	w.WriteHeader(400)
 	return nil
 }
@@ -952,6 +999,9 @@ type StrictServerInterface interface {
 	// (GET /api/categories)
 	Categories(ctx context.Context, request CategoriesRequestObject) (CategoriesResponseObject, error)
 
+	// (DELETE /api/category/{id})
+	DeleteCategory(ctx context.Context, request DeleteCategoryRequestObject) (DeleteCategoryResponseObject, error)
+
 	// (GET /api/category_with_count)
 	CategoryAndUnreadEntryCount(ctx context.Context, request CategoryAndUnreadEntryCountRequestObject) (CategoryAndUnreadEntryCountResponseObject, error)
 
@@ -1065,6 +1115,31 @@ func (sh *strictHandler) Categories(ctx echo.Context) error {
 		return err
 	} else if validResponse, ok := response.(CategoriesResponseObject); ok {
 		return validResponse.VisitCategoriesResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("Unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// DeleteCategory operation middleware
+func (sh *strictHandler) DeleteCategory(ctx echo.Context, id uint64) error {
+	var request DeleteCategoryRequestObject
+
+	request.Id = id
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteCategory(ctx.Request().Context(), request.(DeleteCategoryRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteCategory")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(DeleteCategoryResponseObject); ok {
+		return validResponse.VisitDeleteCategoryResponse(ctx.Response())
 	} else if response != nil {
 		return fmt.Errorf("Unexpected response type: %T", response)
 	}

@@ -334,6 +334,14 @@ func (*ApiServer) DeleteSubscription(ctx context.Context, request DeleteSubscrip
 	return DeleteSubscription200JSONResponse{Result: "OK"}, nil
 }
 
+func (*ApiServer) DeleteCategory(ctx context.Context, request DeleteCategoryRequestObject) (DeleteCategoryResponseObject, error) {
+	db := DBUserFromContext(ctx)
+	if err := db.DeleteCategory(request.Id); err != nil {
+		return DeleteCategory400Response{}, nil
+	}
+	return DeleteCategory200JSONResponse{Result: "OK"}, nil
+}
+
 func (*ApiServer) ChangeSubscription(ctx context.Context, request ChangeSubscriptionRequestObject) (ChangeSubscriptionResponseObject, error) {
 	if DBUserFromContext(ctx).UpdateSubscription(request.Body.Id, request.Body.Category) != nil {
 		return ChangeSubscription400Response{}, nil
