@@ -47,7 +47,7 @@ export default defineComponent({
       if (feed_id === null) {
         return
       }
-      openapiFetchClient.POST("/api/set_pin", {
+      openapiFetchClient.POST("/api/pin", {
         body: {
           readflag: "Setpin",
           serial: parseInt(serial, 10),
@@ -61,7 +61,7 @@ export default defineComponent({
       });
     };
 
-    openapiFetchClient.GET("/api/pinned_items").then((data) => {
+    openapiFetchClient.GET("/api/pin").then((data) => {
       if (data.data === undefined) {
         return
       }

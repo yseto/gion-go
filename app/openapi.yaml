@@ -128,26 +128,6 @@ paths:
         "400":
           description: error
 
-  /api/pinned_items:
-    get:
-      tags:
-        - reader
-      description: return Pinned items
-      operationId: PinnedItems
-      security:
-        - BearerAuth: []
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json: 
-              schema:
-                type: array
-                items:
-                  type:
-                  $ref: "#/components/schemas/PinnedItem"
-        "400":
-          description: error
   /api/category_with_count:
     get:
       tags:
@@ -195,62 +175,6 @@ paths:
                 items:
                   type:
                   $ref: "#/components/schemas/UnreadEntry"
-        "400":
-          description: error
-  /api/set_pin:
-    post:
-      tags:
-        - reader
-      description: set pin into entry
-      operationId: SetPin
-      security:
-        - BearerAuth: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-              - readflag
-              - serial
-              - feed_id
-              properties:
-                readflag:
-                  type: string
-                  enum:
-                  - Unseen
-                  - Seen
-                  - Setpin
-                  x-go-type: pin.ReadFlag
-                  x-go-type-import:
-                    name: pin
-                    path: github.com/yseto/gion-go/internal/pin
-                serial:
-                  type: integer
-                  format: uint64
-                feed_id:
-                  type: integer
-                  format: uint64
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json: 
-              schema:
-                type: object
-                required:
-                - readflag
-                properties:
-                  readflag:
-                    type: string
-                    enum:
-                    - Unseen
-                    - Seen
-                    - Setpin
-                    x-go-type: pin.ReadFlag
-                    x-go-type-import:
-                      name: pin
-                      path: github.com/yseto/gion-go/internal/pin
         "400":
           description: error
   /api/register_category:
@@ -534,8 +458,8 @@ paths:
                   $ref: "#/components/schemas/Subscription"
         "400":
           description: error
-  /api/remove_all_pin:
-    post:
+  /api/pin:
+    delete:
       tags:
         - reader
       description: remove all pins
@@ -551,6 +475,81 @@ paths:
                 $ref: "#/components/schemas/SimpleResult"
         "400":
           description: error
+    post:
+      tags:
+        - reader
+      description: set pin into entry
+      operationId: SetPin
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - readflag
+              - serial
+              - feed_id
+              properties:
+                readflag:
+                  type: string
+                  enum:
+                  - Unseen
+                  - Seen
+                  - Setpin
+                  x-go-type: pin.ReadFlag
+                  x-go-type-import:
+                    name: pin
+                    path: github.com/yseto/gion-go/internal/pin
+                serial:
+                  type: integer
+                  format: uint64
+                feed_id:
+                  type: integer
+                  format: uint64
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - readflag
+                properties:
+                  readflag:
+                    type: string
+                    enum:
+                    - Unseen
+                    - Seen
+                    - Setpin
+                    x-go-type: pin.ReadFlag
+                    x-go-type-import:
+                      name: pin
+                      path: github.com/yseto/gion-go/internal/pin
+        "400":
+          description: error
+    get:
+      tags:
+        - reader
+      description: return Pinned items
+      operationId: PinnedItems
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type:
+                  $ref: "#/components/schemas/PinnedItem"
+        "400":
+          description: error
+
   /api/update_password:
     post:
       tags:

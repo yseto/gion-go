@@ -158,6 +158,13 @@ type OpmlImportJSONBody struct {
 	Xml string `json:"xml"`
 }
 
+// SetPinJSONBody defines parameters for SetPin.
+type SetPinJSONBody struct {
+	FeedId   uint64       `json:"feed_id"`
+	Readflag pin.ReadFlag `json:"readflag"`
+	Serial   uint64       `json:"serial"`
+}
+
 // RegisterCategoryJSONBody defines parameters for RegisterCategory.
 type RegisterCategoryJSONBody struct {
 	Name string `json:"name"`
@@ -179,13 +186,6 @@ type RegisterSubscriptionJSONBody struct {
 
 // SetAsReadJSONBody defines parameters for SetAsRead.
 type SetAsReadJSONBody = []AsRead
-
-// SetPinJSONBody defines parameters for SetPin.
-type SetPinJSONBody struct {
-	FeedId   uint64       `json:"feed_id"`
-	Readflag pin.ReadFlag `json:"readflag"`
-	Serial   uint64       `json:"serial"`
-}
 
 // UpdatePasswordJSONBody defines parameters for UpdatePassword.
 type UpdatePasswordJSONBody struct {
@@ -209,6 +209,9 @@ type LoginJSONRequestBody LoginJSONBody
 // OpmlImportJSONRequestBody defines body for OpmlImport for application/json ContentType.
 type OpmlImportJSONRequestBody OpmlImportJSONBody
 
+// SetPinJSONRequestBody defines body for SetPin for application/json ContentType.
+type SetPinJSONRequestBody SetPinJSONBody
+
 // UpdateProfileJSONRequestBody defines body for UpdateProfile for application/json ContentType.
 type UpdateProfileJSONRequestBody = Profile
 
@@ -220,9 +223,6 @@ type RegisterSubscriptionJSONRequestBody RegisterSubscriptionJSONBody
 
 // SetAsReadJSONRequestBody defines body for SetAsRead for application/json ContentType.
 type SetAsReadJSONRequestBody = SetAsReadJSONBody
-
-// SetPinJSONRequestBody defines body for SetPin for application/json ContentType.
-type SetPinJSONRequestBody SetPinJSONBody
 
 // UpdatePasswordJSONRequestBody defines body for UpdatePassword for application/json ContentType.
 type UpdatePasswordJSONRequestBody UpdatePasswordJSONBody

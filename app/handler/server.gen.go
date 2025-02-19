@@ -48,8 +48,14 @@ type ServerInterface interface {
 	// (POST /api/opml_import)
 	OpmlImport(ctx echo.Context) error
 
-	// (GET /api/pinned_items)
+	// (DELETE /api/pin)
+	RemoveAllPin(ctx echo.Context) error
+
+	// (GET /api/pin)
 	PinnedItems(ctx echo.Context) error
+
+	// (POST /api/pin)
+	SetPin(ctx echo.Context) error
 
 	// (GET /api/profile)
 	Profile(ctx echo.Context) error
@@ -63,14 +69,8 @@ type ServerInterface interface {
 	// (POST /api/register_subscription)
 	RegisterSubscription(ctx echo.Context) error
 
-	// (POST /api/remove_all_pin)
-	RemoveAllPin(ctx echo.Context) error
-
 	// (POST /api/set_asread)
 	SetAsRead(ctx echo.Context) error
-
-	// (POST /api/set_pin)
-	SetPin(ctx echo.Context) error
 
 	// (GET /api/subscriptions)
 	Subscriptions(ctx echo.Context) error
@@ -194,6 +194,17 @@ func (w *ServerInterfaceWrapper) OpmlImport(ctx echo.Context) error {
 	return err
 }
 
+// RemoveAllPin converts echo context to params.
+func (w *ServerInterfaceWrapper) RemoveAllPin(ctx echo.Context) error {
+	var err error
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshalled arguments
+	err = w.Handler.RemoveAllPin(ctx)
+	return err
+}
+
 // PinnedItems converts echo context to params.
 func (w *ServerInterfaceWrapper) PinnedItems(ctx echo.Context) error {
 	var err error
@@ -202,6 +213,17 @@ func (w *ServerInterfaceWrapper) PinnedItems(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshalled arguments
 	err = w.Handler.PinnedItems(ctx)
+	return err
+}
+
+// SetPin converts echo context to params.
+func (w *ServerInterfaceWrapper) SetPin(ctx echo.Context) error {
+	var err error
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshalled arguments
+	err = w.Handler.SetPin(ctx)
 	return err
 }
 
@@ -249,17 +271,6 @@ func (w *ServerInterfaceWrapper) RegisterSubscription(ctx echo.Context) error {
 	return err
 }
 
-// RemoveAllPin converts echo context to params.
-func (w *ServerInterfaceWrapper) RemoveAllPin(ctx echo.Context) error {
-	var err error
-
-	ctx.Set(BearerAuthScopes, []string{})
-
-	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.RemoveAllPin(ctx)
-	return err
-}
-
 // SetAsRead converts echo context to params.
 func (w *ServerInterfaceWrapper) SetAsRead(ctx echo.Context) error {
 	var err error
@@ -268,17 +279,6 @@ func (w *ServerInterfaceWrapper) SetAsRead(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshalled arguments
 	err = w.Handler.SetAsRead(ctx)
-	return err
-}
-
-// SetPin converts echo context to params.
-func (w *ServerInterfaceWrapper) SetPin(ctx echo.Context) error {
-	var err error
-
-	ctx.Set(BearerAuthScopes, []string{})
-
-	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.SetPin(ctx)
 	return err
 }
 
@@ -376,14 +376,14 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.POST(baseURL+"/api/logout", wrapper.Logout)
 	router.POST(baseURL+"/api/opml_export", wrapper.OpmlExport)
 	router.POST(baseURL+"/api/opml_import", wrapper.OpmlImport)
-	router.GET(baseURL+"/api/pinned_items", wrapper.PinnedItems)
+	router.DELETE(baseURL+"/api/pin", wrapper.RemoveAllPin)
+	router.GET(baseURL+"/api/pin", wrapper.PinnedItems)
+	router.POST(baseURL+"/api/pin", wrapper.SetPin)
 	router.GET(baseURL+"/api/profile", wrapper.Profile)
 	router.PUT(baseURL+"/api/profile", wrapper.UpdateProfile)
 	router.POST(baseURL+"/api/register_category", wrapper.RegisterCategory)
 	router.POST(baseURL+"/api/register_subscription", wrapper.RegisterSubscription)
-	router.POST(baseURL+"/api/remove_all_pin", wrapper.RemoveAllPin)
 	router.POST(baseURL+"/api/set_asread", wrapper.SetAsRead)
-	router.POST(baseURL+"/api/set_pin", wrapper.SetPin)
 	router.GET(baseURL+"/api/subscriptions", wrapper.Subscriptions)
 	router.GET(baseURL+"/api/unread_entry/:category_id", wrapper.UnreadEntry)
 	router.POST(baseURL+"/api/update_password", wrapper.UpdatePassword)
@@ -635,6 +635,30 @@ func (response OpmlImport400Response) VisitOpmlImportResponse(w http.ResponseWri
 	return nil
 }
 
+type RemoveAllPinRequestObject struct {
+}
+
+type RemoveAllPinResponseObject interface {
+	VisitRemoveAllPinResponse(w http.ResponseWriter) error
+}
+
+type RemoveAllPin200JSONResponse SimpleResult
+
+func (response RemoveAllPin200JSONResponse) VisitRemoveAllPinResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type RemoveAllPin400Response struct {
+}
+
+func (response RemoveAllPin400Response) VisitRemoveAllPinResponse(w http.ResponseWriter) error {
+	w.WriteHeader(400)
+	return nil
+}
+
 type PinnedItemsRequestObject struct {
 }
 
@@ -655,6 +679,33 @@ type PinnedItems400Response struct {
 }
 
 func (response PinnedItems400Response) VisitPinnedItemsResponse(w http.ResponseWriter) error {
+	w.WriteHeader(400)
+	return nil
+}
+
+type SetPinRequestObject struct {
+	Body *SetPinJSONRequestBody
+}
+
+type SetPinResponseObject interface {
+	VisitSetPinResponse(w http.ResponseWriter) error
+}
+
+type SetPin200JSONResponse struct {
+	Readflag pin.ReadFlag `json:"readflag"`
+}
+
+func (response SetPin200JSONResponse) VisitSetPinResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type SetPin400Response struct {
+}
+
+func (response SetPin400Response) VisitSetPinResponse(w http.ResponseWriter) error {
 	w.WriteHeader(400)
 	return nil
 }
@@ -758,30 +809,6 @@ func (response RegisterSubscription400Response) VisitRegisterSubscriptionRespons
 	return nil
 }
 
-type RemoveAllPinRequestObject struct {
-}
-
-type RemoveAllPinResponseObject interface {
-	VisitRemoveAllPinResponse(w http.ResponseWriter) error
-}
-
-type RemoveAllPin200JSONResponse SimpleResult
-
-func (response RemoveAllPin200JSONResponse) VisitRemoveAllPinResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(200)
-
-	return json.NewEncoder(w).Encode(response)
-}
-
-type RemoveAllPin400Response struct {
-}
-
-func (response RemoveAllPin400Response) VisitRemoveAllPinResponse(w http.ResponseWriter) error {
-	w.WriteHeader(400)
-	return nil
-}
-
 type SetAsReadRequestObject struct {
 	Body *SetAsReadJSONRequestBody
 }
@@ -803,33 +830,6 @@ type SetAsRead400Response struct {
 }
 
 func (response SetAsRead400Response) VisitSetAsReadResponse(w http.ResponseWriter) error {
-	w.WriteHeader(400)
-	return nil
-}
-
-type SetPinRequestObject struct {
-	Body *SetPinJSONRequestBody
-}
-
-type SetPinResponseObject interface {
-	VisitSetPinResponse(w http.ResponseWriter) error
-}
-
-type SetPin200JSONResponse struct {
-	Readflag pin.ReadFlag `json:"readflag"`
-}
-
-func (response SetPin200JSONResponse) VisitSetPinResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(200)
-
-	return json.NewEncoder(w).Encode(response)
-}
-
-type SetPin400Response struct {
-}
-
-func (response SetPin400Response) VisitSetPinResponse(w http.ResponseWriter) error {
 	w.WriteHeader(400)
 	return nil
 }
@@ -976,8 +976,14 @@ type StrictServerInterface interface {
 	// (POST /api/opml_import)
 	OpmlImport(ctx context.Context, request OpmlImportRequestObject) (OpmlImportResponseObject, error)
 
-	// (GET /api/pinned_items)
+	// (DELETE /api/pin)
+	RemoveAllPin(ctx context.Context, request RemoveAllPinRequestObject) (RemoveAllPinResponseObject, error)
+
+	// (GET /api/pin)
 	PinnedItems(ctx context.Context, request PinnedItemsRequestObject) (PinnedItemsResponseObject, error)
+
+	// (POST /api/pin)
+	SetPin(ctx context.Context, request SetPinRequestObject) (SetPinResponseObject, error)
 
 	// (GET /api/profile)
 	Profile(ctx context.Context, request ProfileRequestObject) (ProfileResponseObject, error)
@@ -991,14 +997,8 @@ type StrictServerInterface interface {
 	// (POST /api/register_subscription)
 	RegisterSubscription(ctx context.Context, request RegisterSubscriptionRequestObject) (RegisterSubscriptionResponseObject, error)
 
-	// (POST /api/remove_all_pin)
-	RemoveAllPin(ctx context.Context, request RemoveAllPinRequestObject) (RemoveAllPinResponseObject, error)
-
 	// (POST /api/set_asread)
 	SetAsRead(ctx context.Context, request SetAsReadRequestObject) (SetAsReadResponseObject, error)
-
-	// (POST /api/set_pin)
-	SetPin(ctx context.Context, request SetPinRequestObject) (SetPinResponseObject, error)
 
 	// (GET /api/subscriptions)
 	Subscriptions(ctx context.Context, request SubscriptionsRequestObject) (SubscriptionsResponseObject, error)
@@ -1285,6 +1285,29 @@ func (sh *strictHandler) OpmlImport(ctx echo.Context) error {
 	return nil
 }
 
+// RemoveAllPin operation middleware
+func (sh *strictHandler) RemoveAllPin(ctx echo.Context) error {
+	var request RemoveAllPinRequestObject
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.RemoveAllPin(ctx.Request().Context(), request.(RemoveAllPinRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "RemoveAllPin")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(RemoveAllPinResponseObject); ok {
+		return validResponse.VisitRemoveAllPinResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("Unexpected response type: %T", response)
+	}
+	return nil
+}
+
 // PinnedItems operation middleware
 func (sh *strictHandler) PinnedItems(ctx echo.Context) error {
 	var request PinnedItemsRequestObject
@@ -1302,6 +1325,35 @@ func (sh *strictHandler) PinnedItems(ctx echo.Context) error {
 		return err
 	} else if validResponse, ok := response.(PinnedItemsResponseObject); ok {
 		return validResponse.VisitPinnedItemsResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("Unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// SetPin operation middleware
+func (sh *strictHandler) SetPin(ctx echo.Context) error {
+	var request SetPinRequestObject
+
+	var body SetPinJSONRequestBody
+	if err := ctx.Bind(&body); err != nil {
+		return err
+	}
+	request.Body = &body
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.SetPin(ctx.Request().Context(), request.(SetPinRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "SetPin")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(SetPinResponseObject); ok {
+		return validResponse.VisitSetPinResponse(ctx.Response())
 	} else if response != nil {
 		return fmt.Errorf("Unexpected response type: %T", response)
 	}
@@ -1418,29 +1470,6 @@ func (sh *strictHandler) RegisterSubscription(ctx echo.Context) error {
 	return nil
 }
 
-// RemoveAllPin operation middleware
-func (sh *strictHandler) RemoveAllPin(ctx echo.Context) error {
-	var request RemoveAllPinRequestObject
-
-	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.RemoveAllPin(ctx.Request().Context(), request.(RemoveAllPinRequestObject))
-	}
-	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "RemoveAllPin")
-	}
-
-	response, err := handler(ctx, request)
-
-	if err != nil {
-		return err
-	} else if validResponse, ok := response.(RemoveAllPinResponseObject); ok {
-		return validResponse.VisitRemoveAllPinResponse(ctx.Response())
-	} else if response != nil {
-		return fmt.Errorf("Unexpected response type: %T", response)
-	}
-	return nil
-}
-
 // SetAsRead operation middleware
 func (sh *strictHandler) SetAsRead(ctx echo.Context) error {
 	var request SetAsReadRequestObject
@@ -1464,35 +1493,6 @@ func (sh *strictHandler) SetAsRead(ctx echo.Context) error {
 		return err
 	} else if validResponse, ok := response.(SetAsReadResponseObject); ok {
 		return validResponse.VisitSetAsReadResponse(ctx.Response())
-	} else if response != nil {
-		return fmt.Errorf("Unexpected response type: %T", response)
-	}
-	return nil
-}
-
-// SetPin operation middleware
-func (sh *strictHandler) SetPin(ctx echo.Context) error {
-	var request SetPinRequestObject
-
-	var body SetPinJSONRequestBody
-	if err := ctx.Bind(&body); err != nil {
-		return err
-	}
-	request.Body = &body
-
-	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.SetPin(ctx.Request().Context(), request.(SetPinRequestObject))
-	}
-	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "SetPin")
-	}
-
-	response, err := handler(ctx, request)
-
-	if err != nil {
-		return err
-	} else if validResponse, ok := response.(SetPinResponseObject); ok {
-		return validResponse.VisitSetPinResponse(ctx.Response())
 	} else if response != nil {
 		return fmt.Errorf("Unexpected response type: %T", response)
 	}

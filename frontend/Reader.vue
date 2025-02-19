@@ -211,7 +211,7 @@ export default defineComponent({
         contentStore.setIndex(index);
       }
 
-      openapiFetchClient.POST("/api/set_pin", {
+      openapiFetchClient.POST("/api/pin", {
         body: contentStore.currentEntrySerialData(),
       }).then(data => {
         if (data.data === undefined) {

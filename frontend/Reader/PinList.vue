@@ -31,7 +31,7 @@ export default defineComponent({
     const togglePinList = () => {
       visibleState.value = visibleState.value ? false : true;
       if (visibleState.value) {
-        openapiFetchClient.GET("/api/pinned_items").then(data => {
+        openapiFetchClient.GET("/api/pin").then(data => {
           if (data.data === undefined) {
             return
           }
@@ -45,7 +45,7 @@ export default defineComponent({
         return;
       }
       visibleState.value = false;
-      openapiFetchClient.POST("/api/remove_all_pin").then(() => {
+      openapiFetchClient.DELETE("/api/pin").then(() => {
         list.value = [];
       });
     };
