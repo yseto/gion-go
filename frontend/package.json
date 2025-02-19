@@ -7,7 +7,7 @@
         "build": "webpack --mode production",
         "lint": "npx eslint .",
         "lint-fix": "npx eslint . --fix",
-        "generate-api-schema": "npx openapi-typescript ../app/openapi.yaml -o api/schema.d.ts"
+        "generate-api-schema": "npx openapi-typescript ../openapi.yaml -o api/schema.d.ts"
     },
     "devDependencies": {
         "@babel/core": "^7.22.11",

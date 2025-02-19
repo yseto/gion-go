@@ -12,7 +12,7 @@ import (
 
 	"github.com/lestrrat-go/accesslog"
 
-	"github.com/yseto/gion-go/app/handler"
+	"github.com/yseto/gion-go/app"
 	"github.com/yseto/gion-go/config"
 	"github.com/yseto/gion-go/db"
 )
@@ -31,16 +31,16 @@ func main() {
 
 	al := accesslog.New().Logger(slog.New(slog.NewJSONHandler(os.Stdout, nil)))
 
-	svr := handler.New(cfg.JwtSignedKeyBin)
-	h := handler.Handler(handler.NewStrictHandler(svr, nil))
+	svr := app.New(cfg.JwtSignedKeyBin)
+	h := app.Handler(app.NewStrictHandler(svr, nil))
 
-	mw, err := handler.CreateMiddleware(cfg.JwtSignedKeyBin)
+	mw, err := app.CreateMiddleware(cfg.JwtSignedKeyBin)
 	if err != nil {
 		log.Fatalln("error creating middleware:", err)
 	}
 	h = mw(h)
 
-	mw2 := handler.CreateMiddlewareEmptyContext(dbConn)
+	mw2 := app.CreateMiddlewareEmptyContext(dbConn)
 	h = mw2(h)
 
 	s := &http.Server{
