@@ -107,7 +107,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/unread_entry/{category_id}": {
+    "/api/category/{category_id}/entry": {
         parameters: {
             query?: never;
             header?: never;

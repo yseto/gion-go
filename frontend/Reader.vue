@@ -117,7 +117,7 @@ export default defineComponent({
         return;
       }
 
-      openapiFetchClient.GET("/api/unread_entry/{category_id}", {
+      openapiFetchClient.GET("/api/category/{category_id}/entry", {
         params: {
           path:{category_id: categoryStore.list[categoryStore.selected].id},
         }

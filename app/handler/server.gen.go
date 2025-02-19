@@ -27,6 +27,9 @@ type ServerInterface interface {
 	// (POST /api/category)
 	RegisterCategory(ctx echo.Context) error
 
+	// (GET /api/category/{category_id}/entry)
+	UnreadEntry(ctx echo.Context, categoryId uint64) error
+
 	// (DELETE /api/category/{id})
 	DeleteCategory(ctx echo.Context, id uint64) error
 
@@ -78,9 +81,6 @@ type ServerInterface interface {
 	// (GET /api/subscriptions)
 	Subscriptions(ctx echo.Context) error
 
-	// (GET /api/unread_entry/{category_id})
-	UnreadEntry(ctx echo.Context, categoryId uint64) error
-
 	// (POST /api/update_password)
 	UpdatePassword(ctx echo.Context) error
 
@@ -121,6 +121,24 @@ func (w *ServerInterfaceWrapper) RegisterCategory(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshalled arguments
 	err = w.Handler.RegisterCategory(ctx)
+	return err
+}
+
+// UnreadEntry converts echo context to params.
+func (w *ServerInterfaceWrapper) UnreadEntry(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "category_id" -------------
+	var categoryId uint64
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "category_id", runtime.ParamLocationPath, ctx.Param("category_id"), &categoryId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter category_id: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshalled arguments
+	err = w.Handler.UnreadEntry(ctx, categoryId)
 	return err
 }
 
@@ -321,24 +339,6 @@ func (w *ServerInterfaceWrapper) Subscriptions(ctx echo.Context) error {
 	return err
 }
 
-// UnreadEntry converts echo context to params.
-func (w *ServerInterfaceWrapper) UnreadEntry(ctx echo.Context) error {
-	var err error
-	// ------------- Path parameter "category_id" -------------
-	var categoryId uint64
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "category_id", runtime.ParamLocationPath, ctx.Param("category_id"), &categoryId)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter category_id: %s", err))
-	}
-
-	ctx.Set(BearerAuthScopes, []string{})
-
-	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.UnreadEntry(ctx, categoryId)
-	return err
-}
-
 // UpdatePassword converts echo context to params.
 func (w *ServerInterfaceWrapper) UpdatePassword(ctx echo.Context) error {
 	var err error
@@ -397,6 +397,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.GET(baseURL+"/", wrapper.Index)
 	router.GET(baseURL+"/api/categories", wrapper.Categories)
 	router.POST(baseURL+"/api/category", wrapper.RegisterCategory)
+	router.GET(baseURL+"/api/category/:category_id/entry", wrapper.UnreadEntry)
 	router.DELETE(baseURL+"/api/category/:id", wrapper.DeleteCategory)
 	router.GET(baseURL+"/api/category_with_count", wrapper.CategoryAndUnreadEntryCount)
 	router.POST(baseURL+"/api/change_subscription", wrapper.ChangeSubscription)
@@ -414,7 +415,6 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.POST(baseURL+"/api/subscription", wrapper.RegisterSubscription)
 	router.DELETE(baseURL+"/api/subscription/:id", wrapper.DeleteSubscription)
 	router.GET(baseURL+"/api/subscriptions", wrapper.Subscriptions)
-	router.GET(baseURL+"/api/unread_entry/:category_id", wrapper.UnreadEntry)
 	router.POST(baseURL+"/api/update_password", wrapper.UpdatePassword)
 	router.GET(baseURL+"/:filename", wrapper.ServeRootFile)
 
@@ -500,6 +500,31 @@ type RegisterCategory409Response struct {
 
 func (response RegisterCategory409Response) VisitRegisterCategoryResponse(w http.ResponseWriter) error {
 	w.WriteHeader(409)
+	return nil
+}
+
+type UnreadEntryRequestObject struct {
+	CategoryId uint64 `json:"category_id"`
+}
+
+type UnreadEntryResponseObject interface {
+	VisitUnreadEntryResponse(w http.ResponseWriter) error
+}
+
+type UnreadEntry200JSONResponse []UnreadEntry
+
+func (response UnreadEntry200JSONResponse) VisitUnreadEntryResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UnreadEntry400Response struct {
+}
+
+func (response UnreadEntry400Response) VisitUnreadEntryResponse(w http.ResponseWriter) error {
+	w.WriteHeader(400)
 	return nil
 }
 
@@ -928,31 +953,6 @@ func (response Subscriptions400Response) VisitSubscriptionsResponse(w http.Respo
 	return nil
 }
 
-type UnreadEntryRequestObject struct {
-	CategoryId uint64 `json:"category_id"`
-}
-
-type UnreadEntryResponseObject interface {
-	VisitUnreadEntryResponse(w http.ResponseWriter) error
-}
-
-type UnreadEntry200JSONResponse []UnreadEntry
-
-func (response UnreadEntry200JSONResponse) VisitUnreadEntryResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(200)
-
-	return json.NewEncoder(w).Encode(response)
-}
-
-type UnreadEntry400Response struct {
-}
-
-func (response UnreadEntry400Response) VisitUnreadEntryResponse(w http.ResponseWriter) error {
-	w.WriteHeader(400)
-	return nil
-}
-
 type UpdatePasswordRequestObject struct {
 	Body *UpdatePasswordJSONRequestBody
 }
@@ -1025,6 +1025,9 @@ type StrictServerInterface interface {
 	// (POST /api/category)
 	RegisterCategory(ctx context.Context, request RegisterCategoryRequestObject) (RegisterCategoryResponseObject, error)
 
+	// (GET /api/category/{category_id}/entry)
+	UnreadEntry(ctx context.Context, request UnreadEntryRequestObject) (UnreadEntryResponseObject, error)
+
 	// (DELETE /api/category/{id})
 	DeleteCategory(ctx context.Context, request DeleteCategoryRequestObject) (DeleteCategoryResponseObject, error)
 
@@ -1075,9 +1078,6 @@ type StrictServerInterface interface {
 
 	// (GET /api/subscriptions)
 	Subscriptions(ctx context.Context, request SubscriptionsRequestObject) (SubscriptionsResponseObject, error)
-
-	// (GET /api/unread_entry/{category_id})
-	UnreadEntry(ctx context.Context, request UnreadEntryRequestObject) (UnreadEntryResponseObject, error)
 
 	// (POST /api/update_password)
 	UpdatePassword(ctx context.Context, request UpdatePasswordRequestObject) (UpdatePasswordResponseObject, error)
@@ -1167,6 +1167,31 @@ func (sh *strictHandler) RegisterCategory(ctx echo.Context) error {
 		return err
 	} else if validResponse, ok := response.(RegisterCategoryResponseObject); ok {
 		return validResponse.VisitRegisterCategoryResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("Unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// UnreadEntry operation middleware
+func (sh *strictHandler) UnreadEntry(ctx echo.Context, categoryId uint64) error {
+	var request UnreadEntryRequestObject
+
+	request.CategoryId = categoryId
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.UnreadEntry(ctx.Request().Context(), request.(UnreadEntryRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UnreadEntry")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(UnreadEntryResponseObject); ok {
+		return validResponse.VisitUnreadEntryResponse(ctx.Response())
 	} else if response != nil {
 		return fmt.Errorf("Unexpected response type: %T", response)
 	}
@@ -1610,31 +1635,6 @@ func (sh *strictHandler) Subscriptions(ctx echo.Context) error {
 		return err
 	} else if validResponse, ok := response.(SubscriptionsResponseObject); ok {
 		return validResponse.VisitSubscriptionsResponse(ctx.Response())
-	} else if response != nil {
-		return fmt.Errorf("Unexpected response type: %T", response)
-	}
-	return nil
-}
-
-// UnreadEntry operation middleware
-func (sh *strictHandler) UnreadEntry(ctx echo.Context, categoryId uint64) error {
-	var request UnreadEntryRequestObject
-
-	request.CategoryId = categoryId
-
-	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.UnreadEntry(ctx.Request().Context(), request.(UnreadEntryRequestObject))
-	}
-	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "UnreadEntry")
-	}
-
-	response, err := handler(ctx, request)
-
-	if err != nil {
-		return err
-	} else if validResponse, ok := response.(UnreadEntryResponseObject); ok {
-		return validResponse.VisitUnreadEntryResponse(ctx.Response())
 	} else if response != nil {
 		return fmt.Errorf("Unexpected response type: %T", response)
 	}

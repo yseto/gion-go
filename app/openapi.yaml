@@ -149,7 +149,7 @@ paths:
         "400":
           description: error
       
-  /api/unread_entry/{category_id}:
+  /api/category/{category_id}/entry:
     get:
       tags:
         - reader
