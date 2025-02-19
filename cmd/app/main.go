@@ -3,11 +3,13 @@ package main
 import (
 	"context"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
 	"time"
 
+	"github.com/yseto/gion-go/app/handler"
 	"github.com/yseto/gion-go/config"
 	"github.com/yseto/gion-go/db"
 )
@@ -24,7 +26,22 @@ func main() {
 	}
 	defer dbConn.Close()
 
-	// TODO
+	svr := handler.New()
+	h := handler.Handler(handler.NewStrictHandler(svr, nil))
+
+	mw, err := handler.CreateMiddleware(cfg.JwtSignedKeyBin)
+	if err != nil {
+		log.Fatalln("error creating middleware:", err)
+	}
+	h = mw(h)
+
+	mw2 := handler.CreateMiddlewareEmptyContext(dbConn)
+	h = mw2(h)
+
+	s := &http.Server{
+		Handler: h,
+		Addr:    net.JoinHostPort(cfg.HTTPHost, cfg.HTTPPort),
+	}
 
 	idleConnsClosed := make(chan struct{})
 
@@ -34,14 +51,14 @@ func main() {
 		<-quit
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
-		if err := e.Shutdown(ctx); err != nil {
-			e.Logger.Fatal(err)
+		if err := s.Shutdown(ctx); err != nil {
+			log.Fatal(err)
 		}
 		close(idleConnsClosed)
 	}()
 
-	if err := e.Start(net.JoinHostPort(cfg.HTTPHost, cfg.HTTPPort)); err != nil && err != http.ErrServerClosed {
-		e.Logger.Fatal("shutting down the server")
+	if err := s.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		log.Fatal("shutting down the server")
 	}
 
 	<-idleConnsClosed

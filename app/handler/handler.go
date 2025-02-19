@@ -26,7 +26,7 @@ import (
 
 type ApiServer struct{}
 
-func NewApiServer() *ApiServer {
+func New() *ApiServer {
 	return &ApiServer{}
 }
 
