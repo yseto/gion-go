@@ -3,26 +3,16 @@ package main
 import (
 	"context"
 	"log"
-	"net"
 	"net/http"
 	"os"
 	"os/signal"
-	"strings"
 	"time"
 
-	oapiMiddleware "github.com/deepmap/oapi-codegen/pkg/middleware"
-	"github.com/getkin/kin-openapi/openapi3filter"
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
-
-	"github.com/yseto/gion-go/app/handler"
 	"github.com/yseto/gion-go/config"
 	"github.com/yseto/gion-go/db"
 )
 
 func main() {
-	e := echo.New()
-
 	cfg, err := config.ReadConfig()
 	if err != nil {
 		log.Fatal(err)
@@ -34,44 +24,7 @@ func main() {
 	}
 	defer dbConn.Close()
 
-	swagger, _ := handler.GetSwagger()
-	swagger.Servers = nil
-
-	e.Use(
-		oapiMiddleware.OapiRequestValidatorWithOptions(swagger,
-			&oapiMiddleware.Options{
-				Options: openapi3filter.Options{
-					AuthenticationFunc: handler.NewAuthenticator(cfg.JwtSignedKeyBin),
-				},
-				ErrorHandler: func(c echo.Context, err *echo.HTTPError) error {
-					if message, ok := err.Message.(string); ok {
-						if strings.HasPrefix(message, "security requirements failed") {
-							c.Response().WriteHeader(401)
-							return nil
-						}
-					}
-					return err
-				},
-			}),
-
-		func(next echo.HandlerFunc) echo.HandlerFunc {
-			return func(c echo.Context) error {
-				ctx := handler.NewDBContext(c.Request().Context(), dbConn)
-
-				ctx = config.NewContext(ctx, cfg)
-
-				// into a value http.Request.Context from echo.Context
-				if userid := c.Get(handler.SessionContextKey); userid != nil {
-					ctx = handler.NewUserContext(ctx, userid.(uint64))
-				}
-				c.SetRequest(c.Request().WithContext(ctx))
-				return next(c)
-			}
-		})
-	e.Use(middleware.Logger())
-	e.Use(middleware.Recover())
-
-	handler.RegisterHandlers(e, handler.NewStrictHandler(handler.NewApiServer(), nil))
+	// TODO
 
 	idleConnsClosed := make(chan struct{})
 
