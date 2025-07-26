@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"log"
+	"time"
 
 	"github.com/hibiken/asynq"
 
@@ -60,24 +61,30 @@ func doCrawler(client *asynq.Client, cfg *config.Config, term *uint64) {
 	dbc := db.New(dbConn)
 
 	var feeds []*dbType.Feed
-	if *term == 0 {
-		feeds, err = dbc.Feeds()
-	} else {
-		feeds, err = dbc.FeedsByTerm(*term)
-	}
+	feeds, err = dbc.Feeds()
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	var count int
+	now := time.Now()
 	for i := range feeds {
+		if ts := feeds[i].GetRevisitAt(); ts != nil && now.Before(*ts) {
+			continue
+		}
+
+		count++
+
 		task, err := crawler.NewCrawlerTask(feeds[i].ID)
 		if err != nil {
 			log.Fatalf("could not create task: %v", err)
 		}
-		info, err := client.Enqueue(task)
+		_, err = client.Enqueue(task)
 		if err != nil {
 			log.Fatalf("could not enqueue task: %v", err)
 		}
-		log.Printf("enqueued task: id=%s queue=%s", info.ID, info.Queue)
+		// log.Printf("enqueued task: id=%s queue=%s", info.ID, info.Queue)
 	}
+
+	log.Println("enqueued", count)
 }
