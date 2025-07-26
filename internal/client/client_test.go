@@ -175,3 +175,85 @@ func TestClient_301_invalid(t *testing.T) {
 		t.Errorf("value is mismatch (-actual +expected):\n%s", diff)
 	}
 }
+
+func TestGetRedirectURL(t *testing.T) {
+	t.Run("invalid", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(404)
+		}))
+		defer ts.Close()
+
+		if _, err := GetRedirectURL(ts.URL); err == nil {
+			t.Error("invalid no error")
+		}
+	})
+
+	t.Run("invalid status code", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Add("Location", "http://domain.invalid")
+			w.WriteHeader(303)
+		}))
+		defer ts.Close()
+
+		if _, err := GetRedirectURL(ts.URL); err == nil {
+			t.Error("invalid no error")
+		}
+	})
+
+	t.Run("valid", func(t *testing.T) {
+		for _, code := range []int{301, 308} {
+			ts2 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(200)
+				fmt.Fprintf(w, "ok")
+			}))
+			defer ts2.Close()
+
+			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if r.URL.Path == "/" {
+					w.Header().Add("Location", ts2.URL)
+					w.WriteHeader(code)
+					return
+				}
+				fmt.Fprintf(w, "ok")
+			}))
+			defer ts.Close()
+
+			url, err := GetRedirectURL(ts.URL)
+			if err != nil {
+				t.Error("invalid error")
+			}
+
+			if url != ts2.URL {
+				t.Error("invalid url")
+			}
+		}
+	})
+
+	t.Run("valid twice redirect", func(t *testing.T) {
+		ts2 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(200)
+			fmt.Fprintf(w, "ok")
+		}))
+		defer ts2.Close()
+
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.URL.Path == "/" {
+				w.Header().Add("Location", "/2")
+			}
+			if r.URL.Path == "/2" {
+				w.Header().Add("Location", ts2.URL)
+			}
+			w.WriteHeader(301)
+		}))
+		defer ts.Close()
+
+		url, err := GetRedirectURL(ts.URL)
+		if err != nil {
+			t.Error("invalid error")
+		}
+
+		if url != ts2.URL {
+			t.Error("invalid url")
+		}
+	})
+}

@@ -1,6 +1,7 @@
 package client
 
 import (
+	"errors"
 	"io"
 	"net"
 	"net/http"
@@ -45,6 +46,31 @@ func Get(url string) (*http.Response, error) {
 	return (&http.Client{
 		Transport: transport,
 	}).Get(url)
+}
+
+var ErrRedirectURL = errors.New("cant get redirect URL")
+
+// リダイレクト先URLを取得する
+func GetRedirectURL(url string) (string, error) {
+	resp, err := client.Get(url)
+	if err != nil {
+		return "", err
+	}
+	defer func() {
+		io.Copy(io.Discard, resp.Body)
+		resp.Body.Close()
+	}()
+
+	if resp.StatusCode == 301 || resp.StatusCode == 308 {
+		url, err := resp.Location()
+		if err == nil {
+			return GetRedirectURL(url.String())
+		}
+	}
+	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
+		return url, nil
+	}
+	return "", ErrRedirectURL
 }
 
 func GetWithCache(xmlUrl string, cache Cache) (*Response, error) {
