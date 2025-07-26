@@ -17,10 +17,15 @@ import (
 	"github.com/yseto/gion-go/db"
 	dbType "github.com/yseto/gion-go/db/db"
 	"github.com/yseto/gion-go/internal/client"
+	"github.com/yseto/gion-go/internal/crawler/revisit"
 )
 
 const (
 	TypeCrawler = "crawler"
+
+	crawlerFactor      = 30
+	minRevisitDuration = 30 * time.Minute
+	maxRevisitDuration = 7 * 24 * time.Hour
 )
 
 type CrawlerPayload struct {
@@ -69,6 +74,8 @@ func HandleCrawlerTask(ctx context.Context, t *asynq.Task) error {
 		return err
 	}
 
+	revisitManager := revisit.New(time.Now(), crawlerFactor, minRevisitDuration, maxRevisitDuration)
+
 	fmt.Printf(">>> %s\n", feedRow.URL)
 	res, err := client.GetWithCache(
 		feedRow.URL,
@@ -81,7 +88,7 @@ func HandleCrawlerTask(ctx context.Context, t *asynq.Task) error {
 	// 結果が得られない場合、次の対象を処理する
 	if err != nil || res.StatusCode >= 400 && res.StatusCode < 600 {
 		feedRow.HTTPStatus = "404"
-		feedRow.Term = "4"
+		feedRow.SetRevisitAt(revisitManager.RevisitAtMaxRevisitDuration())
 		feedRow.Cache = toDbTypeCacheJson(res)
 		fmt.Printf("<<< ERR %s : %v\n", feedRow.URL, err)
 		if err = tx.UpdateFeed(*feedRow); err != nil {
@@ -107,7 +114,13 @@ func HandleCrawlerTask(ctx context.Context, t *asynq.Task) error {
 	// 304 であることを記録
 	if res.StatusCode == 304 {
 		feedRow.HTTPStatus = "304"
-		feedRow.UpdateTerm()
+
+		if ts := feedRow.GetLatestEntryAt(); ts != nil {
+			feedRow.SetRevisitAt(revisitManager.RevisitAt(*ts))
+		} else {
+			feedRow.SetRevisitAt(revisitManager.RevisitAtMaxRevisitDuration())
+		}
+
 		// 304 応答で、ヘッダによるレスポンス返却がある場合にのみ上書きをする
 		if res.Cache.Etag != "" || res.Cache.Modified != "" {
 			feedRow.Cache = toDbTypeCacheJson(res)
@@ -125,7 +138,7 @@ func HandleCrawlerTask(ctx context.Context, t *asynq.Task) error {
 	if err != nil {
 		feedRow.Cache = toDbTypeCacheJson(res)
 		feedRow.HTTPStatus = strconv.Itoa(res.StatusCode)
-		feedRow.Term = "5"
+		feedRow.SetRevisitAt(revisitManager.RevisitAtMaxRevisitDuration())
 		fmt.Printf("<<< ERR Parser: %v\n", err)
 		if err = tx.UpdateFeed(*feedRow); err != nil {
 			tx.Rollback()
@@ -147,7 +160,7 @@ func HandleCrawlerTask(ctx context.Context, t *asynq.Task) error {
 	if len(items) == 0 && len(items) != len(feed.Items) {
 		feedRow.Cache = toDbTypeCacheJson(res)
 		feedRow.HTTPStatus = strconv.Itoa(res.StatusCode)
-		feedRow.Term = "5"
+		feedRow.SetRevisitAt(revisitManager.RevisitAtMaxRevisitDuration())
 		fmt.Printf("<<< ERR %s : missing <pubdate>\n", feedRow.URL)
 		if err = tx.UpdateFeed(*feedRow); err != nil {
 			tx.Rollback()
@@ -167,10 +180,18 @@ func HandleCrawlerTask(ctx context.Context, t *asynq.Task) error {
 		return err
 	}
 
-	imported := false
-	pubdate := feedRow.Pubdate
-	for i := range items {
+	// レコードのフィールドに有効な時刻がなければ現在時刻を用いる
+	var existedLatestEntryAt = time.Now()
 
+	// 取り込み済みエントリの日時、新規の場合はnil
+	var latestEntryAt *time.Time
+
+	if ts := feedRow.GetLatestEntryAt(); ts != nil {
+		existedLatestEntryAt = *ts
+		latestEntryAt = ts
+	}
+
+	for i := range items {
 		// 遠い未来のエントリは取り込まない
 		if toleranceTime.Before(*items[i].PublishedParsed) {
 			continue
@@ -182,11 +203,11 @@ func HandleCrawlerTask(ctx context.Context, t *asynq.Task) error {
 		}
 
 		// フィードの記事データからフィードの最終更新時間を更新する
-		if items[i].PublishedParsed.After(pubdate) {
-			pubdate = *items[i].PublishedParsed
+		// latestEntryAt が nil の場合も更新する
+		if latestEntryAt == nil || items[i].PublishedParsed.After(*latestEntryAt) {
+			latestEntryAt = items[i].PublishedParsed
 		}
 
-		imported = true
 		// 新しいもののみを取り込む XXX デバッグ時は以下を抑止
 		if items[i].PublishedParsed.Before(existedLatestEntryAt) || items[i].PublishedParsed.Equal(existedLatestEntryAt) {
 			continue
@@ -230,13 +251,14 @@ func HandleCrawlerTask(ctx context.Context, t *asynq.Task) error {
 
 	feedRow.Cache = toDbTypeCacheJson(res)
 	feedRow.HTTPStatus = strconv.Itoa(res.StatusCode)
-	feedRow.Pubdate = pubdate
-	feedRow.UpdateTerm()
-	if imported {
-		feedRow.Term = "1"
+	if latestEntryAt == nil {
+		feedRow.SetRevisitAt(revisitManager.RevisitAtMaxRevisitDuration())
+	} else {
+		feedRow.SetLatestEntryAt(*latestEntryAt)
+		feedRow.SetRevisitAt(revisitManager.RevisitAt(*latestEntryAt))
 	}
 
-	if err = tx.UpdateFeedWithPubdate(*feedRow); err != nil {
+	if err = tx.UpdateFeedWithLatestEntryAt(*feedRow); err != nil {
 		tx.Rollback()
 		return err
 	}
