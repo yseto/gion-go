@@ -141,6 +141,11 @@ func (c *ClientTxn) UpdateFeedRSSUrl(item Feed) error {
 	return err
 }
 
+func (c *ClientTxn) UpdateFeedSiteUrl(item Feed) error {
+	_, err := c.Exec(c.sql("UPDATE feed SET siteurl = ? WHERE id = ?"), item.SiteURL, item.ID)
+	return err
+}
+
 func (c *ClientTxn) UpdateFeedWithLatestEntryAt(item Feed) error {
 	_, err := c.Exec(c.sql(`
 UPDATE feed

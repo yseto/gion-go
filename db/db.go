@@ -68,6 +68,7 @@ type ClientTxn interface {
 	FeedByID(id uint64) (*db.Feed, error)
 	UpdateFeed(item db.Feed) error
 	UpdateFeedRSSUrl(item db.Feed) error
+	UpdateFeedSiteUrl(item db.Feed) error
 	UpdateFeedWithLatestEntryAt(item db.Feed) error
 
 	UpdateNextSerial(feedID uint64) error
