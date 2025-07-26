@@ -170,10 +170,6 @@ func HandleCrawlerTask(ctx context.Context, t *asynq.Task) error {
 	imported := false
 	pubdate := feedRow.Pubdate
 	for i := range items {
-		// 新しいもののみを取り込む XXX デバッグ時は以下を抑止
-		if items[i].PublishedParsed.Before(feedRow.Pubdate) || items[i].PublishedParsed.Equal(feedRow.Pubdate) {
-			continue
-		}
 
 		// 遠い未来のエントリは取り込まない
 		if toleranceTime.Before(*items[i].PublishedParsed) {
@@ -191,6 +187,10 @@ func HandleCrawlerTask(ctx context.Context, t *asynq.Task) error {
 		}
 
 		imported = true
+		// 新しいもののみを取り込む XXX デバッグ時は以下を抑止
+		if items[i].PublishedParsed.Before(existedLatestEntryAt) || items[i].PublishedParsed.Equal(existedLatestEntryAt) {
+			continue
+		}
 
 		if err := tx.UpdateNextSerial(feedRow.ID); err != nil {
 			tx.Rollback()
