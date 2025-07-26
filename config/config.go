@@ -3,22 +3,22 @@ package config
 import (
 	"crypto/rand"
 
-	"github.com/kelseyhightower/envconfig"
+	"github.com/caarlos0/env/v11"
 )
 
 type Config struct {
-	DBDriverName     string `envconfig:"DB_DRIVER" default:"sqlite3"`
-	DBDataSourceName string `envconfig:"DSN" default:"var/gion.db"`
-	RedisAddr        string `envconfig:"REDIS_ADDR" default:"127.0.0.1:6379"`
-	HTTPHost         string `envconfig:"HTTP_HOST" default:""`
-	HTTPPort         string `envconfig:"HTTP_PORT" default:"8080"`
-	JwtSignedKey     string `envconfig:"JWT_SIGNED_KEY" default:""`
+	DBDriverName     string `env:"DB_DRIVER" envDefault:"sqlite3"`
+	DBDataSourceName string `env:"DSN" envDefault:"var/gion.db"`
+	RedisAddr        string `env:"REDIS_ADDR" envDefault:"127.0.0.1:6379"`
+	HTTPHost         string `env:"HTTP_HOST" envDefault:""`
+	HTTPPort         string `env:"HTTP_PORT" envDefault:"8080"`
+	JwtSignedKey     string `env:"JWT_SIGNED_KEY" envDefault:""`
 	JwtSignedKeyBin  []byte
 }
 
 func ReadConfig() (*Config, error) {
 	var conf Config
-	err := envconfig.Process("gion", &conf)
+	err := env.Parse(&conf)
 	if err != nil {
 		return nil, err
 	}

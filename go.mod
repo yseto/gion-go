@@ -4,6 +4,7 @@ go 1.24.0
 
 require (
 	github.com/antchfx/htmlquery v1.2.5
+	github.com/caarlos0/env/v11 v11.3.1
 	github.com/getkin/kin-openapi v0.127.0
 	github.com/gilliek/go-opml v1.0.0
 	github.com/go-sql-driver/mysql v1.6.0
@@ -11,7 +12,6 @@ require (
 	github.com/google/go-cmp v0.6.0
 	github.com/hibiken/asynq v0.23.0
 	github.com/jmoiron/sqlx v1.3.5
-	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/lestrrat-go/accesslog v0.0.0-20241012080550-992e15765bd5
 	github.com/lib/pq v1.10.9
 	github.com/mattn/go-sqlite3 v1.14.15
