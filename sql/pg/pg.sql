@@ -29,6 +29,8 @@ CREATE TABLE "feed" (
   "term" character varying(1) DEFAULT '1' NOT NULL,
   "cache" jsonb NOT NULL,
   "next_serial" bigint DEFAULT 0 NOT NULL,
+  "revisit_at" timestamp(0),
+  "latest_entry_at" timestamp(0),
   PRIMARY KEY ("id")
 );
 

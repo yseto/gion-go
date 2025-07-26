@@ -31,7 +31,9 @@ CREATE TABLE "feed" (
   "pubdate" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "term" varchar(1) NOT NULL DEFAULT '1',
   "cache" text NOT NULL,
-  "next_serial" integer(11) NOT NULL DEFAULT 0
+  "next_serial" integer(11) NOT NULL DEFAULT 0,
+  "revisit_at" timestamp,
+  "latest_entry_at" timestamp
 );
 
 CREATE TABLE "subscription" (

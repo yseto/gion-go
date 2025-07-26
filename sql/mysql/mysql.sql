@@ -32,6 +32,8 @@ CREATE TABLE `feed` (
   `term` varchar(1) NOT NULL DEFAULT '1',
   `cache` text NOT NULL,
   `next_serial` integer(11) NOT NULL DEFAULT 0,
+  `revisit_at` timestamp,
+  `latest_entry_at` timestamp,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARACTER SET utf8mb4;
 

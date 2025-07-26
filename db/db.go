@@ -51,7 +51,6 @@ func NewUserScopedDB(conn *sqlx.DB, userID uint64) UserScopedDB {
 
 type DB interface {
 	FeedsByID(ids []uint64) ([]*db.Feed, error)
-	FeedsByTerm(term uint64) ([]*db.Feed, error)
 	Feeds() ([]*db.Feed, error)
 
 	PurgeReadEntry() error
@@ -69,7 +68,7 @@ type ClientTxn interface {
 	FeedByID(id uint64) (*db.Feed, error)
 	UpdateFeed(item db.Feed) error
 	UpdateFeedRSSUrl(item db.Feed) error
-	UpdateFeedWithPubdate(item db.Feed) error
+	UpdateFeedWithLatestEntryAt(item db.Feed) error
 
 	UpdateNextSerial(feedID uint64) error
 	GetNextSerial(feedID uint64) (*uint64, error)
