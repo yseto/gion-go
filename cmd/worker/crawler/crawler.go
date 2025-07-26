@@ -101,11 +101,20 @@ func HandleCrawlerTask(ctx context.Context, t *asynq.Task) error {
 
 	// リダイレクト先を保存する
 	if res.Location != "" {
-		fmt.Printf("<<< 301 %s -> %s\n", feedRow.URL, res.Location)
+		fmt.Printf("<<< 301 [Feed] %s -> %s\n", feedRow.URL, res.Location)
 		feedRow.URL = res.Location
 		if err = tx.UpdateFeedRSSUrl(*feedRow); err != nil {
 			tx.Rollback()
 			return err
+		}
+
+		if resSite, err := client.GetRedirectURL(feedRow.SiteURL); err == nil {
+			fmt.Printf("<<< 301 [Site] %s -> %s\n", feedRow.SiteURL, resSite)
+			feedRow.SiteURL = resSite
+			if err = tx.UpdateFeedSiteUrl(*feedRow); err != nil {
+				tx.Rollback()
+				return err
+			}
 		}
 	}
 
