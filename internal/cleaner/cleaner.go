@@ -18,23 +18,23 @@ func Task(ctx context.Context) error {
 	defer dbConn.Close()
 
 	dbc := db.New(dbConn)
-	if err = dbc.PurgeReadEntry(); err != nil {
+	if err = dbc.PurgeReadEntry(ctx); err != nil {
 		return err
 	}
 
-	feeds, err := dbc.Feeds()
+	feeds, err := dbc.Feeds(ctx)
 	if err != nil {
 		return err
 	}
 
 	tx := dbc.MustBegin()
 	for i := range feeds {
-		subsByFeed, err := tx.SubscriptionByFeedID(feeds[i].ID)
+		subsByFeed, err := tx.SubscriptionByFeedID(ctx, feeds[i].ID)
 		if err != nil {
 			return err
 		}
 		if len(subsByFeed) == 0 {
-			if err = tx.DeleteFeed(feeds[i].ID); err != nil {
+			if err = tx.DeleteFeed(ctx, feeds[i].ID); err != nil {
 				return err
 			}
 		}
@@ -42,17 +42,17 @@ func Task(ctx context.Context) error {
 	tx.Commit()
 
 	tx = dbc.MustBegin()
-	stories, err := tx.Stories()
+	stories, err := tx.Stories(ctx)
 	if err != nil {
 		return err
 	}
 	for i := range stories {
-		exist, err := tx.ExistEntry(stories[i].FeedID, stories[i].Serial)
+		exist, err := tx.ExistEntry(ctx, stories[i].FeedID, stories[i].Serial)
 		if err != nil {
 			return err
 		}
 		if exist == 0 {
-			if err = tx.DeleteStory(stories[i].FeedID, stories[i].Serial); err != nil {
+			if err = tx.DeleteStory(ctx, stories[i].FeedID, stories[i].Serial); err != nil {
 				return err
 			}
 		}

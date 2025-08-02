@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -15,9 +16,9 @@ type PinnedItem struct {
 	EntryUpdateAt time.Time `db:"update_at"`
 }
 
-func (c *UserClient) PinnedItems() ([]*PinnedItem, error) {
+func (c *UserClient) PinnedItems(ctx context.Context) ([]*PinnedItem, error) {
 	items := []*PinnedItem{}
-	err := c.Select(&items, c.sql(`
+	err := c.SelectContext(ctx, &items, c.sql(`
 SELECT
     story.title,
     story.url,
@@ -41,11 +42,11 @@ ORDER BY pubdate DESC
 	return items, nil
 }
 
-func (c *UserClientTxn) UpdateEntry(feedID, serial uint64, readflag pin.ReadFlag) error {
+func (c *UserClientTxn) UpdateEntry(ctx context.Context, feedID, serial uint64, readflag pin.ReadFlag) error {
 	if readflag == pin.Unseen {
 		return fmt.Errorf("UpdateEntry : Readflag is invalid. UserID: %d feedID: %d Serial: %d", c.UserID, feedID, serial)
 	}
-	_, err := c.Exec(c.sql(`
+	_, err := c.ExecContext(ctx, c.sql(`
 UPDATE entry
 SET
     readflag = ?,
@@ -55,8 +56,8 @@ WHERE user_id = ? AND serial = ? AND feed_id = ?
 	return err
 }
 
-func (c *UserClient) RemovePinnedItem() error {
-	_, err := c.Exec(c.sql(`
+func (c *UserClient) RemovePinnedItem(ctx context.Context) error {
+	_, err := c.ExecContext(ctx, c.sql(`
 UPDATE entry
 SET
     readflag = 1,

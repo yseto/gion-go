@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"errors"
 )
 
@@ -11,18 +12,18 @@ type Subscription struct {
 	UserID     uint64 `db:"user_id"`
 }
 
-func (c *UserClientTxn) SubscriptionByFeedID(feedID uint64) (*Subscription, error) {
+func (c *UserClientTxn) SubscriptionByFeedID(ctx context.Context, feedID uint64) (*Subscription, error) {
 	s := Subscription{}
-	err := c.Get(&s, c.sql("SELECT * FROM subscription WHERE user_id = ? AND feed_id = ?"), c.UserID, feedID)
+	err := c.GetContext(ctx, &s, c.sql("SELECT * FROM subscription WHERE user_id = ? AND feed_id = ?"), c.UserID, feedID)
 	if err != nil {
 		return nil, err
 	}
 	return &s, nil
 }
 
-func (c *ClientTxn) SubscriptionByFeedID(feedID uint64) ([]*Subscription, error) {
+func (c *ClientTxn) SubscriptionByFeedID(ctx context.Context, feedID uint64) ([]*Subscription, error) {
 	s := []*Subscription{}
-	err := c.Select(&s, c.sql("SELECT * FROM subscription WHERE feed_id = ?"), feedID)
+	err := c.SelectContext(ctx, &s, c.sql("SELECT * FROM subscription WHERE feed_id = ?"), feedID)
 	if err != nil {
 		return nil, err
 	}
@@ -37,9 +38,9 @@ type SubscriptionForUser struct {
 	SiteURL    string `db:"siteurl"`
 }
 
-func (c *UserClient) Subscriptions() ([]*SubscriptionForUser, error) {
+func (c *UserClient) Subscriptions(ctx context.Context) ([]*SubscriptionForUser, error) {
 	s := []*SubscriptionForUser{}
-	err := c.Select(&s, c.sql(`
+	err := c.SelectContext(ctx, &s, c.sql(`
 SELECT
     feed.id,
     feed.title,
@@ -57,9 +58,9 @@ ORDER BY title ASC
 	return s, nil
 }
 
-func (c *UserClient) FeedsByCategoryID(categoryID uint64) ([]*Feed, error) {
+func (c *UserClient) FeedsByCategoryID(ctx context.Context, categoryID uint64) ([]*Feed, error) {
 	f := []*Feed{}
-	err := c.Select(&f, c.sql(`
+	err := c.SelectContext(ctx, &f, c.sql(`
 SELECT
     feed.* 
 FROM subscription
@@ -75,31 +76,31 @@ AND
 	return f, nil
 }
 
-func (c *UserClient) DeleteSubscription(feedID uint64) error {
-	_, err := c.Exec(c.sql("DELETE FROM subscription WHERE feed_id = ? AND user_id = ?"), feedID, c.UserID)
+func (c *UserClient) DeleteSubscription(ctx context.Context, feedID uint64) error {
+	_, err := c.ExecContext(ctx, c.sql("DELETE FROM subscription WHERE feed_id = ? AND user_id = ?"), feedID, c.UserID)
 	return err
 }
 
 var errCategoryNotOwned = errors.New("category is not owned")
 
-func (c *UserClientTxn) InsertSubscription(feedID, categoryID uint64) error {
+func (c *UserClientTxn) InsertSubscription(ctx context.Context, feedID, categoryID uint64) error {
 	var exists bool
-	err := c.Get(&exists, c.sql("SELECT EXISTS(SELECT user_id FROM category WHERE id = ? AND user_id = ?)"), categoryID, c.UserID)
+	err := c.GetContext(ctx, &exists, c.sql("SELECT EXISTS(SELECT user_id FROM category WHERE id = ? AND user_id = ?)"), categoryID, c.UserID)
 	if err != nil || !exists {
 		return errCategoryNotOwned
 	}
 
-	_, err = c.Exec(c.sql("INSERT INTO subscription (category_id, feed_id, user_id) VALUES (?, ?, ?)"), categoryID, feedID, c.UserID)
+	_, err = c.ExecContext(ctx, c.sql("INSERT INTO subscription (category_id, feed_id, user_id) VALUES (?, ?, ?)"), categoryID, feedID, c.UserID)
 	return err
 }
 
-func (c *UserClient) UpdateSubscription(feedID, categoryID uint64) error {
+func (c *UserClient) UpdateSubscription(ctx context.Context, feedID, categoryID uint64) error {
 	var exists bool
-	err := c.Get(&exists, c.sql("SELECT EXISTS(SELECT user_id FROM category WHERE id = ? AND user_id = ?)"), categoryID, c.UserID)
+	err := c.GetContext(ctx, &exists, c.sql("SELECT EXISTS(SELECT user_id FROM category WHERE id = ? AND user_id = ?)"), categoryID, c.UserID)
 	if err != nil || !exists {
 		return errCategoryNotOwned
 	}
 
-	_, err = c.Exec(c.sql("UPDATE subscription SET category_id = ? WHERE feed_id = ? AND user_id = ?"), categoryID, feedID, c.UserID)
+	_, err = c.ExecContext(ctx, c.sql("UPDATE subscription SET category_id = ? WHERE feed_id = ? AND user_id = ?"), categoryID, feedID, c.UserID)
 	return err
 }

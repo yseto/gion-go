@@ -1,6 +1,9 @@
 package db
 
-import "fmt"
+import (
+	"context"
+	"fmt"
+)
 
 type Category struct {
 	ID     uint64 `db:"id"`
@@ -8,27 +11,27 @@ type Category struct {
 	Name   string `db:"name"`
 }
 
-func (c *UserClient) CategoryByID(id uint64) (*Category, error) {
+func (c *UserClient) CategoryByID(ctx context.Context, id uint64) (*Category, error) {
 	category := Category{}
-	err := c.Get(&category, c.sql("SELECT * FROM category WHERE user_id = ? AND id = ?"), c.UserID, id)
+	err := c.GetContext(ctx, &category, c.sql("SELECT * FROM category WHERE user_id = ? AND id = ?"), c.UserID, id)
 	if err != nil {
 		return nil, err
 	}
 	return &category, nil
 }
 
-func (c *UserClientTxn) CategoryByName(name string) (*Category, error) {
+func (c *UserClientTxn) CategoryByName(ctx context.Context, name string) (*Category, error) {
 	category := Category{}
-	err := c.Get(&category, c.sql("SELECT * FROM category WHERE user_id = ? AND name = ?"), c.UserID, name)
+	err := c.GetContext(ctx, &category, c.sql("SELECT * FROM category WHERE user_id = ? AND name = ?"), c.UserID, name)
 	if err != nil {
 		return nil, err
 	}
 	return &category, nil
 }
 
-func (c *UserClient) Category() ([]*Category, error) {
+func (c *UserClient) Category(ctx context.Context) ([]*Category, error) {
 	categories := []*Category{}
-	err := c.Select(&categories, c.sql("SELECT * FROM category WHERE user_id = ? ORDER BY name ASC"), c.UserID)
+	err := c.SelectContext(ctx, &categories, c.sql("SELECT * FROM category WHERE user_id = ? ORDER BY name ASC"), c.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -41,9 +44,9 @@ type UnreadEntryCount struct {
 	Name  string `db:"name"`
 }
 
-func (c *UserClient) CategoryAndUnreadEntryCount() ([]*UnreadEntryCount, error) {
+func (c *UserClient) CategoryAndUnreadEntryCount(ctx context.Context) ([]*UnreadEntryCount, error) {
 	counts := []*UnreadEntryCount{}
-	err := c.Select(&counts, c.sql(`
+	err := c.SelectContext(ctx, &counts, c.sql(`
 SELECT
     COUNT(0) AS count,
     category.id AS id,
@@ -62,8 +65,8 @@ ORDER BY category.name ASC
 	return counts, nil
 }
 
-func (c *UserClient) DeleteCategory(id uint64) error {
-	res, err := c.Exec(c.sql("DELETE FROM category WHERE id = ? AND user_id = ?"), id, c.UserID)
+func (c *UserClient) DeleteCategory(ctx context.Context, id uint64) error {
+	res, err := c.ExecContext(ctx, c.sql("DELETE FROM category WHERE id = ? AND user_id = ?"), id, c.UserID)
 	if err != nil {
 		return err
 	}
@@ -77,8 +80,8 @@ func (c *UserClient) DeleteCategory(id uint64) error {
 	return nil
 }
 
-func (c *UserClientTxn) InsertCategory(name string) error {
-	_, err := c.Exec(c.sql("INSERT INTO category (user_id, name) VALUES (?, ?)"), c.UserID, name)
+func (c *UserClientTxn) InsertCategory(ctx context.Context, name string) error {
+	_, err := c.ExecContext(ctx, c.sql("INSERT INTO category (user_id, name) VALUES (?, ?)"), c.UserID, name)
 	if err != nil {
 		return err
 	}

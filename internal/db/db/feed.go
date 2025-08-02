@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"database/sql"
 	"database/sql/driver"
 	"encoding/json"
@@ -70,46 +71,46 @@ func (pc CacheJson) Value() (driver.Value, error) {
 	return json.Marshal(pc)
 }
 
-func (c *ClientTxn) FeedByID(id uint64) (*Feed, error) {
+func (c *ClientTxn) FeedByID(ctx context.Context, id uint64) (*Feed, error) {
 	f := Feed{}
-	if err := c.Get(&f, c.sql("SELECT * FROM feed WHERE id = ?"), id); err != nil {
+	if err := c.GetContext(ctx, &f, c.sql("SELECT * FROM feed WHERE id = ?"), id); err != nil {
 		return nil, err
 	}
 	return &f, nil
 }
 
-func (c *Client) FeedsByID(ids []uint64) ([]*Feed, error) {
+func (c *Client) FeedsByID(ctx context.Context, ids []uint64) ([]*Feed, error) {
 	sql, params, err := sqlx.In(`SELECT * FROM feed WHERE id IN (?)`, ids)
 	if err != nil {
 		return nil, err
 	}
 
 	feeds := []*Feed{}
-	if err := c.Select(&feeds, c.sql(sql), params...); err != nil {
+	if err := c.SelectContext(ctx, &feeds, c.sql(sql), params...); err != nil {
 		return nil, err
 	}
 	return feeds, nil
 }
 
-func (c *Client) Feeds() ([]*Feed, error) {
+func (c *Client) Feeds(ctx context.Context) ([]*Feed, error) {
 	f := []*Feed{}
-	err := c.Select(&f, "SELECT * FROM feed")
+	err := c.SelectContext(ctx, &f, "SELECT * FROM feed")
 	if err != nil {
 		return nil, err
 	}
 	return f, nil
 }
 
-func (c *UserClientTxn) FeedByUrl(feedUrl, siteUrl string) (*Feed, error) {
+func (c *UserClientTxn) FeedByUrl(ctx context.Context, feedUrl, siteUrl string) (*Feed, error) {
 	f := Feed{}
-	if err := c.Get(&f, c.sql("SELECT * FROM feed WHERE url = ? AND siteurl = ?"), feedUrl, siteUrl); err != nil {
+	if err := c.GetContext(ctx, &f, c.sql("SELECT * FROM feed WHERE url = ? AND siteurl = ?"), feedUrl, siteUrl); err != nil {
 		return nil, err
 	}
 	return &f, nil
 }
 
-func (c *UserClientTxn) InsertFeed(feedUrl, siteUrl, title string) error {
-	_, err := c.Exec(c.sql(`
+func (c *UserClientTxn) InsertFeed(ctx context.Context, feedUrl, siteUrl, title string) error {
+	_, err := c.ExecContext(ctx, c.sql(`
 INSERT INTO feed 
     (url, siteurl, title, http_status, pubdate, cache)
 VALUES
@@ -118,36 +119,36 @@ VALUES
 	return err
 }
 
-func (c *ClientTxn) GetNextSerial(feedID uint64) (*uint64, error) {
+func (c *ClientTxn) GetNextSerial(ctx context.Context, feedID uint64) (*uint64, error) {
 	var f uint64
-	if err := c.Get(&f, c.sql("SELECT next_serial FROM feed WHERE id = ?"), feedID); err != nil {
+	if err := c.GetContext(ctx, &f, c.sql("SELECT next_serial FROM feed WHERE id = ?"), feedID); err != nil {
 		return nil, err
 	}
 	return &f, nil
 }
 
-func (c *ClientTxn) UpdateNextSerial(feedID uint64) error {
-	_, err := c.Exec(c.sql("UPDATE feed SET next_serial = next_serial + 1 WHERE id = ?"), feedID)
+func (c *ClientTxn) UpdateNextSerial(ctx context.Context, feedID uint64) error {
+	_, err := c.ExecContext(ctx, c.sql("UPDATE feed SET next_serial = next_serial + 1 WHERE id = ?"), feedID)
 	return err
 }
 
-func (c *ClientTxn) UpdateFeed(item Feed) error {
-	_, err := c.Exec(c.sql("UPDATE feed SET http_status = ?, revisit_at = ?, cache = ? WHERE id = ?"), item.HTTPStatus, item.GetRevisitAt(), item.Cache, item.ID)
+func (c *ClientTxn) UpdateFeed(ctx context.Context, item Feed) error {
+	_, err := c.ExecContext(ctx, c.sql("UPDATE feed SET http_status = ?, revisit_at = ?, cache = ? WHERE id = ?"), item.HTTPStatus, item.GetRevisitAt(), item.Cache, item.ID)
 	return err
 }
 
-func (c *ClientTxn) UpdateFeedRSSUrl(item Feed) error {
-	_, err := c.Exec(c.sql("UPDATE feed SET url = ? WHERE id = ?"), item.URL, item.ID)
+func (c *ClientTxn) UpdateFeedRSSUrl(ctx context.Context, item Feed) error {
+	_, err := c.ExecContext(ctx, c.sql("UPDATE feed SET url = ? WHERE id = ?"), item.URL, item.ID)
 	return err
 }
 
-func (c *ClientTxn) UpdateFeedSiteUrl(item Feed) error {
-	_, err := c.Exec(c.sql("UPDATE feed SET siteurl = ? WHERE id = ?"), item.SiteURL, item.ID)
+func (c *ClientTxn) UpdateFeedSiteUrl(ctx context.Context, item Feed) error {
+	_, err := c.ExecContext(ctx, c.sql("UPDATE feed SET siteurl = ? WHERE id = ?"), item.SiteURL, item.ID)
 	return err
 }
 
-func (c *ClientTxn) UpdateFeedWithLatestEntryAt(item Feed) error {
-	_, err := c.Exec(c.sql(`
+func (c *ClientTxn) UpdateFeedWithLatestEntryAt(ctx context.Context, item Feed) error {
+	_, err := c.ExecContext(ctx, c.sql(`
 UPDATE feed
 SET
     http_status = ?, latest_entry_at = ?, revisit_at = ?, cache = ?
@@ -158,7 +159,7 @@ WHERE
 	return err
 }
 
-func (c *ClientTxn) DeleteFeed(feedID uint64) error {
-	_, err := c.Exec(c.sql("DELETE FROM feed WHERE id = ?"), feedID)
+func (c *ClientTxn) DeleteFeed(ctx context.Context, feedID uint64) error {
+	_, err := c.ExecContext(ctx, c.sql("DELETE FROM feed WHERE id = ?"), feedID)
 	return err
 }

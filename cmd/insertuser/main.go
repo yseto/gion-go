@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"log"
 
@@ -14,6 +15,8 @@ func main() {
 	username := flag.String("u", "username", "set username")
 	password := flag.String("p", "password", "set password")
 	flag.Parse()
+
+	ctx := context.Background()
 
 	cfg, err := config.ReadConfig()
 	if err != nil {
@@ -32,18 +35,18 @@ func main() {
 	}
 
 	dbc := db.New(dbConn)
-	if err := dbc.InsertUser(*username, string(digest)); err != nil {
+	if err := dbc.InsertUser(ctx, *username, string(digest)); err != nil {
 		log.Fatal(err)
 	}
 	log.Printf("create user : %s\n", *username)
 
-	user, err := dbc.UserByName(*username)
+	user, err := dbc.UserByName(ctx, *username)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	tx := db.NewUserScopedDB(dbConn, user.ID).MustBegin()
-	if err := tx.InsertCategory("no title"); err != nil {
+	if err := tx.InsertCategory(ctx, "no title"); err != nil {
 		log.Fatal(err)
 	}
 	tx.Commit()

@@ -1,6 +1,9 @@
 package db
 
-import "time"
+import (
+	"context"
+	"time"
+)
 
 type UserProfile struct {
 	AutoSeen           bool   `db:"autoseen"`
@@ -9,17 +12,17 @@ type UserProfile struct {
 	SubstringLength    uint64 `db:"numsubstr"`
 }
 
-func (c *UserClient) Profile() (*UserProfile, error) {
+func (c *UserClient) Profile(ctx context.Context) (*UserProfile, error) {
 	p := UserProfile{}
-	err := c.Get(&p, c.sql("SELECT autoseen, numentry, nopinlist, numsubstr FROM users WHERE id = ?"), c.UserID)
+	err := c.GetContext(ctx, &p, c.sql("SELECT autoseen, numentry, nopinlist, numsubstr FROM users WHERE id = ?"), c.UserID)
 	if err != nil {
 		return nil, err
 	}
 	return &p, nil
 }
 
-func (c *UserClient) UpdateProfile(item UserProfile) error {
-	_, err := c.Exec(c.sql("UPDATE users SET autoseen = ?, numentry = ?, nopinlist = ?, numsubstr = ? WHERE id = ?"),
+func (c *UserClient) UpdateProfile(ctx context.Context, item UserProfile) error {
+	_, err := c.ExecContext(ctx, c.sql("UPDATE users SET autoseen = ?, numentry = ?, nopinlist = ?, numsubstr = ? WHERE id = ?"),
 		item.AutoSeen,
 		item.EntryCount,
 		item.OnLoginSkipPinList,
@@ -36,35 +39,35 @@ type User struct {
 	UserProfile
 }
 
-func (c *UserClient) User() (*User, error) {
+func (c *UserClient) User(ctx context.Context) (*User, error) {
 	u := User{}
-	err := c.Get(&u, c.sql("SELECT id, name, digest, last_login, autoseen, numentry, nopinlist, numsubstr FROM users WHERE id = ?"), c.UserID)
+	err := c.GetContext(ctx, &u, c.sql("SELECT id, name, digest, last_login, autoseen, numentry, nopinlist, numsubstr FROM users WHERE id = ?"), c.UserID)
 	if err != nil {
 		return nil, err
 	}
 	return &u, nil
 }
 
-func (c *Client) UserByName(name string) (*User, error) {
+func (c *Client) UserByName(ctx context.Context, name string) (*User, error) {
 	u := User{}
-	err := c.Get(&u, c.sql("SELECT id, name, digest, last_login, autoseen, numentry, nopinlist, numsubstr FROM users WHERE name = ?"), name)
+	err := c.GetContext(ctx, &u, c.sql("SELECT id, name, digest, last_login, autoseen, numentry, nopinlist, numsubstr FROM users WHERE name = ?"), name)
 	if err != nil {
 		return nil, err
 	}
 	return &u, nil
 }
 
-func (c *UserClient) UpdateUserDigest(digest string) error {
-	_, err := c.Exec(c.sql("UPDATE users SET digest = ?  WHERE id = ?"), digest, c.UserID)
+func (c *UserClient) UpdateUserDigest(ctx context.Context, digest string) error {
+	_, err := c.ExecContext(ctx, c.sql("UPDATE users SET digest = ?  WHERE id = ?"), digest, c.UserID)
 	return err
 }
 
-func (c *Client) UpdateUserLastLogin(userID uint64) error {
-	_, err := c.Exec(c.sql("UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?"), userID)
+func (c *Client) UpdateUserLastLogin(ctx context.Context, userID uint64) error {
+	_, err := c.ExecContext(ctx, c.sql("UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?"), userID)
 	return err
 }
 
-func (c *Client) InsertUser(username, password string) error {
-	_, err := c.Exec(c.sql("INSERT INTO users (name, digest) VALUES (?, ?)"), username, password)
+func (c *Client) InsertUser(ctx context.Context, username, password string) error {
+	_, err := c.ExecContext(ctx, c.sql("INSERT INTO users (name, digest) VALUES (?, ?)"), username, password)
 	return err
 }

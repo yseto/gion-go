@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -19,9 +20,9 @@ type EntryDetail struct {
 	SiteTitle      string       `db:"site_title"`
 }
 
-func (c *UserClient) UnreadEntryByCategory(categoryID uint64) ([]*EntryDetail, error) {
+func (c *UserClient) UnreadEntryByCategory(ctx context.Context, categoryID uint64) ([]*EntryDetail, error) {
 	e := []*EntryDetail{}
-	err := c.Select(&e, c.sql(`
+	err := c.SelectContext(ctx, &e, c.sql(`
 SELECT
     entry.serial,
     entry.feed_id,
@@ -48,8 +49,8 @@ ORDER BY entry.pubdate DESC
 	return e, nil
 }
 
-func (c *UserClient) UpdateEntrySeen(feedID, serial uint64) error {
-	_, err := c.Exec(c.sql(`
+func (c *UserClient) UpdateEntrySeen(ctx context.Context, feedID, serial uint64) error {
+	_, err := c.ExecContext(ctx, c.sql(`
 UPDATE entry
 SET
     readflag = 1,
@@ -62,8 +63,8 @@ WHERE readflag = 0
 	return err
 }
 
-func (c *ClientTxn) InsertEntry(userID, feedID, serial, subscriptionID uint64, pubdate time.Time) error {
-	_, err := c.Exec(c.sql(`
+func (c *ClientTxn) InsertEntry(ctx context.Context, userID, feedID, serial, subscriptionID uint64, pubdate time.Time) error {
+	_, err := c.ExecContext(ctx, c.sql(`
 INSERT INTO entry
 (user_id, feed_id, serial, subscription_id, pubdate, readflag,  update_at)
 VALUES (?, ?, ?, ?, ?, 0, CURRENT_TIMESTAMP)
@@ -71,21 +72,21 @@ VALUES (?, ?, ?, ?, ?, 0, CURRENT_TIMESTAMP)
 	return err
 }
 
-func (c *ClientTxn) ExistEntry(feedID, serial uint64) (uint64, error) {
+func (c *ClientTxn) ExistEntry(ctx context.Context, feedID, serial uint64) (uint64, error) {
 	var count uint64
-	err := c.Get(&count, c.sql("SELECT COUNT(*) FROM entry WHERE feed_id = ? AND serial = ?"), feedID, serial)
+	err := c.GetContext(ctx, &count, c.sql("SELECT COUNT(*) FROM entry WHERE feed_id = ? AND serial = ?"), feedID, serial)
 	return count, err
 }
 
-func (c *Client) PurgeReadEntry() error {
+func (c *Client) PurgeReadEntry(ctx context.Context) error {
 	var err error
 	switch c.DriverName() {
 	case "sqlite3":
-		_, err = c.Exec("DELETE FROM entry WHERE readflag = 1 AND update_at < DATETIME('NOW', '-1 DAY')")
+		_, err = c.ExecContext(ctx, "DELETE FROM entry WHERE readflag = 1 AND update_at < DATETIME('NOW', '-1 DAY')")
 	case "mysql":
-		_, err = c.Exec("DELETE FROM entry WHERE readflag = 1 AND update_at < DATE_ADD(CURRENT_TIMESTAMP, INTERVAL -1 DAY)")
+		_, err = c.ExecContext(ctx, "DELETE FROM entry WHERE readflag = 1 AND update_at < DATE_ADD(CURRENT_TIMESTAMP, INTERVAL -1 DAY)")
 	case "postgres":
-		_, err = c.Exec("DELETE FROM entry WHERE readflag = 1 AND update_at < DATE_TRUNC('second', (CURRENT_TIMESTAMP - interval '24 hours'))")
+		_, err = c.ExecContext(ctx, "DELETE FROM entry WHERE readflag = 1 AND update_at < DATE_TRUNC('second', (CURRENT_TIMESTAMP - interval '24 hours'))")
 	default:
 		err = fmt.Errorf("invalid DB Driver: %s", c.DriverName())
 	}

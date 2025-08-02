@@ -45,7 +45,7 @@ func Task(ctx context.Context, feedID uint64) error {
 	dbc := db.New(dbConn)
 	tx := dbc.MustBegin()
 
-	feedRow, err := tx.FeedByID(feedID)
+	feedRow, err := tx.FeedByID(ctx, feedID)
 	if err != nil && err == sql.ErrNoRows {
 		tx.Rollback()
 		return nil
@@ -59,6 +59,7 @@ func Task(ctx context.Context, feedID uint64) error {
 
 	fmt.Printf(">>> %s\n", feedRow.URL)
 	res, err := client.GetWithCache(
+		ctx,
 		feedRow.URL,
 		client.Cache{
 			Etag:     feedRow.Cache.Etag,
@@ -72,7 +73,7 @@ func Task(ctx context.Context, feedID uint64) error {
 		feedRow.SetRevisitAt(revisitManager.RevisitAtMaxRevisitDuration())
 		feedRow.Cache = toDbTypeCacheJson(res)
 		fmt.Printf("<<< ERR %s : %v\n", feedRow.URL, err)
-		if err = tx.UpdateFeed(*feedRow); err != nil {
+		if err = tx.UpdateFeed(ctx, *feedRow); err != nil {
 			tx.Rollback()
 			return err
 		}
@@ -84,7 +85,7 @@ func Task(ctx context.Context, feedID uint64) error {
 	if res.Location != "" {
 		fmt.Printf("<<< 301 [Feed] %s -> %s\n", feedRow.URL, res.Location)
 		feedRow.URL = res.Location
-		if err = tx.UpdateFeedRSSUrl(*feedRow); err != nil {
+		if err = tx.UpdateFeedRSSUrl(ctx, *feedRow); err != nil {
 			tx.Rollback()
 			return err
 		}
@@ -92,7 +93,7 @@ func Task(ctx context.Context, feedID uint64) error {
 		if resSite, err := client.GetRedirectURL(feedRow.SiteURL); err == nil {
 			fmt.Printf("<<< 301 [Site] %s -> %s\n", feedRow.SiteURL, resSite)
 			feedRow.SiteURL = resSite
-			if err = tx.UpdateFeedSiteUrl(*feedRow); err != nil {
+			if err = tx.UpdateFeedSiteUrl(ctx, *feedRow); err != nil {
 				tx.Rollback()
 				return err
 			}
@@ -116,7 +117,7 @@ func Task(ctx context.Context, feedID uint64) error {
 			feedRow.Cache = toDbTypeCacheJson(res)
 		}
 		fmt.Println("<<< 304")
-		if err = tx.UpdateFeed(*feedRow); err != nil {
+		if err = tx.UpdateFeed(ctx, *feedRow); err != nil {
 			tx.Rollback()
 			return err
 		}
@@ -130,7 +131,7 @@ func Task(ctx context.Context, feedID uint64) error {
 		feedRow.HTTPStatus = strconv.Itoa(res.StatusCode)
 		feedRow.SetRevisitAt(revisitManager.RevisitAtMaxRevisitDuration())
 		fmt.Printf("<<< ERR Parser: %v\n", err)
-		if err = tx.UpdateFeed(*feedRow); err != nil {
+		if err = tx.UpdateFeed(ctx, *feedRow); err != nil {
 			tx.Rollback()
 			return err
 		}
@@ -152,7 +153,7 @@ func Task(ctx context.Context, feedID uint64) error {
 		feedRow.HTTPStatus = strconv.Itoa(res.StatusCode)
 		feedRow.SetRevisitAt(revisitManager.RevisitAtMaxRevisitDuration())
 		fmt.Printf("<<< ERR %s : missing <pubdate>\n", feedRow.URL)
-		if err = tx.UpdateFeed(*feedRow); err != nil {
+		if err = tx.UpdateFeed(ctx, *feedRow); err != nil {
 			tx.Rollback()
 			return err
 		}
@@ -203,23 +204,23 @@ func Task(ctx context.Context, feedID uint64) error {
 			continue
 		}
 
-		if err := tx.UpdateNextSerial(feedRow.ID); err != nil {
+		if err := tx.UpdateNextSerial(ctx, feedRow.ID); err != nil {
 			tx.Rollback()
 			return err
 		}
-		serial, err := tx.GetNextSerial(feedRow.ID)
+		serial, err := tx.GetNextSerial(ctx, feedRow.ID)
 		if err != nil {
 			tx.Rollback()
 			return err
 		}
 
-		subs, err := tx.SubscriptionByFeedID(feedRow.ID)
+		subs, err := tx.SubscriptionByFeedID(ctx, feedRow.ID)
 		if err != nil {
 			tx.Rollback()
 			return err
 		}
 		for j := range subs {
-			if err = tx.InsertEntry(subs[j].UserID, feedRow.ID, *serial, subs[j].ID, *items[i].PublishedParsed); err != nil {
+			if err = tx.InsertEntry(ctx, subs[j].UserID, feedRow.ID, *serial, subs[j].ID, *items[i].PublishedParsed); err != nil {
 				tx.Rollback()
 				return err
 			}
@@ -231,7 +232,7 @@ func Task(ctx context.Context, feedID uint64) error {
 			return err
 		}
 
-		if err = tx.InsertStory(feedRow.ID, *serial, substringByBytesLength(items[i].Title, titleLength), substringByBytesLength(items[i].Description, 255), base.ResolveReference(u).String()); err != nil {
+		if err = tx.InsertStory(ctx, feedRow.ID, *serial, substringByBytesLength(items[i].Title, titleLength), substringByBytesLength(items[i].Description, 255), base.ResolveReference(u).String()); err != nil {
 			tx.Rollback()
 			return err
 		}
@@ -248,7 +249,7 @@ func Task(ctx context.Context, feedID uint64) error {
 		feedRow.SetRevisitAt(revisitManager.RevisitAt(*latestEntryAt))
 	}
 
-	if err = tx.UpdateFeedWithLatestEntryAt(*feedRow); err != nil {
+	if err = tx.UpdateFeedWithLatestEntryAt(ctx, *feedRow); err != nil {
 		tx.Rollback()
 		return err
 	}

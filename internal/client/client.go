@@ -1,6 +1,7 @@
 package client
 
 import (
+	"context"
 	"errors"
 	"io"
 	"net"
@@ -73,8 +74,8 @@ func GetRedirectURL(url string) (string, error) {
 	return "", ErrRedirectURL
 }
 
-func GetWithCache(xmlUrl string, cache Cache) (*Response, error) {
-	req, err := http.NewRequest("GET", xmlUrl, nil)
+func GetWithCache(ctx context.Context, xmlUrl string, cache Cache) (*Response, error) {
+	req, err := http.NewRequestWithContext(ctx, "GET", xmlUrl, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -153,7 +154,7 @@ func GetWithCache(xmlUrl string, cache Cache) (*Response, error) {
 			return u, nil
 		}
 
-		return GetWithCache(nextLocation, cache)
+		return GetWithCache(ctx, nextLocation, cache)
 	}
 
 	return u, nil
