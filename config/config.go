@@ -16,23 +16,26 @@ type Config struct {
 	JwtSignedKeyBin  []byte
 }
 
-func ReadConfig() (*Config, error) {
-	var conf Config
+var conf Config
+
+func init() {
 	err := env.Parse(&conf)
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 
 	if conf.JwtSignedKey == "" {
 		// need 256 bits.
 		data := make([]byte, 256/8)
 		if _, err := rand.Read(data); err != nil {
-			return nil, err
+			panic("generate rand:" + err.Error())
 		}
 		conf.JwtSignedKeyBin = data
 	} else {
 		conf.JwtSignedKeyBin = []byte(conf.JwtSignedKey)
 	}
+}
 
+func ReadConfig() (*Config, error) {
 	return &conf, nil
 }
