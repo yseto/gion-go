@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/yseto/gion-go/config"
+	"github.com/yseto/gion-go/internal/config"
 )
 
 func CreateHandler(cfg *config.Config, dbConn *sqlx.DB) http.Handler {

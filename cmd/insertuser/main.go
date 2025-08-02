@@ -6,7 +6,7 @@ import (
 
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/yseto/gion-go/config"
+	"github.com/yseto/gion-go/internal/config"
 	"github.com/yseto/gion-go/internal/db"
 )
 

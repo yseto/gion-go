@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/yseto/gion-go/config"
+	"github.com/yseto/gion-go/internal/config"
 	"github.com/yseto/gion-go/internal/db"
 )
 

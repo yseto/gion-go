@@ -11,8 +11,8 @@ import (
 
 	"github.com/mmcdole/gofeed"
 
-	"github.com/yseto/gion-go/config"
 	"github.com/yseto/gion-go/internal/client"
+	"github.com/yseto/gion-go/internal/config"
 	"github.com/yseto/gion-go/internal/crawler/revisit"
 	"github.com/yseto/gion-go/internal/db"
 	dbType "github.com/yseto/gion-go/internal/db/db"

@@ -5,7 +5,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
-	"github.com/yseto/gion-go/config"
+	"github.com/yseto/gion-go/internal/config"
 )
 
 func Open(cfg *config.Config) (*sqlx.DB, error) {
