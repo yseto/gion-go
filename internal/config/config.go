@@ -9,7 +9,6 @@ import (
 type Config struct {
 	DBDriverName     string `env:"DB_DRIVER" envDefault:"sqlite3"`
 	DBDataSourceName string `env:"DSN" envDefault:"var/gion.db"`
-	RedisAddr        string `env:"REDIS_ADDR" envDefault:"127.0.0.1:6379"`
 	HTTPHost         string `env:"HTTP_HOST" envDefault:""`
 	HTTPPort         string `env:"HTTP_PORT" envDefault:"8080"`
 	JwtSignedKey     string `env:"JWT_SIGNED_KEY" envDefault:""`
