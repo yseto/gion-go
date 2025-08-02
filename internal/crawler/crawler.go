@@ -3,14 +3,12 @@ package crawler
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"net/url"
 	"sort"
 	"strconv"
 	"time"
 
-	"github.com/hibiken/asynq"
 	"github.com/mmcdole/gofeed"
 
 	"github.com/yseto/gion-go/config"
@@ -21,24 +19,12 @@ import (
 )
 
 const (
-	TypeCrawler = "crawler"
-
 	crawlerFactor      = 30
 	minRevisitDuration = 30 * time.Minute
 	maxRevisitDuration = 7 * 24 * time.Hour
+
+	titleLength = 80
 )
-
-type CrawlerPayload struct {
-	FeedID uint64
-}
-
-func NewCrawlerTask(feedID uint64) (*asynq.Task, error) {
-	payload, err := json.Marshal(CrawlerPayload{feedID})
-	if err != nil {
-		return nil, err
-	}
-	return asynq.NewTask(TypeCrawler, payload), nil
-}
 
 func toDbTypeCacheJson(u *client.Response) dbType.CacheJson {
 	if u == nil {
@@ -47,13 +33,8 @@ func toDbTypeCacheJson(u *client.Response) dbType.CacheJson {
 	return dbType.CacheJson{Etag: u.Cache.Etag, Modified: u.Cache.Modified}
 }
 
-func HandleCrawlerTask(ctx context.Context, t *asynq.Task) error {
-	cfg := ctx.Value("cfg").(*config.Config)
-
-	var p CrawlerPayload
-	if err := json.Unmarshal(t.Payload(), &p); err != nil {
-		return fmt.Errorf("json.Unmarshal failed: %v: %w", err, asynq.SkipRetry)
-	}
+func Task(ctx context.Context, feedID uint64) error {
+	cfg, _ := config.ReadConfig()
 
 	dbConn, err := db.Open(cfg)
 	if err != nil {
@@ -64,7 +45,7 @@ func HandleCrawlerTask(ctx context.Context, t *asynq.Task) error {
 	dbc := db.New(dbConn)
 	tx := dbc.MustBegin()
 
-	feedRow, err := tx.FeedByID(p.FeedID)
+	feedRow, err := tx.FeedByID(feedID)
 	if err != nil && err == sql.ErrNoRows {
 		tx.Rollback()
 		return nil
@@ -250,7 +231,7 @@ func HandleCrawlerTask(ctx context.Context, t *asynq.Task) error {
 			return err
 		}
 
-		if err = tx.InsertStory(feedRow.ID, *serial, SubstringByBytesLength(items[i].Title, TitleLength), SubstringByBytesLength(items[i].Description, 255), base.ResolveReference(u).String()); err != nil {
+		if err = tx.InsertStory(feedRow.ID, *serial, substringByBytesLength(items[i].Title, titleLength), substringByBytesLength(items[i].Description, 255), base.ResolveReference(u).String()); err != nil {
 			tx.Rollback()
 			return err
 		}
@@ -273,4 +254,15 @@ func HandleCrawlerTask(ctx context.Context, t *asynq.Task) error {
 	}
 	tx.Commit()
 	return nil
+}
+
+func substringByBytesLength(s string, blen int) string {
+	var output string
+	for _, i := range []rune(s) {
+		if len(output)+len(string(i)) > blen {
+			break
+		}
+		output += string(i)
+	}
+	return output
 }
