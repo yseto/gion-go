@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"sync"
 	"time"
 
 	"github.com/lestrrat-go/accesslog"
@@ -15,7 +16,13 @@ import (
 	"github.com/yseto/gion-go/internal/config"
 	"github.com/yseto/gion-go/internal/db"
 	"github.com/yseto/gion-go/internal/reader"
+	"github.com/yseto/gion-go/internal/worker"
 )
+
+type serveAndShutdown interface {
+	Serve() error
+	Shutdown(ctx context.Context) error
+}
 
 func main() {
 	cfg, err := config.ReadConfig()
@@ -29,14 +36,23 @@ func main() {
 	}
 	defer dbConn.Close()
 
-	al := accesslog.New().Logger(slog.New(slog.NewJSONHandler(os.Stdout, nil)))
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	slog.SetDefault(logger)
 
-	s := &http.Server{
+	al := accesslog.New()
+
+	reader := &httpServer{s: &http.Server{
 		Handler: al.Wrap(reader.CreateHandler(cfg, dbConn)),
 		Addr:    net.JoinHostPort(cfg.HTTPHost, cfg.HTTPPort),
-	}
+	}}
 
-	idleConnsClosed := make(chan struct{})
+	wCrawler := worker.NewCrawler(cfg)
+
+	wCleaner := worker.NewCleaner(cfg)
+
+	idleShutdown := make(chan struct{})
+
+	var srvs = []serveAndShutdown{reader, wCrawler, wCleaner}
 
 	go func() {
 		quit := make(chan os.Signal, 1)
@@ -44,15 +60,45 @@ func main() {
 		<-quit
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
-		if err := s.Shutdown(ctx); err != nil {
-			log.Fatal(err)
+
+		var wg sync.WaitGroup
+		for _, s := range srvs {
+			wg.Add(1)
+			go func(ctx context.Context, s serveAndShutdown) {
+				defer wg.Done()
+				if err := s.Shutdown(ctx); err != nil {
+					log.Fatal(err)
+				}
+			}(ctx, s)
 		}
-		close(idleConnsClosed)
+		wg.Wait()
+
+		close(idleShutdown)
 	}()
 
-	if err := s.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		log.Fatal("shutting down the server")
+	for _, s := range srvs {
+		go func(s serveAndShutdown) {
+			if err := s.Serve(); err != nil {
+				log.Fatal("shutting down the server")
+			}
+		}(s)
 	}
 
-	<-idleConnsClosed
+	slog.Info("initialized.")
+	<-idleShutdown
+}
+
+type httpServer struct {
+	s *http.Server
+}
+
+func (s *httpServer) Serve() error {
+	if err := s.s.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		return err
+	}
+	return nil
+}
+
+func (s *httpServer) Shutdown(ctx context.Context) error {
+	return s.s.Shutdown(ctx)
 }
