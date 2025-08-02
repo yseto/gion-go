@@ -2,37 +2,14 @@ package cleaner
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-
-	"github.com/hibiken/asynq"
 
 	"github.com/yseto/gion-go/config"
 	"github.com/yseto/gion-go/db"
 )
 
-const (
-	TypeCleaner = "cleaner"
-)
-
-type CleanerPayload struct {
-}
-
-func NewCleanerTask() (*asynq.Task, error) {
-	payload, err := json.Marshal(CleanerPayload{})
-	if err != nil {
-		return nil, err
-	}
-	return asynq.NewTask(TypeCleaner, payload), nil
-}
-
-func HandleCleanerTask(ctx context.Context, t *asynq.Task) error {
-	cfg := ctx.Value("cfg").(*config.Config)
-
-	var p CleanerPayload
-	if err := json.Unmarshal(t.Payload(), &p); err != nil {
-		return fmt.Errorf("json.Unmarshal failed: %v: %w", err, asynq.SkipRetry)
-	}
+func Task(ctx context.Context) error {
+	cfg, _ := config.ReadConfig()
 
 	dbConn, err := db.Open(cfg)
 	if err != nil {
