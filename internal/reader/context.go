@@ -5,7 +5,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 
-	"github.com/yseto/gion-go/db"
+	"github.com/yseto/gion-go/internal/db"
 
 	myContext "github.com/yseto/gion-go/internal/reader/context"
 )
