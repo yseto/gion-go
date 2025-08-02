@@ -5,7 +5,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 
-	"github.com/yseto/gion-go/db/db"
+	"github.com/yseto/gion-go/internal/db/db"
 	"github.com/yseto/gion-go/internal/pin"
 )
 

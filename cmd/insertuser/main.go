@@ -7,7 +7,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/yseto/gion-go/config"
-	"github.com/yseto/gion-go/db"
+	"github.com/yseto/gion-go/internal/db"
 )
 
 func main() {

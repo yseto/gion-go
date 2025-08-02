@@ -13,7 +13,7 @@ import (
 	"github.com/lestrrat-go/accesslog"
 
 	"github.com/yseto/gion-go/config"
-	"github.com/yseto/gion-go/db"
+	"github.com/yseto/gion-go/internal/db"
 	"github.com/yseto/gion-go/internal/reader"
 )
 
