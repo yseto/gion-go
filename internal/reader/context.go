@@ -1,4 +1,4 @@
-package app
+package reader
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 
 	"github.com/yseto/gion-go/db"
 
-	myContext "github.com/yseto/gion-go/app/context"
+	myContext "github.com/yseto/gion-go/internal/reader/context"
 )
 
 type myContextKey struct{}
