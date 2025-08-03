@@ -2,13 +2,15 @@ package cleaner
 
 import (
 	"context"
-	"fmt"
+	"log/slog"
 
 	"github.com/yseto/gion-go/internal/config"
 	"github.com/yseto/gion-go/internal/db"
 )
 
 func Task(ctx context.Context) error {
+	logger := slog.Default().With("task", "cleaner")
+
 	cfg, _ := config.ReadConfig()
 
 	dbConn, err := db.Open(cfg)
@@ -58,6 +60,6 @@ func Task(ctx context.Context) error {
 		}
 	}
 	tx.Commit()
-	fmt.Println("Cleanup done.")
+	logger.Info("Cleanup done.")
 	return nil
 }

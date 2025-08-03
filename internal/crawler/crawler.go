@@ -3,7 +3,7 @@ package crawler
 import (
 	"context"
 	"database/sql"
-	"fmt"
+	"log/slog"
 	"net/url"
 	"sort"
 	"strconv"
@@ -34,6 +34,10 @@ func toDbTypeCacheJson(u *client.Response) dbType.CacheJson {
 }
 
 func Task(ctx context.Context, feedID uint64) error {
+	logger := slog.Default().With("task", "crawler").With("feedID", feedID)
+
+	logger.Info("Start Task")
+
 	cfg, _ := config.ReadConfig()
 
 	dbConn, err := db.Open(cfg)
@@ -57,7 +61,6 @@ func Task(ctx context.Context, feedID uint64) error {
 
 	revisitManager := revisit.New(time.Now(), crawlerFactor, minRevisitDuration, maxRevisitDuration)
 
-	fmt.Printf(">>> %s\n", feedRow.URL)
 	res, err := client.GetWithCache(
 		ctx,
 		feedRow.URL,
@@ -72,7 +75,7 @@ func Task(ctx context.Context, feedID uint64) error {
 		feedRow.HTTPStatus = "404"
 		feedRow.SetRevisitAt(revisitManager.RevisitAtMaxRevisitDuration())
 		feedRow.Cache = toDbTypeCacheJson(res)
-		fmt.Printf("<<< ERR %s : %v\n", feedRow.URL, err)
+		logger.Error("failed request", "type", "request", "url", feedRow.URL, "error", err)
 		if err = tx.UpdateFeed(ctx, *feedRow); err != nil {
 			tx.Rollback()
 			return err
@@ -83,7 +86,7 @@ func Task(ctx context.Context, feedID uint64) error {
 
 	// リダイレクト先を保存する
 	if res.Location != "" {
-		fmt.Printf("<<< 301 [Feed] %s -> %s\n", feedRow.URL, res.Location)
+		logger.Info("redirect", "type", "feed", "url", feedRow.URL, "newURL", res.Location)
 		feedRow.URL = res.Location
 		if err = tx.UpdateFeedRSSUrl(ctx, *feedRow); err != nil {
 			tx.Rollback()
@@ -91,7 +94,7 @@ func Task(ctx context.Context, feedID uint64) error {
 		}
 
 		if resSite, err := client.GetRedirectURL(feedRow.SiteURL); err == nil {
-			fmt.Printf("<<< 301 [Site] %s -> %s\n", feedRow.SiteURL, resSite)
+			logger.Info("redirect", "type", "site", "url", feedRow.SiteURL, "newURL", resSite)
 			feedRow.SiteURL = resSite
 			if err = tx.UpdateFeedSiteUrl(ctx, *feedRow); err != nil {
 				tx.Rollback()
@@ -100,11 +103,10 @@ func Task(ctx context.Context, feedID uint64) error {
 		}
 	}
 
-	fmt.Printf("<<< %3d %s\n", res.StatusCode, feedRow.URL)
-
 	// 304 であることを記録
 	if res.StatusCode == 304 {
 		feedRow.HTTPStatus = "304"
+		logger.Info("Not Modified")
 
 		if ts := feedRow.GetLatestEntryAt(); ts != nil {
 			feedRow.SetRevisitAt(revisitManager.RevisitAt(*ts))
@@ -116,7 +118,7 @@ func Task(ctx context.Context, feedID uint64) error {
 		if res.Cache.Etag != "" || res.Cache.Modified != "" {
 			feedRow.Cache = toDbTypeCacheJson(res)
 		}
-		fmt.Println("<<< 304")
+
 		if err = tx.UpdateFeed(ctx, *feedRow); err != nil {
 			tx.Rollback()
 			return err
@@ -130,7 +132,7 @@ func Task(ctx context.Context, feedID uint64) error {
 		feedRow.Cache = toDbTypeCacheJson(res)
 		feedRow.HTTPStatus = strconv.Itoa(res.StatusCode)
 		feedRow.SetRevisitAt(revisitManager.RevisitAtMaxRevisitDuration())
-		fmt.Printf("<<< ERR Parser: %v\n", err)
+		logger.Error("failed parse", "error", err)
 		if err = tx.UpdateFeed(ctx, *feedRow); err != nil {
 			tx.Rollback()
 			return err
@@ -138,6 +140,8 @@ func Task(ctx context.Context, feedID uint64) error {
 		tx.Commit()
 		return nil
 	}
+
+	// logger.Info(strconv.Itoa(res.StatusCode))
 
 	var items []*gofeed.Item
 	for i := range feed.Items {
@@ -152,7 +156,7 @@ func Task(ctx context.Context, feedID uint64) error {
 		feedRow.Cache = toDbTypeCacheJson(res)
 		feedRow.HTTPStatus = strconv.Itoa(res.StatusCode)
 		feedRow.SetRevisitAt(revisitManager.RevisitAtMaxRevisitDuration())
-		fmt.Printf("<<< ERR %s : missing <pubdate>\n", feedRow.URL)
+		logger.Error("missing <pubdate>", "type", "feed")
 		if err = tx.UpdateFeed(ctx, *feedRow); err != nil {
 			tx.Rollback()
 			return err
@@ -238,8 +242,6 @@ func Task(ctx context.Context, feedID uint64) error {
 		}
 	}
 
-	fmt.Printf("UPDATE FEED INFO: feed_id:%d\n", feedRow.ID)
-
 	feedRow.Cache = toDbTypeCacheJson(res)
 	feedRow.HTTPStatus = strconv.Itoa(res.StatusCode)
 	if latestEntryAt == nil {
@@ -254,6 +256,8 @@ func Task(ctx context.Context, feedID uint64) error {
 		return err
 	}
 	tx.Commit()
+
+	logger.Info("Updated Feed")
 	return nil
 }
 
