@@ -8,25 +8,24 @@ RUN npm run build
 FROM golang:1.24-bookworm AS build-go
 
 WORKDIR /usr/src/app/
+
 COPY go.mod go.sum  /usr/src/app/
 RUN go mod download
-COPY app/           /usr/src/app/app/
-COPY cmd/           /usr/src/app/cmd/
-COPY config/        /usr/src/app/config/
-COPY db/            /usr/src/app/db/
-COPY internal/      /usr/src/app/internal/
-ENV CGO_ENABLED=0
+
+COPY fs.go     /usr/src/app/
+COPY cmd/      /usr/src/app/cmd/
+COPY internal/ /usr/src/app/internal/
+
+COPY public/ /usr/src/app/public/
+COPY --from=build-env /app/public/gion.js /usr/src/app/public/
+
 RUN go build -o /app/gion       ./cmd/app
-RUN go build -o /app/queueing   ./cmd/queueing/
-RUN go build -o /app/worker     ./cmd/worker/
 RUN go build -o /app/insertuser ./cmd/insertuser/
 
-FROM gcr.io/distroless/static-debian12:nonroot
+FROM gcr.io/distroless/base-debian12:nonroot
 
 WORKDIR /app/
-COPY --from=build-go --chown=nonroot:nonroot /app/gion /app/queueing /app/worker /app/insertuser /app/
-COPY public/ /app/public/
-COPY --from=build-env --chown=nonroot:nonroot /app/public/gion.js /app/public/
+COPY --from=build-go --chown=nonroot:nonroot /app/gion /app/insertuser /app/
 
 EXPOSE 8080
 
