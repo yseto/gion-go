@@ -17,6 +17,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/net/html/charset"
 
+	giongo "github.com/yseto/gion-go"
 	"github.com/yseto/gion-go/internal/client"
 	"github.com/yseto/gion-go/internal/db/db"
 	"github.com/yseto/gion-go/internal/pin"
@@ -616,7 +617,8 @@ func (*ApiServer) Logout(ctx context.Context, request LogoutRequestObject) (Logo
 }
 
 func (*ApiServer) Index(ctx context.Context, request IndexRequestObject) (IndexResponseObject, error) {
-	b, err := os.ReadFile("public/index.html")
+	// b, err := os.ReadFile("public/index.html")
+	b, err := giongo.Public.ReadFile("public/index.html")
 	if err != nil {
 		return nil, err
 	}
@@ -645,7 +647,8 @@ func (*ApiServer) ServeRootFile(ctx context.Context, request ServeRootFileReques
 		return ServeRootFile404Response{}, nil
 	}
 
-	b, err := os.ReadFile(filename)
+	// b, err := os.ReadFile(filename)
+	b, err := giongo.Public.ReadFile(filename)
 	if err != nil && os.IsNotExist(err) {
 		return ServeRootFile404Response{}, nil
 	}
