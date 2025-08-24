@@ -8,7 +8,9 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/lestrrat-go/accesslog"
@@ -41,10 +43,36 @@ func main() {
 
 	al := accesslog.New()
 
-	reader := &httpServer{s: &http.Server{
-		Handler: al.Wrap(reader.CreateHandler(cfg, dbConn)),
-		Addr:    net.JoinHostPort(cfg.HTTPHost, cfg.HTTPPort),
-	}}
+	var listener net.Listener
+	if cfg.SystemdSocket {
+		fdNum, err := strconv.Atoi(os.Getenv("LISTEN_FDS"))
+		if err != nil || fdNum == 0 {
+			log.Fatal("Socket not found")
+		}
+		const fdsStart = 3
+		for fd := fdsStart; fd < fdsStart+fdNum; fd++ {
+			syscall.CloseOnExec(fd)
+			f := os.NewFile(uintptr(fd), "")
+
+			if pc, err := net.FileListener(f); err == nil {
+				listener = pc
+				f.Close()
+				break
+			}
+		}
+	} else {
+		listener, err = net.Listen("tcp", net.JoinHostPort(cfg.HTTPHost, cfg.HTTPPort))
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	reader := &httpServer{
+		s: &http.Server{
+			Handler: al.Wrap(reader.CreateHandler(cfg, dbConn)),
+		},
+		l: listener,
+	}
 
 	wCrawler := worker.NewCrawler(cfg)
 
@@ -90,10 +118,11 @@ func main() {
 
 type httpServer struct {
 	s *http.Server
+	l net.Listener
 }
 
 func (s *httpServer) Serve() error {
-	if err := s.s.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+	if err := s.s.Serve(s.l); err != nil && err != http.ErrServerClosed {
 		return err
 	}
 	return nil
