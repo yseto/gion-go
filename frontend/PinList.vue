@@ -25,9 +25,9 @@ import { format, parse } from "date-fns"
 import { openapiFetchClient } from "./api"
 import BackToTop from "./BackToTop.vue"
 import { PinList } from "./types"
-const localtime = (mysqlDT: string) => {
+const localtime = (datetime: string) => {
   return format(
-    parse(`${mysqlDT} Z`, "yyyy-MM-dd HH:mm:ss X", new Date()),
+    parse(`${datetime} Z`, "yyyy-MM-dd HH:mm:ss X", new Date()),
     "yyyy-MM-dd HH:mm"
   )
 }
