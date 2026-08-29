@@ -2,10 +2,11 @@ package db
 
 import (
 	"github.com/jmoiron/sqlx"
+	"github.com/yseto/gion-go/internal/db/engine"
 )
 
 func placeHolder(driverName string) int {
-	if driverName == "postgres" {
+	if driverName == engine.PostgreSQL {
 		return sqlx.DOLLAR
 	}
 	return sqlx.QUESTION

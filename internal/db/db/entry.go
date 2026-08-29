@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/yseto/gion-go/internal/db/engine"
 	"github.com/yseto/gion-go/internal/pin"
 )
 
@@ -81,11 +82,11 @@ func (c *ClientTxn) ExistEntry(ctx context.Context, feedID, serial uint64) (uint
 func (c *Client) PurgeReadEntry(ctx context.Context) error {
 	var err error
 	switch c.DriverName() {
-	case "sqlite3":
+	case engine.SQLite:
 		_, err = c.ExecContext(ctx, "DELETE FROM entry WHERE readflag = 1 AND update_at < DATETIME('NOW', '-1 DAY')")
-	case "mysql":
+	case engine.MySQL:
 		_, err = c.ExecContext(ctx, "DELETE FROM entry WHERE readflag = 1 AND update_at < DATE_ADD(CURRENT_TIMESTAMP, INTERVAL -1 DAY)")
-	case "postgres":
+	case engine.PostgreSQL:
 		_, err = c.ExecContext(ctx, "DELETE FROM entry WHERE readflag = 1 AND update_at < DATE_TRUNC('second', (CURRENT_TIMESTAMP - interval '24 hours'))")
 	default:
 		err = fmt.Errorf("invalid DB Driver: %s", c.DriverName())
