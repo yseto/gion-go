@@ -31,6 +31,7 @@ CREATE TABLE "feed" (
   "next_serial" bigint DEFAULT 0 NOT NULL,
   "revisit_at" timestamp(0),
   "latest_entry_at" timestamp(0),
+  "websub_id" INTEGER, -- cascade by appliation
   PRIMARY KEY ("id")
 );
 
@@ -85,3 +86,9 @@ ALTER TABLE "entry" ADD CONSTRAINT "entry_ibfk_1" FOREIGN KEY ("subscription_id"
 ALTER TABLE "entry" ADD CONSTRAINT "entry_ibfk_2" FOREIGN KEY ("user_id")
   REFERENCES "users" ("id") ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE;
 
+CREATE TABLE "websubs" (
+  "id" INTEGER NOT NULL,
+  "topic_url" TEXT NOT NULL,
+  "expired_at" TIMESTAMP,
+  PRIMARY KEY ("id")
+);

@@ -34,6 +34,7 @@ CREATE TABLE `feed` (
   `next_serial` integer(11) NOT NULL DEFAULT 0,
   `revisit_at` timestamp,
   `latest_entry_at` timestamp,
+  "websub_id" INTEGER, -- cascade by appliation
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARACTER SET utf8mb4;
 
@@ -73,6 +74,13 @@ CREATE TABLE `story` (
   `description` tinytext NOT NULL,
   `url` text NOT NULL,
   PRIMARY KEY (`feed_id`, `serial`)
+) ENGINE=InnoDB DEFAULT CHARACTER SET utf8mb4;
+
+CREATE TABLE "websubs" (
+  `id` INTEGER NOT NULL,
+  `topic_url` TEXT NOT NULL,
+  `expired_at` TIMESTAMP,
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARACTER SET utf8mb4;
 
 SET foreign_key_checks=1;

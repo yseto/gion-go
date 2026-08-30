@@ -33,7 +33,9 @@ CREATE TABLE "feed" (
   "cache" text NOT NULL,
   "next_serial" integer(11) NOT NULL DEFAULT 0,
   "revisit_at" timestamp,
-  "latest_entry_at" timestamp
+  "latest_entry_at" timestamp,
+
+  "websub_id" INTEGER -- cascade by appliation
 );
 
 CREATE TABLE "subscription" (
@@ -77,6 +79,12 @@ CREATE TABLE "story" (
   "description" tinytext(255) NOT NULL,
   "url" text NOT NULL,
   PRIMARY KEY ("feed_id", "serial")
+);
+
+CREATE TABLE "websubs" (
+  "id" INTEGER PRIMARY KEY NOT NULL,
+  "topic_url" TEXT NOT NULL,
+  "expired_at" TIMESTAMP
 );
 
 COMMIT;
