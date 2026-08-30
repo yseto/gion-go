@@ -208,35 +208,13 @@ func Task(ctx context.Context, feedID uint64) error {
 			continue
 		}
 
-		if err := tx.UpdateNextSerial(ctx, feedRow.ID); err != nil {
-			tx.Rollback()
-			return err
-		}
-		serial, err := tx.GetNextSerial(ctx, feedRow.ID)
-		if err != nil {
-			tx.Rollback()
-			return err
-		}
-
-		subs, err := tx.SubscriptionByFeedID(ctx, feedRow.ID)
-		if err != nil {
-			tx.Rollback()
-			return err
-		}
-		for j := range subs {
-			if err = tx.InsertEntry(ctx, subs[j].UserID, feedRow.ID, *serial, subs[j].ID, *items[i].PublishedParsed); err != nil {
-				tx.Rollback()
-				return err
-			}
-		}
-
 		u, err := url.Parse(items[i].Link)
 		if err != nil {
 			tx.Rollback()
 			return err
 		}
 
-		if err = tx.InsertStory(ctx, feedRow.ID, *serial, substringByBytesLength(items[i].Title, titleLength), substringByBytesLength(items[i].Description, 255), base.ResolveReference(u).String()); err != nil {
+		if err = SaveEntries(ctx, tx, feedRow, items[i], base.ResolveReference(u).String()); err != nil {
 			tx.Rollback()
 			return err
 		}
@@ -270,4 +248,26 @@ func substringByBytesLength(s string, blen int) string {
 		output += string(i)
 	}
 	return output
+}
+
+func SaveEntries(ctx context.Context, tx *dbType.ClientTxn, feedRow *dbType.Feed, item *gofeed.Item, link string) error {
+	if err := tx.UpdateNextSerial(ctx, feedRow.ID); err != nil {
+		return err
+	}
+	serial, err := tx.GetNextSerial(ctx, feedRow.ID)
+	if err != nil {
+		return err
+	}
+
+	subs, err := tx.SubscriptionByFeedID(ctx, feedRow.ID)
+	if err != nil {
+		return err
+	}
+	for j := range subs {
+		if err = tx.InsertEntry(ctx, subs[j].UserID, feedRow.ID, *serial, subs[j].ID, *item.PublishedParsed); err != nil {
+			return err
+		}
+	}
+
+	return tx.InsertStory(ctx, feedRow.ID, *serial, substringByBytesLength(item.Title, titleLength), substringByBytesLength(item.Description, 255), link)
 }
