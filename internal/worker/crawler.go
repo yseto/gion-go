@@ -86,6 +86,10 @@ func doCrawl(ctx context.Context, cfg *config.Config) error {
 	var crawlFeedIDs []uint64
 	now := time.Now()
 	for i := range feeds {
+		// Websub受信はスキップ
+		if feeds[i].WebsubID != nil {
+			continue
+		}
 		if ts := feeds[i].GetRevisitAt(); ts != nil && now.Before(*ts) {
 			continue
 		}

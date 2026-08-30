@@ -6,6 +6,7 @@ import (
 
 	"github.com/yseto/gion-go/internal/config"
 	"github.com/yseto/gion-go/internal/db"
+	"github.com/yseto/gion-go/internal/websub"
 )
 
 func Task(ctx context.Context) error {
@@ -33,11 +34,27 @@ func Task(ctx context.Context) error {
 	for i := range feeds {
 		subsByFeed, err := tx.SubscriptionByFeedID(ctx, feeds[i].ID)
 		if err != nil {
+			tx.Rollback()
 			return err
 		}
 		if len(subsByFeed) == 0 {
 			if err = tx.DeleteFeed(ctx, feeds[i].ID); err != nil {
+				tx.Rollback()
 				return err
+			}
+			if id := feeds[i].WebsubID; id != nil {
+				item, err := tx.WebsubByID(ctx, *id)
+				if err != nil {
+					tx.Rollback()
+					return err
+				}
+				if err = tx.DeleteWebsub(ctx, *item); err != nil {
+					tx.Rollback()
+					return err
+				}
+				if err = websub.UnSubscribe(ctx, item.TopicURL); err != nil {
+					return err
+				}
 			}
 		}
 	}
