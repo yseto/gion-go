@@ -16,6 +16,7 @@ type Config struct {
 	JwtSignedKeyBin  []byte
 
 	WebsubHostName string `env:"WEBSUB_HOST" envDefault:""`
+	WebsubPort     string `env:"WEBSUB_PORT" envDefault:"8081"`
 }
 
 var conf Config

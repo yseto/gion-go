@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -18,6 +19,7 @@ import (
 	"github.com/yseto/gion-go/internal/config"
 	"github.com/yseto/gion-go/internal/db"
 	"github.com/yseto/gion-go/internal/reader"
+	"github.com/yseto/gion-go/internal/websub"
 	"github.com/yseto/gion-go/internal/worker"
 )
 
@@ -43,8 +45,13 @@ func main() {
 
 	al := accesslog.New()
 
-	var listener net.Listener
+	var listener = make(map[string]net.Listener)
 	if cfg.SystemdSocket {
+		if _, ok := os.LookupEnv("LISTEN_FDNAMES"); !ok {
+			log.Fatal("LISTEN_FDNAMES not found")
+		}
+		fdnames := strings.Split(os.Getenv("LISTEN_FDNAMES"), ":")
+
 		fdNum, err := strconv.Atoi(os.Getenv("LISTEN_FDS"))
 		if err != nil || fdNum == 0 {
 			log.Fatal("Socket not found")
@@ -55,13 +62,16 @@ func main() {
 			f := os.NewFile(uintptr(fd), "")
 
 			if pc, err := net.FileListener(f); err == nil {
-				listener = pc
+				listener[fdnames[fd-fdsStart]] = pc
 				f.Close()
-				break
 			}
 		}
 	} else {
-		listener, err = net.Listen("tcp", net.JoinHostPort(cfg.HTTPHost, cfg.HTTPPort))
+		listener["web"], err = net.Listen("tcp", net.JoinHostPort(cfg.HTTPHost, cfg.HTTPPort))
+		if err != nil {
+			log.Fatal(err)
+		}
+		listener["websub"], err = net.Listen("tcp", net.JoinHostPort(cfg.HTTPHost, cfg.WebsubPort))
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -71,16 +81,25 @@ func main() {
 		s: &http.Server{
 			Handler: al.Wrap(reader.CreateHandler(cfg, dbConn)),
 		},
-		l: listener,
+		l: listener["web"],
+	}
+
+	websub := &httpServer{
+		s: &http.Server{
+			Handler: al.Wrap(websub.CreateHandler(cfg, dbConn)),
+		},
+		l: listener["websub"],
 	}
 
 	wCrawler := worker.NewCrawler(cfg)
 
 	wCleaner := worker.NewCleaner(cfg)
 
+	wWebSub := worker.NewWebSub(cfg)
+
 	idleShutdown := make(chan struct{})
 
-	var srvs = []serveAndShutdown{reader, wCrawler, wCleaner}
+	var srvs = []serveAndShutdown{reader, websub, wCrawler, wCleaner, wWebSub}
 
 	go func() {
 		quit := make(chan os.Signal, 1)
