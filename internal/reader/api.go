@@ -238,7 +238,7 @@ func (*ApiServer) RegisterCategory(ctx context.Context, request RegisterCategory
 }
 
 func insertFeed(ctx context.Context, rssUrl, siteUrl, title string) (*db.Feed, error) {
-	tx := DBUserFromContext(ctx).MustBegin()
+	tx := DBCommonFromContext(ctx).MustBegin()
 	feed, err := tx.FeedByUrl(ctx, rssUrl, siteUrl)
 	if err != nil && err != sql.ErrNoRows {
 		tx.Rollback()

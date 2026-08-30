@@ -101,7 +101,7 @@ func (c *Client) Feeds(ctx context.Context) ([]*Feed, error) {
 	return f, nil
 }
 
-func (c *UserClientTxn) FeedByUrl(ctx context.Context, feedUrl, siteUrl string) (*Feed, error) {
+func (c *ClientTxn) FeedByUrl(ctx context.Context, feedUrl, siteUrl string) (*Feed, error) {
 	f := Feed{}
 	if err := c.GetContext(ctx, &f, c.sql("SELECT * FROM feed WHERE url = ? AND siteurl = ?"), feedUrl, siteUrl); err != nil {
 		return nil, err
@@ -109,7 +109,7 @@ func (c *UserClientTxn) FeedByUrl(ctx context.Context, feedUrl, siteUrl string) 
 	return &f, nil
 }
 
-func (c *UserClientTxn) InsertFeed(ctx context.Context, feedUrl, siteUrl, title string) error {
+func (c *ClientTxn) InsertFeed(ctx context.Context, feedUrl, siteUrl, title string) error {
 	_, err := c.ExecContext(ctx, c.sql(`
 INSERT INTO feed 
     (url, siteurl, title, http_status, pubdate, cache)

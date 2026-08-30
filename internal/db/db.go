@@ -36,8 +36,6 @@ type UserScopedDB interface {
 }
 
 type UserClientTxn interface {
-	FeedByUrl(ctx context.Context, feedUrl, siteUrl string) (*db.Feed, error)
-	InsertFeed(ctx context.Context, feedUrl, siteUrl, title string) error
 	SubscriptionByFeedID(ctx context.Context, feedID uint64) (*db.Subscription, error)
 	InsertSubscription(ctx context.Context, feedID, categoryID uint64) error
 	CategoryByName(ctx context.Context, name string) (*db.Category, error)
@@ -82,6 +80,9 @@ type ClientTxn interface {
 	ExistEntry(ctx context.Context, feedID, serial uint64) (uint64, error)
 	Stories(ctx context.Context) ([]*db.Story, error)
 	DeleteStory(ctx context.Context, feedID, serial uint64) error
+
+	FeedByUrl(ctx context.Context, feedUrl, siteUrl string) (*db.Feed, error)
+	InsertFeed(ctx context.Context, feedUrl, siteUrl, title string) error
 }
 
 func New(conn *sqlx.DB) DB {
