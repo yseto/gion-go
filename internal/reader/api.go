@@ -6,8 +6,10 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/url"
 	"os"
+	"strings"
 	"unicode/utf8"
 
 	"github.com/antchfx/htmlquery"
@@ -21,6 +23,7 @@ import (
 	"github.com/yseto/gion-go/internal/client"
 	"github.com/yseto/gion-go/internal/db/db"
 	"github.com/yseto/gion-go/internal/pin"
+	"github.com/yseto/gion-go/internal/websub"
 )
 
 type ApiServer struct {
@@ -237,6 +240,7 @@ func (*ApiServer) RegisterCategory(ctx context.Context, request RegisterCategory
 	return RegisterCategory201Response{}, tx.Commit()
 }
 
+// TODO トランザクション整理
 func insertFeed(ctx context.Context, rssUrl, siteUrl, title string) (*db.Feed, error) {
 	tx := DBCommonFromContext(ctx).MustBegin()
 	feed, err := tx.FeedByUrl(ctx, rssUrl, siteUrl)
@@ -248,7 +252,18 @@ func insertFeed(ctx context.Context, rssUrl, siteUrl, title string) (*db.Feed, e
 		return feed, tx.Commit()
 	}
 
-	err = tx.InsertFeed(ctx, rssUrl, siteUrl, title)
+	var websubID *uint64
+	if strings.HasPrefix(rssUrl, "https://www.youtube.com/feeds/videos.xml") {
+		tx.Commit() // 2方向からトランザクション張ることになるため、解除
+
+		if websubID, err = youtubeWebSub(ctx, rssUrl); err != nil {
+			slog.Error("youtubeWebSub", slog.String("error", err.Error()), slog.String("rssUrl", rssUrl))
+		}
+
+		tx = DBCommonFromContext(ctx).MustBegin() // 再開
+	}
+
+	err = tx.InsertFeed(ctx, rssUrl, siteUrl, title, websubID)
 	if err != nil {
 		tx.Rollback()
 		return nil, err
@@ -261,6 +276,36 @@ func insertFeed(ctx context.Context, rssUrl, siteUrl, title string) (*db.Feed, e
 	}
 
 	return feed, tx.Commit()
+}
+
+func youtubeWebSub(ctx context.Context, rssUrl string) (*uint64, error) {
+	u, err := url.Parse(rssUrl)
+	if err != nil {
+		return nil, err
+	}
+
+	channelID := u.Query().Get("channel_id")
+	if channelID == "" {
+		return nil, fmt.Errorf("not found channel_id")
+	}
+
+	topicURL := fmt.Sprintf("https://www.youtube.com/xml/feeds/videos.xml?channel_id=%s", channelID)
+
+	if err := websub.Subscribe(ctx, topicURL); err != nil {
+		return nil, err
+	}
+
+	tx := DBCommonFromContext(ctx).MustBegin()
+
+	w, err := tx.WebsubByTopicURL(ctx, topicURL)
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	tx.Commit()
+
+	return &w.ID, nil
 }
 
 func (*ApiServer) RegisterSubscription(ctx context.Context, request RegisterSubscriptionRequestObject) (RegisterSubscriptionResponseObject, error) {
