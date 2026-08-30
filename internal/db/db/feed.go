@@ -23,6 +23,8 @@ type Feed struct {
 	NextSerial    uint64       `db:"next_serial"`
 	RevisitAt     sql.NullTime `db:"revisit_at"`
 	LatestEntryAt sql.NullTime `db:"latest_entry_at"`
+
+	WebsubID *uint64 `db:"websub_id"`
 }
 
 func (f *Feed) GetRevisitAt() *time.Time {
@@ -32,9 +34,12 @@ func (f *Feed) GetRevisitAt() *time.Time {
 	return nil
 }
 
-// no implemented for nil
 func (f *Feed) SetRevisitAt(ts time.Time) {
 	f.RevisitAt.Time, f.RevisitAt.Valid = ts, true
+}
+
+func (f *Feed) SetRevisitNull() {
+	f.RevisitAt.Valid = false
 }
 
 func (f *Feed) GetLatestEntryAt() *time.Time {
@@ -79,6 +84,14 @@ func (c *ClientTxn) FeedByID(ctx context.Context, id uint64) (*Feed, error) {
 	return &f, nil
 }
 
+func (c *ClientTxn) FeedByWebsubID(ctx context.Context, websubID uint64) (*Feed, error) {
+	f := Feed{}
+	if err := c.GetContext(ctx, &f, c.sql("SELECT * FROM feed WHERE websub_id = ?"), websubID); err != nil {
+		return nil, err
+	}
+	return &f, nil
+}
+
 func (c *Client) FeedsByID(ctx context.Context, ids []uint64) ([]*Feed, error) {
 	sql, params, err := sqlx.In(`SELECT * FROM feed WHERE id IN (?)`, ids)
 	if err != nil {
@@ -109,13 +122,13 @@ func (c *ClientTxn) FeedByUrl(ctx context.Context, feedUrl, siteUrl string) (*Fe
 	return &f, nil
 }
 
-func (c *ClientTxn) InsertFeed(ctx context.Context, feedUrl, siteUrl, title string) error {
+func (c *ClientTxn) InsertFeed(ctx context.Context, feedUrl, siteUrl, title string, websubID *uint64) error {
 	_, err := c.ExecContext(ctx, c.sql(`
 INSERT INTO feed 
-    (url, siteurl, title, http_status, pubdate, cache)
+    (url, siteurl, title, http_status, pubdate, cache, websub_id)
 VALUES
-    (?, ?, ?, 0, CURRENT_TIMESTAMP, '{}')
-    `), feedUrl, siteUrl, title)
+    (?, ?, ?, 0, CURRENT_TIMESTAMP, '{}', ?)
+    `), feedUrl, siteUrl, title, websubID)
 	return err
 }
 

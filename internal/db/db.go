@@ -69,6 +69,7 @@ type ClientTxn interface {
 	UpdateFeedRSSUrl(ctx context.Context, item db.Feed) error
 	UpdateFeedSiteUrl(ctx context.Context, item db.Feed) error
 	UpdateFeedWithLatestEntryAt(ctx context.Context, item db.Feed) error
+	FeedByWebsubID(ctx context.Context, websubID uint64) (*db.Feed, error)
 
 	UpdateNextSerial(ctx context.Context, feedID uint64) error
 	GetNextSerial(ctx context.Context, feedID uint64) (*uint64, error)
@@ -82,7 +83,14 @@ type ClientTxn interface {
 	DeleteStory(ctx context.Context, feedID, serial uint64) error
 
 	FeedByUrl(ctx context.Context, feedUrl, siteUrl string) (*db.Feed, error)
-	InsertFeed(ctx context.Context, feedUrl, siteUrl, title string) error
+	InsertFeed(ctx context.Context, feedUrl, siteUrl, title string, websubID *uint64) error
+
+	Websubs(ctx context.Context) ([]*db.Websub, error)
+	WebsubByID(ctx context.Context, id uint64) (*db.Websub, error)
+	WebsubByTopicURL(ctx context.Context, topicURL string) (*db.Websub, error)
+	InsertWebsub(ctx context.Context, topicURL string, expiresAt time.Time) error
+	UpdateWebsub(ctx context.Context, item db.Websub) error
+	DeleteWebsub(ctx context.Context, item db.Websub) error
 }
 
 func New(conn *sqlx.DB) DB {
