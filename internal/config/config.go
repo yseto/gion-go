@@ -14,6 +14,8 @@ type Config struct {
 	HTTPPort         string `env:"HTTP_PORT" envDefault:"8080"`
 	JwtSignedKey     string `env:"JWT_SIGNED_KEY" envDefault:""`
 	JwtSignedKeyBin  []byte
+
+	WebsubHostName string `env:"WEBSUB_HOST" envDefault:""`
 }
 
 var conf Config
