@@ -214,7 +214,7 @@ func Task(ctx context.Context, feedID uint64) error {
 			return err
 		}
 
-		if err = SaveEntries(ctx, tx, feedRow, items[i], base.ResolveReference(u).String()); err != nil {
+		if err = SaveEntries(ctx, tx, feedRow, items[i], base.ResolveReference(u).String(), false); err != nil {
 			tx.Rollback()
 			return err
 		}
@@ -250,7 +250,22 @@ func substringByBytesLength(s string, blen int) string {
 	return output
 }
 
-func SaveEntries(ctx context.Context, tx *dbType.ClientTxn, feedRow *dbType.Feed, item *gofeed.Item, link string) error {
+func SaveEntries(ctx context.Context, tx *dbType.ClientTxn, feedRow *dbType.Feed, item *gofeed.Item, link string, allowStoryOverwrite bool) error {
+	var (
+		title       = substringByBytesLength(item.Title, titleLength)
+		description = substringByBytesLength(item.Description, 255)
+	)
+
+	if allowStoryOverwrite {
+		if story, err := tx.FindStory(ctx, feedRow.ID, link); err != nil {
+			if err != sql.ErrNoRows { // 行なしだったら、nop
+				return err
+			}
+		} else {
+			return tx.UpdateStory(ctx, *story, title, description)
+		}
+	}
+
 	if err := tx.UpdateNextSerial(ctx, feedRow.ID); err != nil {
 		return err
 	}
@@ -269,5 +284,5 @@ func SaveEntries(ctx context.Context, tx *dbType.ClientTxn, feedRow *dbType.Feed
 		}
 	}
 
-	return tx.InsertStory(ctx, feedRow.ID, *serial, substringByBytesLength(item.Title, titleLength), substringByBytesLength(item.Description, 255), link)
+	return tx.InsertStory(ctx, feedRow.ID, *serial, title, description, link)
 }

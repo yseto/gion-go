@@ -171,6 +171,7 @@ func processDoc(ctx context.Context, tx *db.ClientTxn, doc *gofeed.Feed, websubI
 		return err
 	}
 
+	// 取り込み済みエントリの日時、新規の場合はnil
 	var latestEntryAt *time.Time
 	if ts := feedRow.GetLatestEntryAt(); ts != nil {
 		latestEntryAt = ts
@@ -197,7 +198,7 @@ func processDoc(ctx context.Context, tx *db.ClientTxn, doc *gofeed.Feed, websubI
 			continue
 		}
 
-		if err := crawler.SaveEntries(ctx, tx, feedRow, item, item.Link); err != nil {
+		if err := crawler.SaveEntries(ctx, tx, feedRow, item, item.Link, true); err != nil {
 			return err
 		}
 	}
