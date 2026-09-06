@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/yseto/gion-go/internal/config"
 )
@@ -36,6 +37,9 @@ func subscribe(ctx context.Context, topicURL, mode string) error {
 	data.Add("hub.mode", mode)
 	data.Add("hub.topic", topicURL)
 	data.Add("hub.verify", "sync")
+
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, "https://pubsubhubbub.appspot.com/subscribe", strings.NewReader(data.Encode()))
 	if err != nil {
