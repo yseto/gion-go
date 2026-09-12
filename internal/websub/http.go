@@ -23,8 +23,8 @@ func CreateHandler(cfg *config.Config, dbConn *sqlx.DB) http.Handler {
 
 	h := handler{db: abstractDB.New(dbConn)}
 
-	mux.HandleFunc("GET /api/webhook/pubsub", h.getCallback)
-	mux.HandleFunc("POST /api/webhook/pubsub", h.postCallback)
+	mux.HandleFunc("GET "+subscribeEndpoint, h.getCallback)
+	mux.HandleFunc("POST "+subscribeEndpoint, h.postCallback)
 
 	return mux
 }

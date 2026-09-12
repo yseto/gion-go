@@ -12,6 +12,8 @@ import (
 	"github.com/yseto/gion-go/internal/config"
 )
 
+const subscribeEndpoint = "/api/websub/subscribe"
+
 func Subscribe(ctx context.Context, topicURL string) error {
 	if topicURLs.insert(topicURL) != true {
 		return fmt.Errorf("failed topicURLs.insert")
@@ -32,7 +34,7 @@ func subscribe(ctx context.Context, topicURL, mode string) error {
 	cfg, _ := config.ReadConfig()
 
 	var data = url.Values{}
-	data.Add("hub.callback", fmt.Sprintf("https://%s/api/webhook/pubsub", cfg.WebsubHostName))
+	data.Add("hub.callback", fmt.Sprintf("https://%s%s", cfg.WebsubHostName, subscribeEndpoint))
 	data.Add("hub.lease_seconds", "864000")
 	data.Add("hub.mode", mode)
 	data.Add("hub.topic", topicURL)
