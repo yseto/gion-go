@@ -21,7 +21,7 @@ func (c *ClientTxn) Websubs(ctx context.Context) ([]*Websub, error) {
 
 func (c *ClientTxn) WebsubByID(ctx context.Context, id uint64) (*Websub, error) {
 	w := Websub{}
-	if err := c.GetContext(ctx, &w, "SELECT * FROM websubs WHERE id = ?", id); err != nil {
+	if err := c.GetContext(ctx, &w, c.sql("SELECT * FROM websubs WHERE id = ?"), id); err != nil {
 		return nil, err
 	}
 	return &w, nil
@@ -29,14 +29,14 @@ func (c *ClientTxn) WebsubByID(ctx context.Context, id uint64) (*Websub, error) 
 
 func (c *ClientTxn) WebsubByTopicURL(ctx context.Context, topicURL string) (*Websub, error) {
 	w := Websub{}
-	if err := c.GetContext(ctx, &w, "SELECT * FROM websubs WHERE topic_url = ?", topicURL); err != nil {
+	if err := c.GetContext(ctx, &w, c.sql("SELECT * FROM websubs WHERE topic_url = ?"), topicURL); err != nil {
 		return nil, err
 	}
 	return &w, nil
 }
 
 func (c *ClientTxn) InsertWebsub(ctx context.Context, topicURL string, expiredAt time.Time) error {
-	_, err := c.ExecContext(ctx, "INSERT INTO websubs (id, topic_url, expired_at) VALUES (NULL, ?, ?)", topicURL, expiredAt)
+	_, err := c.ExecContext(ctx, c.sql("INSERT INTO websubs (topic_url, expired_at) VALUES (?, ?)"), topicURL, expiredAt)
 	return err
 }
 
@@ -46,6 +46,6 @@ func (c *ClientTxn) UpdateWebsub(ctx context.Context, item Websub) error {
 }
 
 func (c *ClientTxn) DeleteWebsub(ctx context.Context, item Websub) error {
-	_, err := c.ExecContext(ctx, `DELETE FROM websubs WHERE id = ?`, item.ID)
+	_, err := c.ExecContext(ctx, c.sql("DELETE FROM websubs WHERE id = ?"), item.ID)
 	return err
 }
