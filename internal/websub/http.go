@@ -52,19 +52,7 @@ func (h *handler) getCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !topicURLs.contains(topicURL) {
-		slog.Error("!topicURLs.contains")
-		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
-		return
-	}
-
 	if mode == "unsubscribe" {
-		if !topicURLs.delete(topicURL) {
-			slog.Error("!topicURLs.delete")
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-			return
-		}
-
 		slog.Info("getCallback: unsubscribe", slog.String("topicURL", topicURL))
 
 		w.Header().Add("content-type", "text/plain")
@@ -111,12 +99,6 @@ func (h *handler) getCallback(w http.ResponseWriter, r *http.Request) {
 			tx.Rollback()
 			return
 		}
-	}
-
-	if !topicURLs.delete(topicURL) {
-		slog.Error("!topicURLs.delete")
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
 	}
 
 	if err := tx.Commit(); err != nil {

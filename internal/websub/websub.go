@@ -14,18 +14,10 @@ import (
 const subscribeEndpoint = "/api/websub/subscribe"
 
 func Subscribe(ctx context.Context, topicURL string) error {
-	if topicURLs.insert(topicURL) != true {
-		return fmt.Errorf("failed topicURLs.insert")
-	}
-
 	return subscribe(ctx, topicURL, "subscribe")
 }
 
 func UnSubscribe(ctx context.Context, topicURL string) error {
-	if topicURLs.insert(topicURL) != true {
-		return fmt.Errorf("failed topicURLs.insert")
-	}
-
 	return subscribe(ctx, topicURL, "unsubscribe")
 }
 
