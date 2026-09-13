@@ -26,7 +26,7 @@ func NewWebSub(cfg *config.Config) *wWebSub {
 }
 
 func (w *wWebSub) Serve() error {
-	ticker := time.NewTicker(24 * time.Hour)
+	ticker := time.NewTicker(30 * time.Minute)
 	defer ticker.Stop()
 
 	ctx, cancel := context.WithCancel(context.Background())
