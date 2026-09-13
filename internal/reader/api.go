@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"time"
 	"unicode/utf8"
 
 	"github.com/antchfx/htmlquery"
@@ -291,7 +292,10 @@ func youtubeWebSub(ctx context.Context, rssUrl string) (*uint64, error) {
 
 	topicURL := fmt.Sprintf("https://www.youtube.com/xml/feeds/videos.xml?channel_id=%s", channelID)
 
-	if err := websub.Subscribe(ctx, topicURL); err != nil {
+	ctx2, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+
+	if err := websub.Subscribe(ctx2, topicURL); err != nil {
 		return nil, err
 	}
 
