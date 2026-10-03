@@ -82,9 +82,10 @@ func (h *handler) getCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	nowAddleaseSeconds := time.Now().Add(time.Second * time.Duration(leaseSeconds))
 	if item == nil {
 		// 新規作成
-		if err := tx.InsertWebsub(ctx, topicURL, time.Now().Add(time.Second*time.Duration(leaseSeconds))); err != nil {
+		if err := tx.InsertWebsub(ctx, topicURL, nowAddleaseSeconds); err != nil {
 			slog.Error("tx.InsertWebsub", slog.String("error", err.Error()))
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 			tx.Rollback()
@@ -92,7 +93,7 @@ func (h *handler) getCallback(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		// 期限切れ更新の場合
-		item.ExpiredAt = time.Now().Add(time.Second * time.Duration(leaseSeconds))
+		item.ExpiredAt = nowAddleaseSeconds
 		if err := tx.UpdateWebsub(ctx, *item); err != nil {
 			slog.Error("tx.UpdateWebsub", slog.String("error", err.Error()))
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)

@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"math/rand/v2"
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/yseto/gion-go/internal/config"
 )
@@ -26,7 +28,7 @@ func subscribe(ctx context.Context, topicURL, mode string) error {
 
 	var data = url.Values{}
 	data.Add("hub.callback", fmt.Sprintf("https://%s%s", cfg.WebsubHostName, subscribeEndpoint))
-	data.Add("hub.lease_seconds", "864000")
+	data.Add("hub.lease_seconds", fmt.Sprintf("%d", int(randomLeaseSeconds(10*24*time.Hour).Seconds())))
 	data.Add("hub.mode", mode)
 	data.Add("hub.topic", topicURL)
 	data.Add("hub.verify", "sync")
@@ -53,4 +55,11 @@ func subscribe(ctx context.Context, topicURL, mode string) error {
 	}
 
 	return fmt.Errorf("subscribe: statusCode:%d, response:%s", resp.StatusCode, string(b))
+}
+
+func randomLeaseSeconds(currentInterval time.Duration) time.Duration {
+	var minInterval = currentInterval - time.Duration(12*time.Hour)
+	var maxInterval = currentInterval + time.Duration(12*time.Hour)
+
+	return time.Duration(minInterval + time.Duration(rand.Float64()*float64(maxInterval-minInterval+1))).Truncate(time.Minute)
 }
