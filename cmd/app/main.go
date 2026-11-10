@@ -29,6 +29,9 @@ type serveAndShutdown interface {
 }
 
 func main() {
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM)
+	defer stop()
+
 	cfg, err := config.ReadConfig()
 	if err != nil {
 		log.Fatal(err)
@@ -79,49 +82,27 @@ func main() {
 
 	reader := &httpServer{
 		s: &http.Server{
-			Handler: al.Wrap(reader.CreateHandler(cfg, dbConn)),
+			Handler:     al.Wrap(reader.CreateHandler(cfg, dbConn)),
+			BaseContext: func(net.Listener) context.Context { return ctx },
 		},
 		l: listener["web"],
 	}
 
 	websub := &httpServer{
 		s: &http.Server{
-			Handler: al.Wrap(websub.CreateHandler(cfg, dbConn)),
+			Handler:     al.Wrap(websub.CreateHandler(cfg, dbConn)),
+			BaseContext: func(net.Listener) context.Context { return ctx },
 		},
 		l: listener["websub"],
 	}
 
-	wCrawler := worker.NewCrawler(cfg)
+	wCrawler := worker.NewCrawler(cfg, func() context.Context { return ctx })
 
-	wCleaner := worker.NewCleaner(cfg)
+	wCleaner := worker.NewCleaner(cfg, func() context.Context { return ctx })
 
-	wWebSub := worker.NewWebSub(cfg)
-
-	idleShutdown := make(chan struct{})
+	wWebSub := worker.NewWebSub(cfg, func() context.Context { return ctx })
 
 	var srvs = []serveAndShutdown{reader, websub, wCrawler, wCleaner, wWebSub}
-
-	go func() {
-		quit := make(chan os.Signal, 1)
-		signal.Notify(quit, os.Interrupt)
-		<-quit
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		defer cancel()
-
-		var wg sync.WaitGroup
-		for _, s := range srvs {
-			wg.Add(1)
-			go func(ctx context.Context, s serveAndShutdown) {
-				defer wg.Done()
-				if err := s.Shutdown(ctx); err != nil {
-					log.Fatal(err)
-				}
-			}(ctx, s)
-		}
-		wg.Wait()
-
-		close(idleShutdown)
-	}()
 
 	for _, s := range srvs {
 		go func(s serveAndShutdown) {
@@ -132,7 +113,22 @@ func main() {
 	}
 
 	slog.Info("initialized.")
-	<-idleShutdown
+	<-ctx.Done()
+
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	var wg sync.WaitGroup
+	for _, s := range srvs {
+		wg.Add(1)
+		go func(ctx context.Context, s serveAndShutdown) {
+			defer wg.Done()
+			if err := s.Shutdown(ctx); err != nil {
+				log.Fatal(err)
+			}
+		}(shutdownCtx, s)
+	}
+	wg.Wait()
 }
 
 type httpServer struct {

@@ -12,14 +12,18 @@ import (
 )
 
 type wWebSub struct {
+	baseContext func() context.Context
+
 	cfg *config.Config
 
 	wg       sync.WaitGroup
 	shutdown chan struct{}
 }
 
-func NewWebSub(cfg *config.Config) *wWebSub {
+func NewWebSub(cfg *config.Config, baseContext func() context.Context) *wWebSub {
 	return &wWebSub{
+		baseContext: baseContext,
+
 		cfg:      cfg,
 		shutdown: make(chan struct{}),
 	}
@@ -29,7 +33,15 @@ func (w *wWebSub) Serve() error {
 	ticker := time.NewTicker(30 * time.Minute)
 	defer ticker.Stop()
 
-	ctx, cancel := context.WithCancel(context.Background())
+	baseCtx := context.Background()
+	if w.baseContext != nil {
+		baseCtx = w.baseContext()
+		if baseCtx == nil {
+			panic("BaseContext returned a nil context")
+		}
+	}
+
+	ctx, cancel := context.WithCancel(baseCtx)
 	defer cancel()
 
 	quit := make(chan struct{})
