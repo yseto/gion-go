@@ -36,7 +36,7 @@ func init() {
 	}).DialContext
 
 	client = &http.Client{
-		Transport: transport,
+		Transport: &transportForUserAgent{Transport: transport},
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			return http.ErrUseLastResponse
 		},
